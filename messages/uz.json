@@ -190,6 +190,19 @@
         "step4": "Bir nechta fanlar va sinf darajalariga kengaytirish"
       }
     },
+    "tech": {
+      "title": "Qanday quramiz",
+      "subtitle": "Moslashuvchan o'rganishni quvvatlovchi texnologiya steki va AI vositalari",
+      "ai": {
+        "title": "AI va Machine Learning"
+      },
+      "backend": {
+        "title": "Backend infratuzilmasi"
+      },
+      "frontend": {
+        "title": "Frontend va UX"
+      }
+    },
     "cta": {
       "title": "Kelajakning bir qismi bo'ling",
       "subtitle": "Biz prototip bosqichidamiz — AI-quvvatli moslashuvchan o'rganishni birinchilardan bo'lib tajriba qiling.",

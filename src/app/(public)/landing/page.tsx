@@ -169,6 +169,7 @@ const teamMembers = [
     role: "Backend Developer",
     image: "https://www.dropbox.com/scl/fi/okf59jf1e7e6vvj6ejrvj/1740572402226.jpg?rlkey=twighk7nq8kws6vvs7y65gn6m&dl=1",
     linkedin: "https://www.linkedin.com/in/shukrullo-jumanazarov/",
+    github: "https://github.com/Jumanazarov-Shukrullo",
     skills: ["Python", "FastAPI", "PostgreSQL", "Docker"]
   },
   {
@@ -176,13 +177,15 @@ const teamMembers = [
     role: "Backend Developer",
     image: "/team/shoislom.jpg",
     linkedin: "https://www.linkedin.com/in/shoislom-abloberdiev-797264287",
+    github: "https://github.com/usershoislom",
     skills: ["Python", "FastAPI", "SQLAlchemy", "Redis"]
   },
   {
     name: "Sohibjon Qurolov",
     role: "Data Analyst",
-    image: "/team/sohibjon.jpg",
+    image: "https://www.dropbox.com/scl/fi/o3u4l83n8q9bly4fxkte8/IMG_2203.JPG?rlkey=9dy3dgapfwtq3irxis3r316r7&st=aa1vwad1&dl=0",
     linkedin: "https://www.linkedin.com/in/sohibjon-qurolov/",
+    github: "https://github.com/KuroloffS",
     skills: ["Python", "Pandas", "Data Visualization", "SQL"]
   },
 ];
@@ -222,15 +225,28 @@ function TeamMemberCard({ member, isActive }: { member: typeof teamMembers[0]; i
                 <Badge key={i} variant="secondary" className="text-xs">{skill}</Badge>
               ))}
             </div>
-            <a 
-              href={member.linkedin} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Linkedin className="w-4 h-4" />
-              LinkedIn Profile
-            </a>
+            <div className="flex justify-center gap-3">
+              <a 
+                href={member.linkedin} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Linkedin className="w-4 h-4" />
+                LinkedIn
+              </a>
+              {member.github && (
+                <a 
+                  href={member.github} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Github className="w-4 h-4" />
+                  GitHub
+                </a>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -631,8 +647,78 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Tech Stack & AI Section */}
+      <section id="tech" className="py-24">
+        <div className="container mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">Technology</Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">{t('tech.title')}</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{t('tech.subtitle')}</p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* AI & ML */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}>
+              <Card className="h-full border-2 hover:border-primary/50 transition-all">
+                <CardContent className="pt-6">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-4">
+                    <Brain className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">{t('tech.ai.title')}</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />OpenAI GPT-4 / GPT-3.5</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />LangChain for RAG pipelines</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Vector DB (embeddings)</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Custom AI grading engine</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Adaptive difficulty algorithm</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Backend */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+              <Card className="h-full border-2 hover:border-primary/50 transition-all">
+                <CardContent className="pt-6">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-4">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">{t('tech.backend.title')}</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Python + FastAPI</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />PostgreSQL database</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />SQLAlchemy ORM</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Docker containerization</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Railway cloud hosting</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Frontend */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+              <Card className="h-full border-2 hover:border-primary/50 transition-all">
+                <CardContent className="pt-6">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-4">
+                    <Globe className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">{t('tech.frontend.title')}</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Next.js 15 (React)</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />TypeScript</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Tailwind CSS + shadcn/ui</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Framer Motion animations</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />i18n (EN/UZ/RU)</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Roadmap Section */}
-      <section id="roadmap" className="py-24">
+      <section id="roadmap" className="py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <Badge variant="outline" className="mb-4">Development Journey</Badge>

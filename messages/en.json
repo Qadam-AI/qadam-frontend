@@ -190,6 +190,19 @@
         "step4": "Expand to multiple subjects and grade levels"
       }
     },
+    "tech": {
+      "title": "How We Build It",
+      "subtitle": "Our technology stack and AI tools powering adaptive learning",
+      "ai": {
+        "title": "AI & Machine Learning"
+      },
+      "backend": {
+        "title": "Backend Infrastructure"
+      },
+      "frontend": {
+        "title": "Frontend & UX"
+      }
+    },
     "cta": {
       "title": "Be Part of the Future",
       "subtitle": "We're in prototype stage — be among the first to experience AI-powered adaptive learning.",
