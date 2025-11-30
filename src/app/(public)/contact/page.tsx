@@ -69,7 +69,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <div className="font-semibold">Email Us</div>
-                      <div className="text-sm text-muted-foreground">hello@qadam.ai</div>
+                      <div className="text-sm text-muted-foreground">shukrullo.coder@gmail.com</div>
                     </div>
                   </div>
                 </CardContent>
