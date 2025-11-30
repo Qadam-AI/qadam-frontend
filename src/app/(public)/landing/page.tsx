@@ -183,7 +183,7 @@ const teamMembers = [
   {
     name: "Sohibjon Qurolov",
     role: "Data Analyst",
-    image: "https://www.dropbox.com/scl/fi/o3u4l83n8q9bly4fxkte8/IMG_2203.JPG?rlkey=9dy3dgapfwtq3irxis3r316r7&st=aa1vwad1&dl=0",
+    image: "https://www.dropbox.com/scl/fi/o3u4l83n8q9bly4fxkte8/IMG_2203.JPG?rlkey=9dy3dgapfwtq3irxis3r316r7&st=aa1vwad1&dl=1",
     linkedin: "https://www.linkedin.com/in/sohibjon-qurolov/",
     github: "https://github.com/KuroloffS",
     skills: ["Python", "Pandas", "Data Visualization", "SQL"]
