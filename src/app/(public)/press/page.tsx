@@ -81,7 +81,7 @@ export default function PressPage() {
                 <div className="grid md:grid-cols-3 gap-4 mt-6 pt-6 border-t">
                   <div>
                     <div className="text-sm text-muted-foreground">Founded</div>
-                    <div className="font-bold">2024</div>
+                    <div className="font-bold">2025</div>
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Headquarters</div>
