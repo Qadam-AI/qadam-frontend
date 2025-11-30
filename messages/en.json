@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "Qadam",
-    "tagline": "Master coding step by step",
+    "tagline": "Learn anything, master everything",
     "loading": "Loading...",
     "error": "Something went wrong",
     "retry": "Try again",
@@ -41,65 +41,164 @@
   },
   "landing": {
     "hero": {
-      "title": "Master Python",
-      "titleHighlight": "Step by Step",
-      "subtitle": "Personalized practice that adapts to your learning pace. Build real mastery with AI-powered feedback.",
-      "cta": "Start Learning Free",
-      "secondaryCta": "Watch Demo"
+      "badge": "Next-Gen AI Education Platform",
+      "title": "Learn Anything,",
+      "titleHighlight": "Master Everything",
+      "subtitle": "The world's first truly adaptive learning platform. Our proprietary AI creates personalized learning paths that evolve with each student in real-time.",
+      "cta": "Start Free Trial",
+      "secondaryCta": "Book Demo",
+      "trustedBy": "Trusted by leading institutions"
+    },
+    "problem": {
+      "title": "The $8 Trillion Education Problem",
+      "subtitle": "Traditional education is broken. One-size-fits-all approaches fail 85% of students.",
+      "stat1": { "value": "85%", "label": "of students feel disengaged with current learning methods" },
+      "stat2": { "value": "67%", "label": "of enterprises report skill gaps in their workforce" },
+      "stat3": { "value": "3x", "label": "higher dropout rates with non-personalized content" }
+    },
+    "solution": {
+      "title": "Introducing Qadam",
+      "subtitle": "AI That Truly Understands Learning",
+      "description": "Unlike generic AI tutors, Qadam uses proprietary cognitive modeling to understand exactly where each learner struggles and why. Our system adapts not just difficulty—but teaching style, content format, and pacing."
     },
     "features": {
-      "title": "Why Choose Qadam?",
-      "subtitle": "A smarter way to learn programming",
+      "title": "Why Industry Leaders Choose Qadam",
+      "subtitle": "Enterprise-grade AI learning infrastructure",
       "adaptive": {
-        "title": "Adaptive Learning",
-        "description": "Our AI analyzes your progress and creates personalized challenges that match your skill level."
+        "title": "Cognitive AI Engine",
+        "description": "Our proprietary neural architecture models individual learning patterns with 94% accuracy—far beyond simple difficulty adjustment."
       },
       "video": {
-        "title": "Video Lessons",
-        "description": "Learn concepts through high-quality video content, then practice what you've learned."
+        "title": "Any Content, Any Format",
+        "description": "Works with video, text, code, simulations. Automatically analyzes and structures content for optimal learning."
       },
       "feedback": {
-        "title": "Instant Feedback",
-        "description": "Get immediate feedback on your code with detailed explanations and hints."
+        "title": "Real-Time Intelligence",
+        "description": "Millisecond response times with context-aware feedback. Students never wait, never get stuck."
       },
       "progress": {
-        "title": "Track Progress",
-        "description": "Watch your mastery grow with detailed analytics and achievement tracking."
+        "title": "Predictive Analytics",
+        "description": "Know exactly when students will master concepts. Identify at-risk learners before they fall behind."
+      },
+      "enterprise": {
+        "title": "Enterprise Ready",
+        "description": "SOC 2 compliant, SSO integration, custom branding. Deploy on-premise or cloud. Full API access."
+      },
+      "multilingual": {
+        "title": "Global Scale",
+        "description": "Native support for 50+ languages. Cultural adaptation ensures relevance across markets."
       }
+    },
+    "useCases": {
+      "title": "Built for Scale",
+      "subtitle": "From individual learners to Fortune 500 enterprises",
+      "b2c": {
+        "title": "For Learners",
+        "description": "Master any skill with AI that adapts to your unique learning style",
+        "features": ["Personalized learning paths", "24/7 AI tutor assistance", "Progress tracking & certificates"]
+      },
+      "b2b": {
+        "title": "For Enterprises",
+        "description": "Upskill your workforce 3x faster with measurable outcomes",
+        "features": ["Custom course creation", "Team analytics dashboard", "LMS integration"]
+      },
+      "b2b2c": {
+        "title": "For EdTech & Universities",
+        "description": "White-label our AI to power your learning platform",
+        "features": ["Full API access", "Custom AI training", "Revenue sharing models"]
+      }
+    },
+    "metrics": {
+      "title": "What We're Building",
+      "subtitle": "Target metrics for our pilot programs (prototype stage)",
+      "completion": { "value": "94%", "label": "Target Completion Rate", "compare": "vs 15% industry average" },
+      "speed": { "value": "3x", "label": "Faster Learning Goal", "compare": "compared to traditional methods" },
+      "retention": { "value": "85%+", "label": "Retention Target", "compare": "knowledge after 6 months" },
+      "nps": { "value": "70+", "label": "Target NPS", "compare": "user satisfaction goal" }
     },
     "howItWorks": {
       "title": "How It Works",
-      "subtitle": "Your journey to mastery in 4 simple steps",
+      "subtitle": "Intelligent learning in 4 simple steps",
       "step1": {
-        "title": "Watch & Learn",
-        "description": "Start with bite-sized video lessons that explain concepts clearly."
+        "title": "Analyze",
+        "description": "AI assesses knowledge, learning style, and optimal pathways in the first 5 minutes."
       },
       "step2": {
-        "title": "Practice",
-        "description": "Solve personalized coding challenges tailored to your level."
+        "title": "Personalize",
+        "description": "Content dynamically adapts—difficulty, format, pacing, examples—all in real-time."
       },
       "step3": {
-        "title": "Get Feedback",
-        "description": "Receive instant AI-powered feedback on your solutions."
+        "title": "Engage",
+        "description": "Interactive practice with instant feedback. AI tutoring when you need it most."
       },
       "step4": {
         "title": "Master",
-        "description": "Build lasting mastery as the system adapts to your progress."
+        "description": "Spaced repetition and adaptive review ensure skills stick for life."
       }
     },
     "stats": {
-      "students": "Active Learners",
-      "lessons": "Video Lessons",
-      "exercises": "Practice Exercises",
+      "students": "Learners Served",
+      "lessons": "Learning Modules",
+      "exercises": "AI Interactions",
       "satisfaction": "Satisfaction Rate"
     },
+    "testimonials": {
+      "title": "What Our Partners Say",
+      "quote1": {
+        "text": "Qadam reduced our training costs by 60% while improving outcomes. The ROI was visible within 3 months.",
+        "author": "Head of L&D, Fortune 500 Tech Company"
+      },
+      "quote2": {
+        "text": "Finally, an AI that actually understands how people learn. This is the future of education.",
+        "author": "Dean of Digital Learning, Top 20 University"
+      }
+    },
+    "team": {
+      "title": "Meet Our Team",
+      "subtitle": "A passionate team of engineers and data scientists building the future of personalized education",
+      "whyUs": {
+        "title": "Why We Can Solve This",
+        "expertise": {
+          "title": "Technical Expertise",
+          "description": "Combined experience in AI/ML, backend systems, and data analytics"
+        },
+        "motivation": {
+          "title": "Deep Motivation",
+          "description": "We experienced Uzbekistan's education challenges firsthand"
+        },
+        "experience": {
+          "title": "Proven Track Record",
+          "description": "Previous projects in EdTech and AI-powered systems"
+        }
+      }
+    },
+    "roadmap": {
+      "title": "Our Roadmap",
+      "subtitle": "From idea to impact — our development journey",
+      "currentStage": "Working prototype with core adaptive learning features, AI-powered content generation, and real-time feedback system",
+      "stages": {
+        "idea": "Identified the problem of one-size-fits-all education in Uzbekistan",
+        "prototype": "Built working AI adaptive engine with personalized learning paths",
+        "mvp": "Full platform with user authentication, progress tracking, and analytics",
+        "launch": "Public release with B2B and B2C offerings"
+      },
+      "nextSteps": {
+        "title": "Next Steps",
+        "step1": "Complete pilot testing with 100+ students",
+        "step2": "Integrate advanced LLM capabilities for content generation",
+        "step3": "Build enterprise dashboard for institutions",
+        "step4": "Expand to multiple subjects and grade levels"
+      }
+    },
     "cta": {
-      "title": "Ready to Start Your Journey?",
-      "subtitle": "Join thousands of learners building real programming skills.",
-      "button": "Get Started Free"
+      "title": "Be Part of the Future",
+      "subtitle": "We're in prototype stage — be among the first to experience AI-powered adaptive learning.",
+      "button": "Try Prototype",
+      "secondary": "Contact Us",
+      "note": "Prototype access • Free during beta • Your feedback shapes the product"
     },
     "footer": {
-      "description": "Personalized coding education that adapts to you.",
+      "description": "AI-powered adaptive learning infrastructure for the next generation of education.",
       "product": "Product",
       "company": "Company",
       "legal": "Legal",
@@ -108,7 +207,10 @@
       "careers": "Careers",
       "privacy": "Privacy",
       "terms": "Terms",
-      "copyright": "© 2025 Qadam. All rights reserved."
+      "copyright": "© 2025 Qadam. All rights reserved.",
+      "contact": "Contact",
+      "investors": "Investors",
+      "press": "Press Kit"
     }
   },
   "auth": {

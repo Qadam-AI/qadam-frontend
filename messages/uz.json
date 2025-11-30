@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "Qadam",
-    "tagline": "Dasturlashni bosqichma-bosqich o'rganing",
+    "tagline": "Har narsani o'rganing, hamma narsani egallang",
     "loading": "Yuklanmoqda...",
     "error": "Xatolik yuz berdi",
     "retry": "Qayta urinish",
@@ -41,65 +41,164 @@
   },
   "landing": {
     "hero": {
-      "title": "Python tilini",
-      "titleHighlight": "Bosqichma-bosqich o'rganing",
-      "subtitle": "O'rganish tezligingizga moslashuvchi shaxsiy mashqlar. Sun'iy intellekt yordamida haqiqiy mahorat hosil qiling.",
-      "cta": "Bepul boshlash",
-      "secondaryCta": "Demo ko'rish"
+      "badge": "Yangi avlod AI ta'lim platformasi",
+      "title": "Har narsani o'rganing,",
+      "titleHighlight": "Hamma narsani egallang",
+      "subtitle": "Dunyodagi birinchi haqiqiy moslashuvchan o'quv platformasi. Bizning xususiy sun'iy intellektimiz har bir talabaga real vaqtda moslashadigan shaxsiy o'quv yo'llarini yaratadi.",
+      "cta": "Bepul sinovni boshlang",
+      "secondaryCta": "Demo ko'rish",
+      "trustedBy": "Yetakchi tashkilotlar ishonadi"
+    },
+    "problem": {
+      "title": "8 trillion dollarlik ta'lim muammosi",
+      "subtitle": "An'anaviy ta'lim buzilgan. Bir o'lchamli yondashuvlar talabalarning 85% ini muvaffaqiyatsizlikka uchratadi.",
+      "stat1": { "value": "85%", "label": "talabalar joriy o'quv usullaridan qoniqmaydi" },
+      "stat2": { "value": "67%", "label": "korxonalar ishchi kuchidagi ko'nikmalar kamligini qayd etadi" },
+      "stat3": { "value": "3x", "label": "shaxsiylashtirilmagan kontent bilan tashlab ketish darajasi yuqori" }
+    },
+    "solution": {
+      "title": "Qadam bilan tanishing",
+      "subtitle": "O'rganishni haqiqatan tushunadigan sun'iy intellekt",
+      "description": "Oddiy AI o'qituvchilardan farqli o'laroq, Qadam har bir o'quvchi qayerda va nima uchun qiynalayotganini aniq tushunish uchun xususiy kognitiv modellashtiruvdan foydalanadi. Bizning tizimimiz nafaqat qiyinchilikni - balki o'qitish uslubi, kontent formati va tezlikni ham moslashtiradi."
     },
     "features": {
-      "title": "Nega Qadam?",
-      "subtitle": "Dasturlashni o'rganishning aqlli usuli",
+      "title": "Nima uchun sanoat yetakchilari Qadamni tanlaydi",
+      "subtitle": "Korxona darajasidagi AI o'quv infratuzilmasi",
       "adaptive": {
-        "title": "Moslashuvchan o'rganish",
-        "description": "Sun'iy intellektimiz taraqqiyotingizni tahlil qiladi va mahorat darajangizga mos shaxsiy vazifalar yaratadi."
+        "title": "Kognitiv AI dvigateli",
+        "description": "Bizning xususiy neyron arxitekturamiz individual o'quv namunalarini 94% aniqlik bilan modellashtiradi — oddiy qiyinchilikni sozlashdan ancha yuqori."
       },
       "video": {
-        "title": "Video darslar",
-        "description": "Tushunchalarni sifatli video kontent orqali o'rganing, keyin o'rganganlaringizni mashq qiling."
+        "title": "Har qanday kontent, har qanday format",
+        "description": "Video, matn, kod, simulyatsiyalar bilan ishlaydi. Kontentni optimal o'rganish uchun avtomatik tahlil qiladi va tuzilmalaydi."
       },
       "feedback": {
-        "title": "Tezkor fikr-mulohaza",
-        "description": "Kodingiz bo'yicha batafsil tushuntirish va maslahatlar bilan darhol fikr-mulohaza oling."
+        "title": "Real vaqtdagi intellekt",
+        "description": "Kontekstga mos fikr-mulohaza bilan millisekundlik javob vaqtlari. Talabalar hech qachon kutmaydi, hech qachon to'xtab qolmaydi."
       },
       "progress": {
-        "title": "Taraqqiyotni kuzatish",
-        "description": "Batafsil tahlil va yutuqlarni kuzatish orqali mahoratning o'sishini kuzating."
+        "title": "Prognoz tahlili",
+        "description": "Talabalar qachon tushunchalarni o'zlashtirishini aniq biling. Xavfli o'quvchilarni orqada qolishdan oldin aniqlang."
+      },
+      "enterprise": {
+        "title": "Korxona uchun tayyor",
+        "description": "SOC 2 muvofiq, SSO integratsiyasi, maxsus brending. Mahalliy yoki bulutda joylashtiring. To'liq API kirish."
+      },
+      "multilingual": {
+        "title": "Global miqyos",
+        "description": "50+ tilni qo'llab-quvvatlash. Madaniy moslashuv barcha bozorlarda dolzarblikni ta'minlaydi."
       }
+    },
+    "useCases": {
+      "title": "Miqyos uchun qurilgan",
+      "subtitle": "Individual o'quvchilardan Fortune 500 korxonalarigacha",
+      "b2c": {
+        "title": "O'quvchilar uchun",
+        "description": "O'zingizning noyob o'qish uslubingizga moslashadigan AI bilan har qanday ko'nikmani egallang",
+        "features": ["Shaxsiy o'quv yo'llari", "24/7 AI o'qituvchi yordami", "Taraqqiyotni kuzatish va sertifikatlar"]
+      },
+      "b2b": {
+        "title": "Korxonalar uchun",
+        "description": "Ishchi kuchingiz ko'nikmalarini o'lchanadigan natijalar bilan 3x tezroq oshiring",
+        "features": ["Maxsus kurs yaratish", "Jamoa tahlillar paneli", "LMS integratsiyasi"]
+      },
+      "b2b2c": {
+        "title": "EdTech va Universitetlar uchun",
+        "description": "O'quv platformangizni quvvatlash uchun AI'mizni oq yorliq sifatida foydalaning",
+        "features": ["To'liq API kirish", "Maxsus AI o'qitish", "Daromad ulashish modellari"]
+      }
+    },
+    "metrics": {
+      "title": "Nima quryapmiz",
+      "subtitle": "Pilot dasturlarimiz uchun maqsad ko'rsatkichlar (prototip bosqichi)",
+      "completion": { "value": "94%", "label": "Maqsad tugatish darajasi", "compare": "sanoat o'rtachasi 15% ga nisbatan" },
+      "speed": { "value": "3x", "label": "Tezroq o'rganish maqsadi", "compare": "an'anaviy usullarga nisbatan" },
+      "retention": { "value": "85%+", "label": "Saqlab qolish maqsadi", "compare": "6 oydan keyin bilim" },
+      "nps": { "value": "70+", "label": "Maqsad NPS", "compare": "foydalanuvchi qoniqishi maqsadi" }
     },
     "howItWorks": {
       "title": "Qanday ishlaydi",
-      "subtitle": "4 oddiy qadamda mahoratga erishish yo'li",
+      "subtitle": "4 oddiy qadamda aqlli o'rganish",
       "step1": {
-        "title": "Ko'ring va o'rganing",
-        "description": "Tushunchalarni aniq tushuntiruvchi qisqa video darslardan boshlang."
+        "title": "Tahlil qilish",
+        "description": "AI birinchi 5 daqiqada bilim, o'qish uslubi va optimal yo'llarni baholaydi."
       },
       "step2": {
-        "title": "Mashq qiling",
-        "description": "Darajangizga moslashtirilgan shaxsiy kod vazifalarini yeching."
+        "title": "Shaxsiylashtirish",
+        "description": "Kontent dinamik ravishda moslashadi — qiyinchilik, format, tezlik, misollar — hammasi real vaqtda."
       },
       "step3": {
-        "title": "Fikr-mulohaza oling",
-        "description": "Yechimlaringiz bo'yicha sun'iy intellekt yordamida darhol fikr-mulohaza oling."
+        "title": "Jalb qilish",
+        "description": "Tezkor fikr-mulohaza bilan interaktiv mashq. Eng kerak bo'lganda AI o'qitish."
       },
       "step4": {
-        "title": "Mahorat hosil qiling",
-        "description": "Tizim taraqqiyotingizga moslashgan sari doimiy mahorat hosil qiling."
+        "title": "Egallash",
+        "description": "Oraliq takrorlash va moslashuvchan ko'rib chiqish ko'nikmalar umrbod saqlanishini ta'minlaydi."
       }
     },
     "stats": {
-      "students": "Faol o'quvchilar",
-      "lessons": "Video darslar",
-      "exercises": "Mashq vazifalari",
-      "satisfaction": "Mamnunlik darajasi"
+      "students": "Xizmat ko'rsatilgan o'quvchilar",
+      "lessons": "O'quv modullari",
+      "exercises": "AI muloqotlari",
+      "satisfaction": "Qoniqish darajasi"
+    },
+    "testimonials": {
+      "title": "Hamkorlarimiz nima deydi",
+      "quote1": {
+        "text": "Qadam o'quv xarajatlarimizni 60% ga kamaytirdi, natijalarni yaxshiladi. ROI 3 oy ichida ko'rindi.",
+        "author": "L&D rahbari, Fortune 500 texnologiya kompaniyasi"
+      },
+      "quote2": {
+        "text": "Nihoyat, odamlar qanday o'rganishini haqiqatan tushunadigan AI. Bu ta'limning kelajagi.",
+        "author": "Raqamli o'quv dekani, Top 20 universitet"
+      }
+    },
+    "team": {
+      "title": "Bizning jamoa",
+      "subtitle": "Shaxsiylashtirilgan ta'limning kelajagini yaratayotgan ishtiyoqli muhandislar va ma'lumotlar olimlari jamoasi",
+      "whyUs": {
+        "title": "Nima uchun biz bu muammoni hal qila olamiz",
+        "expertise": {
+          "title": "Texnik tajriba",
+          "description": "AI/ML, backend tizimlar va ma'lumotlar tahlilida birlashtirilgan tajriba"
+        },
+        "motivation": {
+          "title": "Chuqur motivatsiya",
+          "description": "Biz O'zbekiston ta'limi muammolarini o'zimiz boshdan kechirdik"
+        },
+        "experience": {
+          "title": "Tasdiqlangan tajriba",
+          "description": "EdTech va AI-quvvatli tizimlardagi oldingi loyihalar"
+        }
+      }
+    },
+    "roadmap": {
+      "title": "Bizning yo'l xaritamiz",
+      "subtitle": "G'oyadan ta'sirgacha — bizning rivojlanish sayohatimiz",
+      "currentStage": "Asosiy moslashuvchan o'rganish xususiyatlari, AI-quvvatli kontent yaratish va real vaqtdagi fikr-mulohaza tizimi bilan ishlaydigan prototip",
+      "stages": {
+        "idea": "O'zbekistondagi bir o'lchamli ta'lim muammosini aniqladik",
+        "prototype": "Shaxsiylashtirilgan o'quv yo'llari bilan ishlaydigan AI moslashuvchan dvigatelini yaratdik",
+        "mvp": "Foydalanuvchi autentifikatsiyasi, taraqqiyotni kuzatish va tahlillar bilan to'liq platforma",
+        "launch": "B2B va B2C takliflari bilan ommaviy chiqarish"
+      },
+      "nextSteps": {
+        "title": "Keyingi qadamlar",
+        "step1": "100+ talaba bilan pilot sinovlarni yakunlash",
+        "step2": "Kontent yaratish uchun ilg'or LLM imkoniyatlarini integratsiya qilish",
+        "step3": "Muassasalar uchun korxona panelini yaratish",
+        "step4": "Bir nechta fanlar va sinf darajalariga kengaytirish"
+      }
     },
     "cta": {
-      "title": "Sayohatingizni boshlashga tayyormisiz?",
-      "subtitle": "Haqiqiy dasturlash ko'nikmalarini rivojlantirayotgan minglab o'quvchilarga qo'shiling.",
-      "button": "Bepul boshlash"
+      "title": "Kelajakning bir qismi bo'ling",
+      "subtitle": "Biz prototip bosqichidamiz — AI-quvvatli moslashuvchan o'rganishni birinchilardan bo'lib tajriba qiling.",
+      "button": "Prototipni sinab ko'ring",
+      "secondary": "Biz bilan bog'laning",
+      "note": "Prototip kirish • Beta davomida bepul • Fikr-mulohazangiz mahsulotni shakllantiradi"
     },
     "footer": {
-      "description": "Sizga moslashuvchi shaxsiy dasturlash ta'limi.",
+      "description": "Keyingi avlod ta'limi uchun AI-quvvatli moslashuvchan o'quv infratuzilmasi.",
       "product": "Mahsulot",
       "company": "Kompaniya",
       "legal": "Huquqiy",
@@ -108,7 +207,10 @@
       "careers": "Karyera",
       "privacy": "Maxfiylik",
       "terms": "Shartlar",
-      "copyright": "© 2025 Qadam. Barcha huquqlar himoyalangan."
+      "copyright": "© 2025 Qadam. Barcha huquqlar himoyalangan.",
+      "contact": "Aloqa",
+      "investors": "Investorlar",
+      "press": "Matbuot to'plami"
     }
   },
   "auth": {

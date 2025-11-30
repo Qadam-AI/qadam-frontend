@@ -88,6 +88,7 @@ export const gradeResultSchema = z.object({
   failures: z.array(testFailureSchema),
   aiFeedback: z.string().nullable(),
   timeMs: z.number(),
+  xpEarned: z.number().optional().default(0),
 })
 
 export const attemptSummarySchema = z.object({
