@@ -119,7 +119,7 @@ export default function TermsPage() {
               <h2>12. Contact</h2>
               <p>
                 Questions about these Terms should be directed to{' '}
-                <a href="mailto:legal@qadam.ai">legal@qadam.ai</a>.
+                <a href="mailto:shukrullo.coder@gmail.com">shukrullo.coder@gmail.com</a>.
               </p>
             </div>
           </motion.div>

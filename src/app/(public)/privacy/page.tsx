@@ -102,7 +102,7 @@ export default function PrivacyPage() {
               <h2>8. Contact Us</h2>
               <p>
                 If you have questions about this Privacy Policy, please contact us at{' '}
-                <a href="mailto:privacy@qadam.ai">privacy@qadam.ai</a>.
+                <a href="mailto:shukrullo.coder@gmail.com">shukrullo.coder@gmail.com</a>.
               </p>
             </div>
           </motion.div>
