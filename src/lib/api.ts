@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { toast } from 'sonner'
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE || 'https://qadam-backend-production.up.railway.app/',
   headers: {
     'Content-Type': 'application/json',
   },

@@ -17,7 +17,8 @@ import {
   Menu,
   X,
   Brain,
-  Blocks
+  Blocks,
+  MessageSquare
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -38,6 +39,11 @@ const navItems: NavItem[] = [
     title: 'Users',
     href: '/admin/users',
     icon: <Users className="h-5 w-5" />
+  },
+  {
+    title: 'Messages',
+    href: '/admin/messages',
+    icon: <MessageSquare className="h-5 w-5" />
   },
   {
     title: 'Courses',

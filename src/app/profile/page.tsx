@@ -44,7 +44,7 @@ function ProfileContent() {
       const [coursesRes, completedRes, attemptsRes] = await Promise.all([
         api.get('/courses'),
         api.get('/lessons/progress'),
-        api.get('/attempts').catch(() => ({ data: [] })),
+        api.get(`/users/${user!.id}/attempts`).catch(() => ({ data: [] })),
       ])
       
       const courseList = coursesRes.data || []
