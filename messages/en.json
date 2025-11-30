@@ -1,0 +1,253 @@
+{
+  "common": {
+    "appName": "Qadam",
+    "tagline": "Master coding step by step",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "next": "Next",
+    "previous": "Previous",
+    "start": "Start",
+    "continue": "Continue",
+    "complete": "Complete",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "notStarted": "Not Started",
+    "justNow": "just now",
+    "ago": "ago"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "practice": "Practice",
+    "lessons": "Lessons",
+    "attempts": "Attempts",
+    "profile": "Profile",
+    "admin": "Admin Dashboard",
+    "logout": "Logout",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "tagline": "Personalized practice to build real mastery."
+  },
+  "landing": {
+    "hero": {
+      "title": "Master Python",
+      "titleHighlight": "Step by Step",
+      "subtitle": "Personalized practice that adapts to your learning pace. Build real mastery with AI-powered feedback.",
+      "cta": "Start Learning Free",
+      "secondaryCta": "Watch Demo"
+    },
+    "features": {
+      "title": "Why Choose Qadam?",
+      "subtitle": "A smarter way to learn programming",
+      "adaptive": {
+        "title": "Adaptive Learning",
+        "description": "Our AI analyzes your progress and creates personalized challenges that match your skill level."
+      },
+      "video": {
+        "title": "Video Lessons",
+        "description": "Learn concepts through high-quality video content, then practice what you've learned."
+      },
+      "feedback": {
+        "title": "Instant Feedback",
+        "description": "Get immediate feedback on your code with detailed explanations and hints."
+      },
+      "progress": {
+        "title": "Track Progress",
+        "description": "Watch your mastery grow with detailed analytics and achievement tracking."
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Your journey to mastery in 4 simple steps",
+      "step1": {
+        "title": "Watch & Learn",
+        "description": "Start with bite-sized video lessons that explain concepts clearly."
+      },
+      "step2": {
+        "title": "Practice",
+        "description": "Solve personalized coding challenges tailored to your level."
+      },
+      "step3": {
+        "title": "Get Feedback",
+        "description": "Receive instant AI-powered feedback on your solutions."
+      },
+      "step4": {
+        "title": "Master",
+        "description": "Build lasting mastery as the system adapts to your progress."
+      }
+    },
+    "stats": {
+      "students": "Active Learners",
+      "lessons": "Video Lessons",
+      "exercises": "Practice Exercises",
+      "satisfaction": "Satisfaction Rate"
+    },
+    "cta": {
+      "title": "Ready to Start Your Journey?",
+      "subtitle": "Join thousands of learners building real programming skills.",
+      "button": "Get Started Free"
+    },
+    "footer": {
+      "description": "Personalized coding education that adapts to you.",
+      "product": "Product",
+      "company": "Company",
+      "legal": "Legal",
+      "about": "About",
+      "blog": "Blog",
+      "careers": "Careers",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "copyright": "© 2025 Qadam. All rights reserved."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Enter your credentials to continue",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Start your learning journey today",
+      "name": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in"
+    }
+  },
+  "dashboard": {
+    "welcomeBack": "Welcome back, {name}",
+    "defaultUser": "there",
+    "subtitle": "Personalized practice to build real mastery.",
+    "currentStreak": "Current Streak",
+    "days": "days",
+    "activeToday": "Active today!",
+    "lessonsDone": "Lessons Done",
+    "ofTotal": "of {total} total",
+    "conceptsMastered": "Concepts Mastered",
+    "ofConcepts": "of {total} concepts",
+    "overallProgress": "Overall Progress",
+    "courseProgress": "Course Progress",
+    "complete": "Complete",
+    "percentComplete": "complete",
+    "yourMastery": "Your Mastery",
+    "noMasteryData": "No mastery data yet. Start practicing to see your progress!",
+    "startPractice": "Start Practice",
+    "quickActions": "Quick Actions",
+    "continuePractice": "Continue Practice",
+    "continuePracticeDesc": "Get your next personalized challenge",
+    "start": "Start",
+    "goToLessons": "Go to Lessons",
+    "goToLessonsDesc": "Learn new concepts and watch videos",
+    "browse": "Browse",
+    "viewHistory": "View History",
+    "viewHistoryDesc": "Review your past attempts",
+    "view": "View",
+    "recentActivity": "Recent Activity"
+  },
+  "practice": {
+    "title": "Practice",
+    "subtitle": "Here's a tailored challenge based on your progress.",
+    "yourSolution": "Your Solution",
+    "runTests": "Run Tests",
+    "running": "Running...",
+    "reset": "Reset",
+    "nextTask": "Next Task",
+    "shortcuts": "Ctrl+Enter to run • Ctrl+Shift+R to reset",
+    "feedback": {
+      "passed": "Great job!",
+      "failed": "Keep trying!",
+      "getHint": "Get Hint"
+    },
+    "whyThisTask": "Why this task?"
+  },
+  "lessons": {
+    "title": "Lessons",
+    "subtitle": "Browse lessons organized by course",
+    "noLessons": "No lessons available",
+    "noLessonsDesc": "Lessons will appear here once they are added to courses",
+    "noLessonsInCourse": "No lessons in this course yet",
+    "lessonsLabel": "lessons",
+    "completed": "Completed",
+    "start": "Start",
+    "review": "Review",
+    "progress": "{completed}/{total} completed"
+  },
+  "lesson": {
+    "allLessons": "All Lessons",
+    "lessonOf": "Lesson {current} of {total}",
+    "conceptsCovered": "Concepts Covered",
+    "noVideo": "No video available for this lesson",
+    "complete": "Complete",
+    "alreadyCompleted": "Already Completed",
+    "saving": "Saving..."
+  },
+  "attempts": {
+    "title": "Attempts History",
+    "subtitle": "Review your practice progress",
+    "recent": "Recent Attempts",
+    "noAttempts": "No attempts yet",
+    "noAttemptsDesc": "Start practicing to see your history here",
+    "details": "Attempt Details",
+    "status": "Status",
+    "time": "Time",
+    "concept": "Concept",
+    "yourCode": "Your Code",
+    "testFailures": "Test Failures",
+    "passed": "Passed",
+    "failed": "Failed"
+  },
+  "profile": {
+    "title": "Profile",
+    "statistics": "Your Statistics",
+    "lessonsCompleted": "Lessons Completed",
+    "practiceAttempts": "Practice Attempts",
+    "conceptsMastered": "Concepts Mastered",
+    "passRate": "Pass Rate",
+    "lessonProgress": "Lesson Progress",
+    "lessonProgressDesc": "Your progress through all available lessons",
+    "avgMastery": "Average Mastery",
+    "avgMasteryDesc": "Your average mastery level across all concepts",
+    "masteryBreakdown": "Concept Mastery Breakdown",
+    "masteryBreakdownDesc": "Detailed view of your mastery across all concepts",
+    "preferences": "Preferences",
+    "language": "Language"
+  },
+  "bookmarks": {
+    "title": "Bookmarked Lessons",
+    "empty": "No bookmarks yet",
+    "emptyDesc": "Save lessons for later by clicking the bookmark icon",
+    "remove": "Remove bookmark"
+  },
+  "search": {
+    "placeholder": "Search lessons, concepts...",
+    "noResults": "No results found",
+    "results": "{count} results for \"{query}\""
+  },
+  "xp": {
+    "level": "Level {level}",
+    "total": "{xp} XP total",
+    "toNext": "{xp} to next level",
+    "earned": "+{xp} XP earned!",
+    "progress": "{percent}% to Level {level}"
+  }
+}

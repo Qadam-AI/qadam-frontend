@@ -1,0 +1,253 @@
+{
+  "common": {
+    "appName": "Qadam",
+    "tagline": "Dasturlashni bosqichma-bosqich o'rganing",
+    "loading": "Yuklanmoqda...",
+    "error": "Xatolik yuz berdi",
+    "retry": "Qayta urinish",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "view": "Ko'rish",
+    "search": "Qidirish",
+    "filter": "Filtrlash",
+    "all": "Hammasi",
+    "none": "Yo'q",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "next": "Keyingi",
+    "previous": "Oldingi",
+    "start": "Boshlash",
+    "continue": "Davom etish",
+    "complete": "Tugatish",
+    "completed": "Tugallangan",
+    "inProgress": "Jarayonda",
+    "notStarted": "Boshlanmagan",
+    "justNow": "hozir",
+    "ago": "oldin"
+  },
+  "nav": {
+    "dashboard": "Bosh sahifa",
+    "practice": "Mashq",
+    "lessons": "Darslar",
+    "attempts": "Urinishlar",
+    "profile": "Profil",
+    "admin": "Admin panel",
+    "logout": "Chiqish",
+    "login": "Kirish",
+    "signUp": "Ro'yxatdan o'tish",
+    "tagline": "Haqiqiy mahorat hosil qilish uchun shaxsiy mashqlar."
+  },
+  "landing": {
+    "hero": {
+      "title": "Python tilini",
+      "titleHighlight": "Bosqichma-bosqich o'rganing",
+      "subtitle": "O'rganish tezligingizga moslashuvchi shaxsiy mashqlar. Sun'iy intellekt yordamida haqiqiy mahorat hosil qiling.",
+      "cta": "Bepul boshlash",
+      "secondaryCta": "Demo ko'rish"
+    },
+    "features": {
+      "title": "Nega Qadam?",
+      "subtitle": "Dasturlashni o'rganishning aqlli usuli",
+      "adaptive": {
+        "title": "Moslashuvchan o'rganish",
+        "description": "Sun'iy intellektimiz taraqqiyotingizni tahlil qiladi va mahorat darajangizga mos shaxsiy vazifalar yaratadi."
+      },
+      "video": {
+        "title": "Video darslar",
+        "description": "Tushunchalarni sifatli video kontent orqali o'rganing, keyin o'rganganlaringizni mashq qiling."
+      },
+      "feedback": {
+        "title": "Tezkor fikr-mulohaza",
+        "description": "Kodingiz bo'yicha batafsil tushuntirish va maslahatlar bilan darhol fikr-mulohaza oling."
+      },
+      "progress": {
+        "title": "Taraqqiyotni kuzatish",
+        "description": "Batafsil tahlil va yutuqlarni kuzatish orqali mahoratning o'sishini kuzating."
+      }
+    },
+    "howItWorks": {
+      "title": "Qanday ishlaydi",
+      "subtitle": "4 oddiy qadamda mahoratga erishish yo'li",
+      "step1": {
+        "title": "Ko'ring va o'rganing",
+        "description": "Tushunchalarni aniq tushuntiruvchi qisqa video darslardan boshlang."
+      },
+      "step2": {
+        "title": "Mashq qiling",
+        "description": "Darajangizga moslashtirilgan shaxsiy kod vazifalarini yeching."
+      },
+      "step3": {
+        "title": "Fikr-mulohaza oling",
+        "description": "Yechimlaringiz bo'yicha sun'iy intellekt yordamida darhol fikr-mulohaza oling."
+      },
+      "step4": {
+        "title": "Mahorat hosil qiling",
+        "description": "Tizim taraqqiyotingizga moslashgan sari doimiy mahorat hosil qiling."
+      }
+    },
+    "stats": {
+      "students": "Faol o'quvchilar",
+      "lessons": "Video darslar",
+      "exercises": "Mashq vazifalari",
+      "satisfaction": "Mamnunlik darajasi"
+    },
+    "cta": {
+      "title": "Sayohatingizni boshlashga tayyormisiz?",
+      "subtitle": "Haqiqiy dasturlash ko'nikmalarini rivojlantirayotgan minglab o'quvchilarga qo'shiling.",
+      "button": "Bepul boshlash"
+    },
+    "footer": {
+      "description": "Sizga moslashuvchi shaxsiy dasturlash ta'limi.",
+      "product": "Mahsulot",
+      "company": "Kompaniya",
+      "legal": "Huquqiy",
+      "about": "Biz haqimizda",
+      "blog": "Blog",
+      "careers": "Karyera",
+      "privacy": "Maxfiylik",
+      "terms": "Shartlar",
+      "copyright": "© 2025 Qadam. Barcha huquqlar himoyalangan."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Xush kelibsiz",
+      "subtitle": "Davom etish uchun ma'lumotlaringizni kiriting",
+      "email": "Email",
+      "password": "Parol",
+      "submit": "Kirish",
+      "forgotPassword": "Parolni unutdingizmi?",
+      "noAccount": "Hisobingiz yo'qmi?",
+      "signUp": "Ro'yxatdan o'ting"
+    },
+    "register": {
+      "title": "Hisob yaratish",
+      "subtitle": "Bugun o'rganish sayohatingizni boshlang",
+      "name": "To'liq ism",
+      "email": "Email",
+      "password": "Parol",
+      "confirmPassword": "Parolni tasdiqlang",
+      "submit": "Hisob yaratish",
+      "hasAccount": "Allaqachon hisobingiz bormi?",
+      "signIn": "Kirish"
+    }
+  },
+  "dashboard": {
+    "welcomeBack": "Xush kelibsiz, {name}",
+    "defaultUser": "do'stim",
+    "subtitle": "Haqiqiy mahorat hosil qilish uchun shaxsiy mashqlar.",
+    "currentStreak": "Joriy seriya",
+    "days": "kun",
+    "activeToday": "Bugun faol!",
+    "lessonsDone": "Tugallangan darslar",
+    "ofTotal": "{total} dan",
+    "conceptsMastered": "O'zlashtirilgan tushunchalar",
+    "ofConcepts": "{total} tushunchadan",
+    "overallProgress": "Umumiy taraqqiyot",
+    "courseProgress": "Kurs taraqqiyoti",
+    "complete": "Tugallangan",
+    "percentComplete": "tugallangan",
+    "yourMastery": "Mahoratim",
+    "noMasteryData": "Mahorat ma'lumotlari hali yo'q. Taraqqiyotingizni ko'rish uchun mashq qilishni boshlang!",
+    "startPractice": "Mashqni boshlash",
+    "quickActions": "Tezkor amallar",
+    "continuePractice": "Mashqni davom ettirish",
+    "continuePracticeDesc": "Keyingi shaxsiy vazifangizni oling",
+    "start": "Boshlash",
+    "goToLessons": "Darslarga o'tish",
+    "goToLessonsDesc": "Yangi tushunchalarni o'rganing va videolarni tomosha qiling",
+    "browse": "Ko'rish",
+    "viewHistory": "Tarixni ko'rish",
+    "viewHistoryDesc": "Oldingi urinishlaringizni ko'rib chiqing",
+    "view": "Ko'rish",
+    "recentActivity": "So'nggi faollik"
+  },
+  "practice": {
+    "title": "Mashq",
+    "subtitle": "Bu yerda taraqqiyotingizga asoslangan maxsus vazifa.",
+    "yourSolution": "Yechimingiz",
+    "runTests": "Testlarni ishga tushirish",
+    "running": "Ishlamoqda...",
+    "reset": "Qayta o'rnatish",
+    "nextTask": "Keyingi vazifa",
+    "shortcuts": "Ctrl+Enter - ishga tushirish • Ctrl+Shift+R - qayta o'rnatish",
+    "feedback": {
+      "passed": "Zo'r!",
+      "failed": "Davom eting!",
+      "getHint": "Maslahat olish"
+    },
+    "whyThisTask": "Nega bu vazifa?"
+  },
+  "lessons": {
+    "title": "Darslar",
+    "subtitle": "Kurslar bo'yicha tartiblangan darslarni ko'ring",
+    "noLessons": "Darslar mavjud emas",
+    "noLessonsDesc": "Kurslarga qo'shilgandan so'ng darslar bu yerda paydo bo'ladi",
+    "noLessonsInCourse": "Bu kursda hali darslar yo'q",
+    "lessonsLabel": "dars",
+    "completed": "Tugallangan",
+    "start": "Boshlash",
+    "review": "Ko'rib chiqish",
+    "progress": "{completed}/{total} tugallangan"
+  },
+  "lesson": {
+    "allLessons": "Barcha darslar",
+    "lessonOf": "{total} dan {current}-dars",
+    "conceptsCovered": "O'rganilgan tushunchalar",
+    "noVideo": "Bu dars uchun video mavjud emas",
+    "complete": "Tugatish",
+    "alreadyCompleted": "Allaqachon tugallangan",
+    "saving": "Saqlanmoqda..."
+  },
+  "attempts": {
+    "title": "Urinishlar tarixi",
+    "subtitle": "Mashq taraqqiyotingizni ko'rib chiqing",
+    "recent": "So'nggi urinishlar",
+    "noAttempts": "Urinishlar hali yo'q",
+    "noAttemptsDesc": "Tarixingizni ko'rish uchun mashq qilishni boshlang",
+    "details": "Urinish tafsilotlari",
+    "status": "Holat",
+    "time": "Vaqt",
+    "concept": "Tushuncha",
+    "yourCode": "Kodingiz",
+    "testFailures": "Test xatoliklari",
+    "passed": "Muvaffaqiyatli",
+    "failed": "Muvaffaqiyatsiz"
+  },
+  "profile": {
+    "title": "Profil",
+    "statistics": "Statistikangiz",
+    "lessonsCompleted": "Tugallangan darslar",
+    "practiceAttempts": "Mashq urinishlari",
+    "conceptsMastered": "O'zlashtirilgan tushunchalar",
+    "passRate": "Muvaffaqiyat darajasi",
+    "lessonProgress": "Dars taraqqiyoti",
+    "lessonProgressDesc": "Barcha mavjud darslar bo'yicha taraqqiyotingiz",
+    "avgMastery": "O'rtacha mahorat",
+    "avgMasteryDesc": "Barcha tushunchalar bo'yicha o'rtacha mahorat darajangiz",
+    "masteryBreakdown": "Tushunchalar bo'yicha mahorat",
+    "masteryBreakdownDesc": "Barcha tushunchalar bo'yicha mahoratning batafsil ko'rinishi",
+    "preferences": "Sozlamalar",
+    "language": "Til"
+  },
+  "bookmarks": {
+    "title": "Saqlangan darslar",
+    "empty": "Saqlangan darslar yo'q",
+    "emptyDesc": "Darslarni keyinroq ko'rish uchun saqlash belgisini bosing",
+    "remove": "Saqlangandan o'chirish"
+  },
+  "search": {
+    "placeholder": "Darslar, tushunchalarni qidirish...",
+    "noResults": "Natijalar topilmadi",
+    "results": "\"{query}\" uchun {count} ta natija"
+  },
+  "xp": {
+    "level": "{level}-daraja",
+    "total": "Jami {xp} XP",
+    "toNext": "Keyingi darajaga {xp}",
+    "earned": "+{xp} XP qo'shildi!",
+    "progress": "{level}-darajaga {percent}%"
+  }
+}
