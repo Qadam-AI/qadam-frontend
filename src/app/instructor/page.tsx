@@ -2,217 +2,401 @@
 
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useAuth } from '@/hooks/useAuth'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import { BookOpen, Users, TrendingUp, Plus, ArrowRight } from 'lucide-react'
+import { 
+  BookOpen, 
+  Users, 
+  Video, 
+  TrendingUp,
+  Plus,
+  ArrowRight,
+  Sparkles,
+  GraduationCap,
+  BarChart3,
+  Clock,
+  CheckCircle2,
+  UserPlus
+} from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
-interface Course {
+interface DashboardStats {
+  total_courses: number
+  total_students: number
+  total_lessons: number
+  recent_enrollments: number
+}
+
+interface RecentCourse {
   id: string
   title: string
-  description: string | null
-  is_published: boolean
-  lesson_count: number
   student_count: number
+  lesson_count: number
+  created_at: string
 }
 
 export default function InstructorDashboard() {
-  const { data: courses, isLoading } = useQuery({
-    queryKey: ['instructor-courses'],
+  const { user } = useAuth()
+
+  const { data: stats, isLoading: loadingStats } = useQuery({
+    queryKey: ['instructor-dashboard'],
     queryFn: async () => {
-      const res = await api.get<Course[]>('/api/v1/instructor/courses')
+      const res = await api.get<DashboardStats>('/api/v1/instructor/dashboard')
       return res.data
     }
   })
 
-  const totalStudents = courses?.reduce((sum, c) => sum + c.student_count, 0) || 0
-  const totalLessons = courses?.reduce((sum, c) => sum + c.lesson_count, 0) || 0
-  const publishedCourses = courses?.filter(c => c.is_published).length || 0
+  const { data: courses, isLoading: loadingCourses } = useQuery({
+    queryKey: ['instructor-courses'],
+    queryFn: async () => {
+      const res = await api.get<RecentCourse[]>('/api/v1/instructor/courses')
+      return res.data
+    }
+  })
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Instructor Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your courses and track student progress
+    <motion.div 
+      className="space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Welcome Header with Gradient */}
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/90 via-primary to-indigo-600 p-8 text-white">
+        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-5 w-5" />
+            <span className="text-sm font-medium text-white/80">Instructor Dashboard</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            Welcome back, {user?.name?.split(' ')[0] || 'Instructor'}! 👋
+          </h1>
+          <p className="text-white/80 text-lg max-w-2xl">
+            Create engaging courses, invite students, and track their learning journey all in one place.
           </p>
+          <div className="flex gap-3 mt-6">
+            <Link href="/instructor/courses/new">
+              <Button size="lg" variant="secondary" className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-all">
+                <Plus className="h-5 w-5" />
+                Create New Course
+              </Button>
+            </Link>
+            <Link href="/instructor/courses">
+              <Button size="lg" variant="ghost" className="gap-2 text-white border-white/30 border hover:bg-white/10">
+                View All Courses
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
-        <Link href="/instructor/courses/new">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Create Course
-          </Button>
-        </Link>
+        {/* Decorative Elements */}
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -right-20 -bottom-20 h-60 w-60 rounded-full bg-indigo-400/20 blur-3xl" />
+      </motion.div>
+
+      {/* Stats Grid - Matching main dashboard style */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div variants={itemVariants}>
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800 overflow-hidden">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Courses</p>
+                  {loadingStats ? (
+                    <Skeleton className="h-9 w-16 mt-1" />
+                  ) : (
+                    <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{stats?.total_courses || 0}</p>
+                  )}
+                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70">Active courses</p>
+                </div>
+                <div className="p-3 rounded-full bg-blue-200 dark:bg-blue-800">
+                  <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800 overflow-hidden">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Total Students</p>
+                  {loadingStats ? (
+                    <Skeleton className="h-9 w-16 mt-1" />
+                  ) : (
+                    <p className="text-3xl font-bold text-green-700 dark:text-green-300">{stats?.total_students || 0}</p>
+                  )}
+                  <p className="text-xs text-green-600/70 dark:text-green-400/70">Enrolled learners</p>
+                </div>
+                <div className="p-3 rounded-full bg-green-200 dark:bg-green-800">
+                  <Users className="h-6 w-6 text-green-600 dark:text-green-300" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800 overflow-hidden">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Total Lessons</p>
+                  {loadingStats ? (
+                    <Skeleton className="h-9 w-16 mt-1" />
+                  ) : (
+                    <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">{stats?.total_lessons || 0}</p>
+                  )}
+                  <p className="text-xs text-purple-600/70 dark:text-purple-400/70">Content pieces</p>
+                </div>
+                <div className="p-3 rounded-full bg-purple-200 dark:bg-purple-800">
+                  <Video className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card className={`bg-gradient-to-br overflow-hidden ${
+            (stats?.recent_enrollments || 0) > 0 
+              ? 'from-orange-100 to-orange-200/50 dark:from-orange-900/40 dark:to-orange-800/30 border-orange-200 dark:border-orange-800'
+              : 'from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800'
+          }`}>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">New This Week</p>
+                  {loadingStats ? (
+                    <Skeleton className="h-9 w-16 mt-1" />
+                  ) : (
+                    <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">{stats?.recent_enrollments || 0}</p>
+                  )}
+                  <p className="text-xs text-orange-600/70 dark:text-orange-400/70">
+                    {(stats?.recent_enrollments || 0) > 0 ? '🔥 New enrollments!' : 'Recent enrollments'}
+                  </p>
+                </div>
+                <div className={`p-3 rounded-full ${
+                  (stats?.recent_enrollments || 0) > 0 
+                    ? 'bg-orange-300 dark:bg-orange-700' 
+                    : 'bg-orange-200 dark:bg-orange-800'
+                }`}>
+                  <TrendingUp className={`h-6 w-6 ${
+                    (stats?.recent_enrollments || 0) > 0
+                      ? 'text-orange-700 dark:text-orange-200'
+                      : 'text-orange-600 dark:text-orange-300'
+                  }`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-20" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{courses?.length || 0}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {publishedCourses} published
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-20" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{totalStudents}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Across all courses
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Lessons</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-20" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{totalLessons}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Content created
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Courses List */}
-      <div>
+      {/* Recent Courses */}
+      <motion.div variants={itemVariants}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Your Courses</h2>
+          <h2 className="text-2xl font-semibold">Your Courses</h2>
           <Link href="/instructor/courses">
-            <Button variant="ghost" size="sm" className="gap-1">
-              View All <ArrowRight className="h-4 w-4" />
+            <Button variant="ghost" className="gap-2">
+              View all
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
 
-        {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {[1, 2].map(i => (
+        {loadingCourses ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => (
               <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-20 w-full" />
+                <CardContent className="pt-6">
+                  <Skeleton className="h-6 w-3/4 mb-3" />
+                  <Skeleton className="h-4 w-1/2 mb-4" />
+                  <div className="flex gap-4">
+                    <Skeleton className="h-8 w-20" />
+                    <Skeleton className="h-8 w-20" />
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : courses?.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-semibold text-lg mb-2">No courses yet</h3>
-              <p className="text-muted-foreground text-center mb-4">
-                Create your first course to start teaching students
+          <Card className="border-dashed border-2">
+            <CardContent className="py-16 text-center">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              >
+                <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6">
+                  <GraduationCap className="h-10 w-10 text-primary" />
+                </div>
+              </motion.div>
+              <h3 className="text-xl font-semibold mb-2">Create Your First Course</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Start sharing your knowledge! Create a course with videos, lessons, 
+                and invite students to begin their learning journey.
               </p>
               <Link href="/instructor/courses/new">
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button size="lg" className="gap-2">
+                  <Plus className="h-5 w-5" />
                   Create Course
                 </Button>
               </Link>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {courses?.slice(0, 4).map((course, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {courses?.slice(0, 6).map((course, index) => (
               <motion.div
                 key={course.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * i }}
+                transition={{ delay: index * 0.1 }}
               >
                 <Link href={`/instructor/courses/${course.id}`}>
-                  <Card className="hover:border-primary transition-colors cursor-pointer">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{course.title}</CardTitle>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          course.is_published 
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
-                            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-                        }`}>
-                          {course.is_published ? 'Published' : 'Draft'}
-                        </span>
-                      </div>
-                      <CardDescription className="line-clamp-2">
-                        {course.description || 'No description'}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                  <Card className="group cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all duration-300">
+                    {/* Card Header Gradient */}
+                    <div className="h-2 bg-gradient-to-r from-primary via-indigo-500 to-purple-500 rounded-t-lg" />
+                    <CardContent className="pt-5">
+                      <h3 className="font-semibold text-lg mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                        {course.title}
+                      </h3>
+                      
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <BookOpen className="h-4 w-4" />
-                          {course.lesson_count} lessons
+                        <div className="flex items-center gap-1.5">
+                          <Video className="h-4 w-4" />
+                          <span>{course.lesson_count} lessons</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           <Users className="h-4 w-4" />
-                          {course.student_count} students
+                          <span>{course.student_count} students</span>
                         </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-4">
+                        <Button variant="outline" size="sm" className="flex-1 gap-1.5">
+                          <BarChart3 className="h-3.5 w-3.5" />
+                          Analytics
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1 gap-1.5">
+                          <UserPlus className="h-3.5 w-3.5" />
+                          Invite
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
                 </Link>
               </motion.div>
             ))}
+            
+            {/* Add Course Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (courses?.length || 0) * 0.1 }}
+            >
+              <Link href="/instructor/courses/new">
+                <Card className="h-full min-h-[180px] border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group flex items-center justify-center">
+                  <CardContent className="text-center py-8">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+                      <Plus className="h-6 w-6 text-primary" />
+                    </div>
+                    <p className="font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                      Add New Course
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+
+      {/* Quick Actions */}
+      <motion.div variants={itemVariants}>
+        <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
+            <Link href="/instructor/courses/new">
+              <CardContent className="pt-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white group-hover:scale-110 transition-transform">
+                  <Plus className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Create Course</p>
+                  <p className="text-sm text-muted-foreground">Start a new course</p>
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+          
+          <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
+            <Link href="/instructor/courses">
+              <CardContent className="pt-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white group-hover:scale-110 transition-transform">
+                  <UserPlus className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Invite Students</p>
+                  <p className="text-sm text-muted-foreground">Send invitations</p>
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+          
+          <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
+            <Link href="/instructor/courses">
+              <CardContent className="pt-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white group-hover:scale-110 transition-transform">
+                  <Video className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Add Lesson</p>
+                  <p className="text-sm text-muted-foreground">Upload content</p>
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+          
+          <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
+            <Link href="/instructor/courses">
+              <CardContent className="pt-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white group-hover:scale-110 transition-transform">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium">View Analytics</p>
+                  <p className="text-sm text-muted-foreground">Track progress</p>
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
