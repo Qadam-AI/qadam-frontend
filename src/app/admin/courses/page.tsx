@@ -330,14 +330,14 @@ export default function CoursesManagement() {
             <div>
               <Label htmlFor="instructor">Assign Instructor</Label>
               <Select
-                value={formData.instructor_id}
-                onValueChange={(value) => setFormData({ ...formData, instructor_id: value })}
+                value={formData.instructor_id || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, instructor_id: value === 'none' ? '' : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select an instructor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No instructor</SelectItem>
+                  <SelectItem value="none">No instructor</SelectItem>
                   {instructors?.map((instructor) => (
                     <SelectItem key={instructor.id} value={instructor.id}>
                       {instructor.name} ({instructor.role})
@@ -405,14 +405,14 @@ export default function CoursesManagement() {
             <div>
               <Label htmlFor="edit-instructor">Assign Instructor</Label>
               <Select
-                value={formData.instructor_id}
-                onValueChange={(value) => setFormData({ ...formData, instructor_id: value })}
+                value={formData.instructor_id || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, instructor_id: value === 'none' ? '' : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select an instructor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No instructor</SelectItem>
+                  <SelectItem value="none">No instructor</SelectItem>
                   {instructors?.map((instructor) => (
                     <SelectItem key={instructor.id} value={instructor.id}>
                       {instructor.name} ({instructor.role})
