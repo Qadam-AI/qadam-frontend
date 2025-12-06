@@ -51,11 +51,6 @@ const navItems: NavItem[] = [
     icon: <Blocks className="h-5 w-5" />
   },
   {
-    title: 'Lessons',
-    href: '/admin/lessons',
-    icon: <BookOpen className="h-5 w-5" />
-  },
-  {
     title: 'Concepts',
     href: '/admin/concepts',
     icon: <Brain className="h-5 w-5" />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -59,8 +59,11 @@ import {
   EyeOff,
   CheckCircle2,
   XCircle,
+  Loader2,
+  File,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { Progress } from '@/components/ui/progress'
 
 interface Course {
   id: string
@@ -139,6 +142,13 @@ export default function CourseDetailPage() {
   const [inviteEmails, setInviteEmails] = useState('')
   const [selectedUserId, setSelectedUserId] = useState('')
   const [newResource, setNewResource] = useState({ title: '', url: '', type: 'link' })
+
+  // Upload states
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false)
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0)
+  const [isUploadingResource, setIsUploadingResource] = useState(false)
+  const videoInputRef = useRef<HTMLInputElement>(null)
+  const resourceInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch course
   const { data: courses } = useQuery<Course[]>({
@@ -314,6 +324,96 @@ export default function CourseDetailPage() {
       ...lessonForm,
       resources: lessonForm.resources.filter((_, i) => i !== index),
     })
+  }
+
+  // Video upload handler
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please select a video file')
+      return
+    }
+
+    // Validate file size (max 500MB)
+    if (file.size > 500 * 1024 * 1024) {
+      toast.error('Video file must be less than 500MB')
+      return
+    }
+
+    setIsUploadingVideo(true)
+    setVideoUploadProgress(0)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await api.post('/admin/videos/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          const progress = progressEvent.total
+            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            : 0
+          setVideoUploadProgress(progress)
+        },
+      })
+
+      // Use the returned URL
+      const videoUrl = response.data.url || response.data.object_name
+      setLessonForm({ ...lessonForm, video_url: videoUrl })
+      toast.success('Video uploaded successfully')
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to upload video')
+    } finally {
+      setIsUploadingVideo(false)
+      setVideoUploadProgress(0)
+      if (videoInputRef.current) videoInputRef.current.value = ''
+    }
+  }
+
+  // Resource file upload handler
+  const handleResourceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('File must be less than 50MB')
+      return
+    }
+
+    setIsUploadingResource(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await api.post('/admin/videos/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+
+      // Determine file type from extension
+      const ext = file.name.split('.').pop()?.toLowerCase() || ''
+      let fileType = 'file'
+      if (['pdf'].includes(ext)) fileType = 'pdf'
+      else if (['doc', 'docx'].includes(ext)) fileType = 'doc'
+      else if (['mp4', 'webm', 'mov'].includes(ext)) fileType = 'video'
+      else if (['zip', 'rar', '7z'].includes(ext)) fileType = 'archive'
+
+      const resourceUrl = response.data.url || response.data.object_name
+      setLessonForm({
+        ...lessonForm,
+        resources: [...lessonForm.resources, { title: file.name, url: resourceUrl, type: fileType }],
+      })
+      toast.success('File uploaded successfully')
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to upload file')
+    } finally {
+      setIsUploadingResource(false)
+      if (resourceInputRef.current) resourceInputRef.current.value = ''
+    }
   }
 
   const handleSendInvites = () => {
@@ -713,19 +813,75 @@ export default function CourseDetailPage() {
             <Separator />
 
             {/* Video */}
-            <div>
+            <div className="space-y-3">
               <Label className="flex items-center gap-2">
                 <Video className="h-4 w-4" />
-                Video URL
+                Video
               </Label>
-              <Input
-                value={lessonForm.video_url}
-                onChange={(e) => setLessonForm({ ...lessonForm, video_url: e.target.value })}
-                placeholder="https://youtube.com/watch?v=... or video file URL"
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                YouTube, Vimeo, or direct video file URL
+              
+              {/* Video URL input */}
+              <div className="flex gap-2">
+                <Input
+                  value={lessonForm.video_url}
+                  onChange={(e) => setLessonForm({ ...lessonForm, video_url: e.target.value })}
+                  placeholder="https://youtube.com/watch?v=... or paste video URL"
+                  className="flex-1"
+                  disabled={isUploadingVideo}
+                />
+                <span className="flex items-center text-muted-foreground text-sm">or</span>
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={isUploadingVideo}
+                  className="shrink-0"
+                >
+                  {isUploadingVideo ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Video
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              {/* Upload progress */}
+              {isUploadingVideo && (
+                <div className="space-y-1">
+                  <Progress value={videoUploadProgress} className="h-2" />
+                  <p className="text-xs text-muted-foreground">{videoUploadProgress}% uploaded</p>
+                </div>
+              )}
+
+              {/* Current video indicator */}
+              {lessonForm.video_url && !isUploadingVideo && (
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                  <Video className="h-4 w-4 text-green-500" />
+                  <span className="text-sm truncate flex-1">{lessonForm.video_url}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setLessonForm({ ...lessonForm, video_url: '' })}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                YouTube, Vimeo, or upload video file (max 500MB)
               </p>
             </div>
 
@@ -763,8 +919,8 @@ export default function CourseDetailPage() {
                   {lessonForm.resources.map((res, i) => (
                     <div key={i} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                       <Badge variant="outline">{res.type}</Badge>
-                      <span className="font-medium flex-1">{res.title}</span>
-                      <a href={res.url} target="_blank" className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      <span className="font-medium flex-1 truncate">{res.title}</span>
+                      <a href={res.url} target="_blank" className="text-xs text-muted-foreground truncate max-w-[150px]">
                         {res.url}
                       </a>
                       <Button variant="ghost" size="icon" onClick={() => removeResource(i)}>
@@ -775,6 +931,43 @@ export default function CourseDetailPage() {
                 </div>
               )}
 
+              {/* Upload file button */}
+              <div className="mb-3">
+                <input
+                  ref={resourceInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.mp4,.webm,.mov"
+                  onChange={handleResourceUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => resourceInputRef.current?.click()}
+                  disabled={isUploadingResource}
+                  className="w-full border-dashed"
+                >
+                  {isUploadingResource ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading file...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload File (PDF, DOC, Video, etc.)
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex-1 border-t" />
+                <span className="text-xs text-muted-foreground">or add link</span>
+                <div className="flex-1 border-t" />
+              </div>
+
+              {/* Manual link input */}
               <div className="flex gap-2">
                 <Input
                   placeholder="Resource title"
@@ -797,6 +990,7 @@ export default function CourseDetailPage() {
                     <SelectItem value="doc">Doc</SelectItem>
                     <SelectItem value="video">Video</SelectItem>
                     <SelectItem value="github">GitHub</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button variant="outline" onClick={addResource}>
