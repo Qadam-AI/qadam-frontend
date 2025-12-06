@@ -18,55 +18,57 @@ import {
   X,
   Brain,
   Blocks,
-  MessageSquare
+  MessageSquare,
+  BarChart3
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { useTranslations } from '@/lib/i18n'
 
 interface NavItem {
-  title: string
+  titleKey: string
   href: string
   icon: React.ReactNode
 }
 
 const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
+    titleKey: 'overview',
     href: '/admin',
     icon: <LayoutDashboard className="h-5 w-5" />
   },
   {
-    title: 'Users',
+    titleKey: 'users',
     href: '/admin/users',
     icon: <Users className="h-5 w-5" />
   },
   {
-    title: 'Messages',
+    titleKey: 'messages',
     href: '/admin/messages',
     icon: <MessageSquare className="h-5 w-5" />
   },
   {
-    title: 'Courses',
+    titleKey: 'courses',
     href: '/admin/courses',
     icon: <Blocks className="h-5 w-5" />
   },
   {
-    title: 'Concepts',
+    titleKey: 'concepts',
     href: '/admin/concepts',
     icon: <Brain className="h-5 w-5" />
   },
   {
-    title: 'Events',
+    titleKey: 'analyticsNav',
+    href: '/admin/analytics',
+    icon: <BarChart3 className="h-5 w-5" />
+  },
+  {
+    titleKey: 'events',
     href: '/admin/events',
     icon: <FileText className="h-5 w-5" />
   },
   {
-    title: 'Metrics',
-    href: '/admin/metrics',
-    icon: <Activity className="h-5 w-5" />
-  },
-  {
-    title: 'LLM Config',
+    titleKey: 'settings',
     href: '/admin/llm',
     icon: <Settings className="h-5 w-5" />
   },
@@ -81,6 +83,8 @@ export default function AdminLayout({
   const router = useRouter()
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const t = useTranslations('admin')
+  const tNav = useTranslations('nav')
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -101,7 +105,7 @@ export default function AdminLayout({
       {/* Sidebar for desktop */}
       <aside className="hidden md:flex md:w-64 md:flex-col border-r">
         <div className="flex h-16 items-center px-6">
-          <h1 className="text-xl font-bold">QADAM Admin</h1>
+          <h1 className="text-xl font-bold">{t('title')}</h1>
         </div>
         <Separator />
         <nav className="flex-1 space-y-1 px-3 py-4">
@@ -119,7 +123,7 @@ export default function AdminLayout({
                 )}
               >
                 {item.icon}
-                {item.title}
+                {t(item.titleKey)}
               </Link>
             )
           })}
@@ -136,7 +140,7 @@ export default function AdminLayout({
             className="mt-2 w-full"
             asChild
           >
-            <Link href="/">Back to App</Link>
+            <Link href="/">{tNav('dashboard')}</Link>
           </Button>
         </div>
       </aside>
@@ -147,7 +151,7 @@ export default function AdminLayout({
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-64 border-r bg-background">
             <div className="flex h-16 items-center justify-between px-6">
-              <h1 className="text-xl font-bold">QADAM Admin</h1>
+              <h1 className="text-xl font-bold">{t('title')}</h1>
               <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
@@ -169,7 +173,7 @@ export default function AdminLayout({
                     )}
                   >
                     {item.icon}
-                    {item.title}
+                    {t(item.titleKey)}
                   </Link>
                 )
               })}
@@ -186,7 +190,7 @@ export default function AdminLayout({
                 className="mt-2 w-full"
                 asChild
               >
-                <Link href="/">Back to App</Link>
+                <Link href="/">{tNav('dashboard')}</Link>
               </Button>
             </div>
           </aside>
@@ -200,7 +204,7 @@ export default function AdminLayout({
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-bold">QADAM Admin</h1>
+          <h1 className="text-lg font-bold">{t('title')}</h1>
         </header>
 
         {/* Page content */}

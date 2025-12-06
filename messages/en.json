@@ -365,5 +365,193 @@
     "toNext": "{xp} to next level",
     "earned": "+{xp} XP earned!",
     "progress": "{percent}% to Level {level}"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "Manage your platform",
+    "overview": "Overview",
+    "users": "Users",
+    "courses": "Courses",
+    "lessons": "Lessons",
+    "concepts": "Concepts",
+    "messages": "Messages",
+    "events": "Events",
+    "analyticsNav": "Analytics",
+    "settings": "Settings",
+    "stats": {
+      "totalUsers": "Total Users",
+      "totalCourses": "Total Courses",
+      "totalLessons": "Total Lessons",
+      "totalAttempts": "Total Attempts",
+      "activeToday": "Active Today",
+      "activeThisWeek": "Active This Week",
+      "avgMastery": "Avg. Mastery",
+      "completionRate": "Completion Rate"
+    },
+    "userManagement": {
+      "title": "User Management",
+      "addUser": "Add User",
+      "editUser": "Edit User",
+      "deleteUser": "Delete User",
+      "resetPassword": "Reset Password",
+      "role": "Role",
+      "status": "Status",
+      "lastActive": "Last Active",
+      "actions": "Actions",
+      "searchPlaceholder": "Search users...",
+      "filters": {
+        "all": "All Roles",
+        "student": "Students",
+        "instructor": "Instructors",
+        "admin": "Admins"
+      }
+    },
+    "courseManagement": {
+      "title": "Course Management",
+      "addCourse": "Add Course",
+      "editCourse": "Edit Course",
+      "deleteCourse": "Delete Course",
+      "instructor": "Instructor",
+      "students": "Students",
+      "lessons": "Lessons",
+      "status": "Status",
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "analyticsSection": {
+      "title": "Platform Analytics",
+      "userGrowth": "User Growth",
+      "learningTrends": "Learning Trends",
+      "coursePerformance": "Course Performance",
+      "realtime": "Real-time Metrics",
+      "period": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "metrics": {
+        "attempts": "Attempts",
+        "completions": "Completions",
+        "mastery": "Mastery Score",
+        "enrollments": "Enrollments"
+      }
+    }
+  },
+  "instructor": {
+    "title": "Instructor Dashboard",
+    "subtitle": "Manage your courses and students",
+    "myCourses": "My Courses",
+    "students": "My Students",
+    "analytics": "Course Analytics",
+    "createCourse": "Create Course",
+    "stats": {
+      "totalStudents": "Total Students",
+      "totalCourses": "Your Courses",
+      "totalLessons": "Total Lessons",
+      "recentEnrollments": "Recent Enrollments",
+      "avgProgress": "Avg. Progress",
+      "avgMastery": "Avg. Mastery"
+    },
+    "courseForm": {
+      "title": "Course Title",
+      "titlePlaceholder": "Enter course title",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter course description",
+      "language": "Language",
+      "thumbnail": "Thumbnail",
+      "uploadThumbnail": "Upload Thumbnail",
+      "save": "Save Course",
+      "cancel": "Cancel"
+    },
+    "lessonForm": {
+      "title": "Lesson Title",
+      "titlePlaceholder": "Enter lesson title",
+      "description": "Description",
+      "content": "Content",
+      "contentPlaceholder": "Write lesson content in Markdown...",
+      "video": "Video",
+      "uploadVideo": "Upload Video",
+      "resources": "Resources",
+      "addResource": "Add Resource",
+      "order": "Order",
+      "save": "Save Lesson",
+      "cancel": "Cancel"
+    },
+    "studentList": {
+      "title": "Students",
+      "name": "Name",
+      "email": "Email",
+      "progress": "Progress",
+      "mastery": "Mastery",
+      "lastActive": "Last Active",
+      "enrolled": "Enrolled",
+      "noStudents": "No students enrolled yet",
+      "invite": "Invite Students",
+      "remove": "Remove Student"
+    },
+    "invitations": {
+      "title": "Course Invitations",
+      "code": "Invitation Code",
+      "generateCode": "Generate Code",
+      "copyCode": "Copy Code",
+      "expiry": "Expiry",
+      "maxUses": "Max Uses",
+      "used": "Times Used",
+      "active": "Active",
+      "expired": "Expired",
+      "revoke": "Revoke"
+    },
+    "courseDetail": {
+      "overview": "Overview",
+      "lessons": "Lessons",
+      "students": "Students",
+      "invitations": "Invitations",
+      "settings": "Settings",
+      "addLesson": "Add Lesson",
+      "editLesson": "Edit Lesson",
+      "deleteLesson": "Delete Lesson",
+      "confirmDelete": "Are you sure you want to delete this?"
+    }
+  },
+  "enrollment": {
+    "title": "Enroll in Course",
+    "enterCode": "Enter invitation code",
+    "codePlaceholder": "Enter code",
+    "join": "Join Course",
+    "success": "Successfully enrolled!",
+    "error": "Invalid or expired code",
+    "alreadyEnrolled": "You are already enrolled in this course"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications",
+    "newLesson": "New lesson available: {title}",
+    "courseCompleted": "Congratulations! You completed {title}",
+    "achievementUnlocked": "Achievement unlocked: {title}",
+    "feedbackReceived": "You received feedback on your attempt"
+  },
+  "errors": {
+    "unauthorized": "You are not authorized to access this page",
+    "notFound": "Page not found",
+    "serverError": "Server error. Please try again later.",
+    "networkError": "Network error. Check your connection.",
+    "validationError": "Please check your input",
+    "sessionExpired": "Your session has expired. Please log in again."
+  },
+  "success": {
+    "saved": "Successfully saved",
+    "deleted": "Successfully deleted",
+    "updated": "Successfully updated",
+    "created": "Successfully created",
+    "copied": "Copied to clipboard"
+  },
+  "time": {
+    "seconds": "{count} seconds",
+    "minutes": "{count} minutes",
+    "hours": "{count} hours",
+    "days": "{count} days",
+    "weeks": "{count} weeks",
+    "months": "{count} months"
   }
 }

@@ -365,5 +365,193 @@
     "toNext": "Keyingi darajaga {xp}",
     "earned": "+{xp} XP qo'shildi!",
     "progress": "{level}-darajaga {percent}%"
+  },
+  "admin": {
+    "title": "Administrator paneli",
+    "subtitle": "Platformani boshqarish",
+    "overview": "Umumiy ko'rinish",
+    "users": "Foydalanuvchilar",
+    "courses": "Kurslar",
+    "lessons": "Darslar",
+    "concepts": "Tushunchalar",
+    "messages": "Xabarlar",
+    "events": "Voqealar",
+    "analyticsNav": "Tahlil",
+    "settings": "Sozlamalar",
+    "stats": {
+      "totalUsers": "Jami foydalanuvchilar",
+      "totalCourses": "Jami kurslar",
+      "totalLessons": "Jami darslar",
+      "totalAttempts": "Jami urinishlar",
+      "activeToday": "Bugun faol",
+      "activeThisWeek": "Bu hafta faol",
+      "avgMastery": "O'rtacha mahorat",
+      "completionRate": "Tugatish darajasi"
+    },
+    "userManagement": {
+      "title": "Foydalanuvchilarni boshqarish",
+      "addUser": "Foydalanuvchi qo'shish",
+      "editUser": "Tahrirlash",
+      "deleteUser": "O'chirish",
+      "resetPassword": "Parolni tiklash",
+      "role": "Rol",
+      "status": "Holat",
+      "lastActive": "So'nggi faollik",
+      "actions": "Amallar",
+      "searchPlaceholder": "Foydalanuvchilarni qidirish...",
+      "filters": {
+        "all": "Barcha rollar",
+        "student": "Talabalar",
+        "instructor": "Instruktorlar",
+        "admin": "Administratorlar"
+      }
+    },
+    "courseManagement": {
+      "title": "Kurslarni boshqarish",
+      "addCourse": "Kurs qo'shish",
+      "editCourse": "Kursni tahrirlash",
+      "deleteCourse": "Kursni o'chirish",
+      "instructor": "Instruktor",
+      "students": "Talabalar",
+      "lessons": "Darslar",
+      "status": "Holat",
+      "published": "Nashr etilgan",
+      "draft": "Qoralama"
+    },
+    "analyticsSection": {
+      "title": "Platforma tahlili",
+      "userGrowth": "Foydalanuvchilar o'sishi",
+      "learningTrends": "O'rganish tendensiyalari",
+      "coursePerformance": "Kurs samaradorligi",
+      "realtime": "Real vaqt ko'rsatkichlari",
+      "period": {
+        "daily": "Kunlik",
+        "weekly": "Haftalik",
+        "monthly": "Oylik"
+      },
+      "metrics": {
+        "attempts": "Urinishlar",
+        "completions": "Tugatishlar",
+        "mastery": "Mahorat darajasi",
+        "enrollments": "Ro'yxatga olishlar"
+      }
+    }
+  },
+  "instructor": {
+    "title": "Instruktor paneli",
+    "subtitle": "Kurslar va talabalarni boshqarish",
+    "myCourses": "Mening kurslarim",
+    "students": "Mening talabalarim",
+    "analytics": "Kurs tahlili",
+    "createCourse": "Kurs yaratish",
+    "stats": {
+      "totalStudents": "Jami talabalar",
+      "totalCourses": "Sizning kurslaringiz",
+      "totalLessons": "Jami darslar",
+      "recentEnrollments": "So'nggi ro'yxatga olishlar",
+      "avgProgress": "O'rtacha taraqqiyot",
+      "avgMastery": "O'rtacha mahorat"
+    },
+    "courseForm": {
+      "title": "Kurs nomi",
+      "titlePlaceholder": "Kurs nomini kiriting",
+      "description": "Tavsif",
+      "descriptionPlaceholder": "Kurs tavsifini kiriting",
+      "language": "Til",
+      "thumbnail": "Eskiz",
+      "uploadThumbnail": "Eskiz yuklash",
+      "save": "Kursni saqlash",
+      "cancel": "Bekor qilish"
+    },
+    "lessonForm": {
+      "title": "Dars nomi",
+      "titlePlaceholder": "Dars nomini kiriting",
+      "description": "Tavsif",
+      "content": "Mazmun",
+      "contentPlaceholder": "Dars mazmunini Markdown da yozing...",
+      "video": "Video",
+      "uploadVideo": "Video yuklash",
+      "resources": "Resurslar",
+      "addResource": "Resurs qo'shish",
+      "order": "Tartib",
+      "save": "Darsni saqlash",
+      "cancel": "Bekor qilish"
+    },
+    "studentList": {
+      "title": "Talabalar",
+      "name": "Ism",
+      "email": "Email",
+      "progress": "Taraqqiyot",
+      "mastery": "Mahorat",
+      "lastActive": "So'nggi faollik",
+      "enrolled": "Ro'yxatga olingan",
+      "noStudents": "Hali ro'yxatga olingan talabalar yo'q",
+      "invite": "Talabalarni taklif qilish",
+      "remove": "Talabani o'chirish"
+    },
+    "invitations": {
+      "title": "Kurs takliflari",
+      "code": "Taklif kodi",
+      "generateCode": "Kod yaratish",
+      "copyCode": "Kodni nusxalash",
+      "expiry": "Muddati",
+      "maxUses": "Maks. foydalanish",
+      "used": "Foydalanilgan",
+      "active": "Faol",
+      "expired": "Muddati tugagan",
+      "revoke": "Bekor qilish"
+    },
+    "courseDetail": {
+      "overview": "Umumiy ko'rinish",
+      "lessons": "Darslar",
+      "students": "Talabalar",
+      "invitations": "Takliflar",
+      "settings": "Sozlamalar",
+      "addLesson": "Dars qo'shish",
+      "editLesson": "Darsni tahrirlash",
+      "deleteLesson": "Darsni o'chirish",
+      "confirmDelete": "Haqiqatan ham o'chirmoqchimisiz?"
+    }
+  },
+  "enrollment": {
+    "title": "Kursga yozilish",
+    "enterCode": "Taklif kodini kiriting",
+    "codePlaceholder": "Kodni kiriting",
+    "join": "Qo'shilish",
+    "success": "Muvaffaqiyatli ro'yxatga olindingiz!",
+    "error": "Noto'g'ri yoki muddati o'tgan kod",
+    "alreadyEnrolled": "Siz allaqachon bu kursga yozilgansiz"
+  },
+  "notifications": {
+    "title": "Bildirishnomalar",
+    "markAllRead": "Barchasini o'qilgan deb belgilash",
+    "noNotifications": "Bildirishnomalar yo'q",
+    "newLesson": "Yangi dars mavjud: {title}",
+    "courseCompleted": "Tabriklaymiz! Siz {title} ni tugatdingiz",
+    "achievementUnlocked": "Yutuq ochildi: {title}",
+    "feedbackReceived": "Urinishingiz bo'yicha fikr oldingiz"
+  },
+  "errors": {
+    "unauthorized": "Bu sahifaga kirishga ruxsatingiz yo'q",
+    "notFound": "Sahifa topilmadi",
+    "serverError": "Server xatosi. Keyinroq urinib ko'ring.",
+    "networkError": "Tarmoq xatosi. Ulanishingizni tekshiring.",
+    "validationError": "Kiritilgan ma'lumotlarni tekshiring",
+    "sessionExpired": "Sessiya tugadi. Qaytadan kiring."
+  },
+  "success": {
+    "saved": "Muvaffaqiyatli saqlandi",
+    "deleted": "Muvaffaqiyatli o'chirildi",
+    "updated": "Muvaffaqiyatli yangilandi",
+    "created": "Muvaffaqiyatli yaratildi",
+    "copied": "Buferga nusxalandi"
+  },
+  "time": {
+    "seconds": "{count} soniya",
+    "minutes": "{count} daqiqa",
+    "hours": "{count} soat",
+    "days": "{count} kun",
+    "weeks": "{count} hafta",
+    "months": "{count} oy"
   }
 }

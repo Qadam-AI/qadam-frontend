@@ -365,5 +365,193 @@
     "toNext": "{xp} до следующего уровня",
     "earned": "+{xp} XP получено!",
     "progress": "{percent}% до уровня {level}"
+  },
+  "admin": {
+    "title": "Панель администратора",
+    "subtitle": "Управление платформой",
+    "overview": "Обзор",
+    "users": "Пользователи",
+    "courses": "Курсы",
+    "lessons": "Уроки",
+    "concepts": "Концепции",
+    "messages": "Сообщения",
+    "events": "События",
+    "analyticsNav": "Аналитика",
+    "settings": "Настройки",
+    "stats": {
+      "totalUsers": "Всего пользователей",
+      "totalCourses": "Всего курсов",
+      "totalLessons": "Всего уроков",
+      "totalAttempts": "Всего попыток",
+      "activeToday": "Активны сегодня",
+      "activeThisWeek": "Активны на этой неделе",
+      "avgMastery": "Среднее мастерство",
+      "completionRate": "Процент завершения"
+    },
+    "userManagement": {
+      "title": "Управление пользователями",
+      "addUser": "Добавить пользователя",
+      "editUser": "Редактировать",
+      "deleteUser": "Удалить",
+      "resetPassword": "Сбросить пароль",
+      "role": "Роль",
+      "status": "Статус",
+      "lastActive": "Последняя активность",
+      "actions": "Действия",
+      "searchPlaceholder": "Поиск пользователей...",
+      "filters": {
+        "all": "Все роли",
+        "student": "Студенты",
+        "instructor": "Инструкторы",
+        "admin": "Администраторы"
+      }
+    },
+    "courseManagement": {
+      "title": "Управление курсами",
+      "addCourse": "Добавить курс",
+      "editCourse": "Редактировать курс",
+      "deleteCourse": "Удалить курс",
+      "instructor": "Инструктор",
+      "students": "Студенты",
+      "lessons": "Уроки",
+      "status": "Статус",
+      "published": "Опубликован",
+      "draft": "Черновик"
+    },
+    "analyticsSection": {
+      "title": "Аналитика платформы",
+      "userGrowth": "Рост пользователей",
+      "learningTrends": "Тенденции обучения",
+      "coursePerformance": "Успеваемость курсов",
+      "realtime": "Метрики в реальном времени",
+      "period": {
+        "daily": "Ежедневно",
+        "weekly": "Еженедельно",
+        "monthly": "Ежемесячно"
+      },
+      "metrics": {
+        "attempts": "Попытки",
+        "completions": "Завершения",
+        "mastery": "Уровень мастерства",
+        "enrollments": "Записи"
+      }
+    }
+  },
+  "instructor": {
+    "title": "Панель инструктора",
+    "subtitle": "Управление курсами и студентами",
+    "myCourses": "Мои курсы",
+    "students": "Мои студенты",
+    "analytics": "Аналитика курсов",
+    "createCourse": "Создать курс",
+    "stats": {
+      "totalStudents": "Всего студентов",
+      "totalCourses": "Ваши курсы",
+      "totalLessons": "Всего уроков",
+      "recentEnrollments": "Недавние записи",
+      "avgProgress": "Средний прогресс",
+      "avgMastery": "Среднее мастерство"
+    },
+    "courseForm": {
+      "title": "Название курса",
+      "titlePlaceholder": "Введите название курса",
+      "description": "Описание",
+      "descriptionPlaceholder": "Введите описание курса",
+      "language": "Язык",
+      "thumbnail": "Миниатюра",
+      "uploadThumbnail": "Загрузить миниатюру",
+      "save": "Сохранить курс",
+      "cancel": "Отмена"
+    },
+    "lessonForm": {
+      "title": "Название урока",
+      "titlePlaceholder": "Введите название урока",
+      "description": "Описание",
+      "content": "Содержание",
+      "contentPlaceholder": "Напишите содержание урока в Markdown...",
+      "video": "Видео",
+      "uploadVideo": "Загрузить видео",
+      "resources": "Ресурсы",
+      "addResource": "Добавить ресурс",
+      "order": "Порядок",
+      "save": "Сохранить урок",
+      "cancel": "Отмена"
+    },
+    "studentList": {
+      "title": "Студенты",
+      "name": "Имя",
+      "email": "Email",
+      "progress": "Прогресс",
+      "mastery": "Мастерство",
+      "lastActive": "Последняя активность",
+      "enrolled": "Записан",
+      "noStudents": "Пока нет записанных студентов",
+      "invite": "Пригласить студентов",
+      "remove": "Удалить студента"
+    },
+    "invitations": {
+      "title": "Приглашения на курс",
+      "code": "Код приглашения",
+      "generateCode": "Создать код",
+      "copyCode": "Копировать код",
+      "expiry": "Срок действия",
+      "maxUses": "Макс. использований",
+      "used": "Использовано раз",
+      "active": "Активно",
+      "expired": "Истекло",
+      "revoke": "Отозвать"
+    },
+    "courseDetail": {
+      "overview": "Обзор",
+      "lessons": "Уроки",
+      "students": "Студенты",
+      "invitations": "Приглашения",
+      "settings": "Настройки",
+      "addLesson": "Добавить урок",
+      "editLesson": "Редактировать урок",
+      "deleteLesson": "Удалить урок",
+      "confirmDelete": "Вы уверены, что хотите удалить это?"
+    }
+  },
+  "enrollment": {
+    "title": "Записаться на курс",
+    "enterCode": "Введите код приглашения",
+    "codePlaceholder": "Введите код",
+    "join": "Записаться",
+    "success": "Успешно записаны!",
+    "error": "Неверный или просроченный код",
+    "alreadyEnrolled": "Вы уже записаны на этот курс"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "markAllRead": "Отметить всё как прочитанное",
+    "noNotifications": "Нет уведомлений",
+    "newLesson": "Доступен новый урок: {title}",
+    "courseCompleted": "Поздравляем! Вы завершили {title}",
+    "achievementUnlocked": "Достижение разблокировано: {title}",
+    "feedbackReceived": "Вы получили отзыв на свою попытку"
+  },
+  "errors": {
+    "unauthorized": "У вас нет доступа к этой странице",
+    "notFound": "Страница не найдена",
+    "serverError": "Ошибка сервера. Попробуйте позже.",
+    "networkError": "Ошибка сети. Проверьте подключение.",
+    "validationError": "Проверьте введённые данные",
+    "sessionExpired": "Сессия истекла. Войдите снова."
+  },
+  "success": {
+    "saved": "Успешно сохранено",
+    "deleted": "Успешно удалено",
+    "updated": "Успешно обновлено",
+    "created": "Успешно создано",
+    "copied": "Скопировано в буфер обмена"
+  },
+  "time": {
+    "seconds": "{count} секунд",
+    "minutes": "{count} минут",
+    "hours": "{count} часов",
+    "days": "{count} дней",
+    "weeks": "{count} недель",
+    "months": "{count} месяцев"
   }
 }
