@@ -303,10 +303,11 @@ function LessonContent() {
   })
 
   // Find prev/next lessons
-  const currentIndex = courseData?.lessons.findIndex(l => l.id === lessonId) ?? -1
-  const prevLesson = currentIndex > 0 ? courseData?.lessons[currentIndex - 1] : null
-  const nextLesson = currentIndex >= 0 && currentIndex < (courseData?.lessons.length ?? 0) - 1 
-    ? courseData?.lessons[currentIndex + 1] 
+  const lessons = courseData?.lessons ?? []
+  const currentIndex = lessons.findIndex(l => l.id === lessonId)
+  const prevLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null
+  const nextLesson = currentIndex >= 0 && currentIndex < lessons.length - 1 
+    ? lessons[currentIndex + 1] 
     : null
 
   const completeLessonMutation = useMutation({
