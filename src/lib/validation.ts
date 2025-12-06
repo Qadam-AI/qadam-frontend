@@ -38,15 +38,26 @@ export const courseDetailSchema = courseSchema.extend({
   concepts: z.array(conceptSummarySchema),
 })
 
+export const resourceItemSchema = z.object({
+  name: z.string().optional(),
+  title: z.string().optional(),
+  url: z.string(),
+  type: z.string(),
+})
+
 export const lessonSchema = z.object({
   id: z.string(),
   courseId: z.string(),
   title: z.string(),
+  description: z.string().nullable().optional(),
+  content: z.string().nullable().optional(),  // Markdown content
   videoUrl: z.string().nullable(),
   position: z.number(),
   durationSeconds: z.number().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  resources: z.array(resourceItemSchema).optional().default([]),
+  attachments: z.array(resourceItemSchema).optional().default([]),
   concepts: z.array(conceptSummarySchema),
 })
 

@@ -15,11 +15,13 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '../../_components/empty-states'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, BookOpen, Play, Pause, Volume2, VolumeX, Maximize, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react'
+import { CheckCircle2, BookOpen, Play, Pause, Volume2, VolumeX, Maximize, ChevronLeft, ChevronRight, ArrowLeft, FileText, Link as LinkIcon, Download, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { AuthGuard } from '../../_components/auth-guard'
 import Link from 'next/link'
 import { AIAssistant } from '@/components/ai-assistant'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -413,6 +415,118 @@ function LessonContent() {
           </Card>
         )}
       </motion.div>
+
+      {/* Lesson Description */}
+      {lesson.description && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.12 }}
+        >
+          <p className="text-muted-foreground text-lg">{lesson.description}</p>
+        </motion.div>
+      )}
+
+      {/* Lesson Content (Markdown) */}
+      {lesson.content && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.13 }}
+        >
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Lesson Content
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code: ({ className, children, ...props }) => {
+                      const match = /language-(\w+)/.exec(className || '')
+                      const isInline = !match
+                      return isInline ? (
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props}>
+                          {children}
+                        </code>
+                      ) : (
+                        <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                          <code className={`language-${match[1]}`} {...props}>
+                            {children}
+                          </code>
+                        </pre>
+                      )
+                    },
+                    a: ({ href, children }) => (
+                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        {children}
+                      </a>
+                    ),
+                  }}
+                >
+                  {lesson.content}
+                </ReactMarkdown>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Resources & Attachments */}
+      {((lesson.resources && lesson.resources.length > 0) || (lesson.attachments && lesson.attachments.length > 0)) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.14 }}
+        >
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <LinkIcon className="h-5 w-5" />
+                Additional Resources
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {lesson.resources?.map((resource, i) => (
+                  <a
+                    key={`resource-${i}`}
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
+                  >
+                    <Badge variant="outline" className="shrink-0">{resource.type}</Badge>
+                    <span className="flex-1 font-medium group-hover:text-primary transition-colors">
+                      {resource.title || resource.name || resource.url}
+                    </span>
+                    <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                  </a>
+                ))}
+                {lesson.attachments?.map((attachment, i) => (
+                  <a
+                    key={`attachment-${i}`}
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
+                  >
+                    <Badge variant="secondary" className="shrink-0">{attachment.type}</Badge>
+                    <span className="flex-1 font-medium group-hover:text-primary transition-colors">
+                      {attachment.name || attachment.title || 'Attachment'}
+                    </span>
+                    <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                  </a>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Concepts Covered */}
       {lesson.concepts && lesson.concepts.length > 0 && (
