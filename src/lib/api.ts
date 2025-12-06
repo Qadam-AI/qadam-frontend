@@ -209,5 +209,183 @@ export async function getExplanation(request: ExplanationRequest): Promise<Expla
   return response.data
 }
 
+
+// ============ Instructor API Functions ============
+
+export interface Course {
+  id: string
+  title: string
+  description?: string
+  language: string
+  level: string
+  is_published: boolean
+  instructor_id: string
+  created_at: string
+  updated_at?: string
+  thumbnail_url?: string
+  student_count?: number
+  lesson_count?: number
+}
+
+export interface Lesson {
+  id: string
+  course_id: string
+  title: string
+  description?: string
+  content_type: 'video' | 'text' | 'file'
+  video_url?: string
+  content?: string
+  order_index: number
+  duration_minutes?: number
+  is_published: boolean
+}
+
+export interface StudentProgress {
+  user_id: string
+  user_name?: string
+  user_email: string
+  enrolled_at: string
+  status: string
+  lessons_completed: number
+  total_lessons: number
+  progress_percent: number
+  total_watch_time_seconds: number
+  last_activity?: string
+}
+
+export interface Invitation {
+  id: string
+  email: string
+  status: string
+  created_at: string
+  expires_at?: string
+}
+
+export interface CourseAnalytics {
+  course_id: string
+  total_students: number
+  active_students: number
+  completed_students: number
+  average_progress: number
+  total_lessons: number
+  completion_rate: number
+}
+
+export interface CreateCourseRequest {
+  title: string
+  description?: string
+  language?: string
+  level?: string
+}
+
+export interface CreateLessonRequest {
+  title: string
+  description?: string
+  content_type: 'video' | 'text' | 'file'
+  video_url?: string
+  content?: string
+  order_index: number
+  duration_minutes?: number
+}
+
+export interface InviteStudentsRequest {
+  emails: string[]
+}
+
+export interface InviteResponse {
+  sent: number
+  already_enrolled: string[]
+  invalid_emails: string[]
+}
+
+// Course management
+export async function getInstructorCourses(): Promise<Course[]> {
+  const response = await api.get<Course[]>('/api/v1/instructor/courses')
+  return response.data
+}
+
+export async function getInstructorCourse(courseId: string): Promise<Course> {
+  const response = await api.get<Course>(`/api/v1/instructor/courses/${courseId}`)
+  return response.data
+}
+
+export async function createCourse(data: CreateCourseRequest): Promise<Course> {
+  const response = await api.post<Course>('/api/v1/instructor/courses', data)
+  return response.data
+}
+
+export async function updateCourse(courseId: string, data: Partial<CreateCourseRequest>): Promise<Course> {
+  const response = await api.patch<Course>(`/api/v1/instructor/courses/${courseId}`, data)
+  return response.data
+}
+
+export async function deleteCourse(courseId: string): Promise<void> {
+  await api.delete(`/api/v1/instructor/courses/${courseId}`)
+}
+
+// Lesson management
+export async function getCourseLessons(courseId: string): Promise<Lesson[]> {
+  const response = await api.get<Lesson[]>(`/api/v1/instructor/courses/${courseId}/lessons`)
+  return response.data
+}
+
+export async function createLesson(courseId: string, data: CreateLessonRequest): Promise<Lesson> {
+  const response = await api.post<Lesson>(`/api/v1/instructor/courses/${courseId}/lessons`, data)
+  return response.data
+}
+
+export async function updateLesson(lessonId: string, data: Partial<CreateLessonRequest>): Promise<Lesson> {
+  const response = await api.patch<Lesson>(`/api/v1/instructor/lessons/${lessonId}`, data)
+  return response.data
+}
+
+export async function deleteLesson(lessonId: string): Promise<void> {
+  await api.delete(`/api/v1/instructor/lessons/${lessonId}`)
+}
+
+export async function reorderLessons(courseId: string, lessonIds: string[]): Promise<void> {
+  await api.post(`/api/v1/instructor/courses/${courseId}/lessons/reorder`, {
+    lesson_ids: lessonIds
+  })
+}
+
+// Student management
+export async function getCourseStudents(courseId: string): Promise<StudentProgress[]> {
+  const response = await api.get<StudentProgress[]>(`/api/v1/instructor/courses/${courseId}/students`)
+  return response.data
+}
+
+export async function getCourseInvitations(courseId: string): Promise<Invitation[]> {
+  const response = await api.get<Invitation[]>(`/api/v1/instructor/courses/${courseId}/invitations`)
+  return response.data
+}
+
+export async function getCourseAnalytics(courseId: string): Promise<CourseAnalytics> {
+  const response = await api.get<CourseAnalytics>(`/api/v1/instructor/courses/${courseId}/analytics`)
+  return response.data
+}
+
+export async function inviteStudents(courseId: string, emails: string[]): Promise<InviteResponse> {
+  const response = await api.post<InviteResponse>(`/api/v1/instructor/courses/${courseId}/invite`, {
+    emails
+  })
+  return response.data
+}
+
+export async function cancelInvitation(invitationId: string): Promise<void> {
+  await api.delete(`/api/v1/instructor/invitations/${invitationId}`)
+}
+
+// Dashboard overview
+export async function getInstructorDashboard(): Promise<{
+  total_courses: number
+  total_students: number
+  total_lessons: number
+  recent_enrollments: number
+}> {
+  const response = await api.get('/api/v1/instructor/dashboard')
+  return response.data
+}
+
 export default api
 
