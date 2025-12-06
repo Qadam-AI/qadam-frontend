@@ -819,57 +819,27 @@ export default function CourseDetailPage() {
                 Video
               </Label>
               
-              {/* Video URL input */}
-              <div className="flex gap-2">
-                <Input
-                  value={lessonForm.video_url}
-                  onChange={(e) => setLessonForm({ ...lessonForm, video_url: e.target.value })}
-                  placeholder="https://youtube.com/watch?v=... or paste video URL"
-                  className="flex-1"
-                  disabled={isUploadingVideo}
-                />
-                <span className="flex items-center text-muted-foreground text-sm">or</span>
-                <input
-                  ref={videoInputRef}
-                  type="file"
-                  accept="video/*"
-                  onChange={handleVideoUpload}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => videoInputRef.current?.click()}
-                  disabled={isUploadingVideo}
-                  className="shrink-0"
-                >
-                  {isUploadingVideo ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Video
-                    </>
-                  )}
-                </Button>
-              </div>
+              {/* Video upload only */}
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleVideoUpload}
+                className="hidden"
+              />
               
-              {/* Upload progress */}
-              {isUploadingVideo && (
-                <div className="space-y-1">
-                  <Progress value={videoUploadProgress} className="h-2" />
-                  <p className="text-xs text-muted-foreground">{videoUploadProgress}% uploaded</p>
-                </div>
-              )}
-
-              {/* Current video indicator */}
-              {lessonForm.video_url && !isUploadingVideo && (
-                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                  <Video className="h-4 w-4 text-green-500" />
-                  <span className="text-sm truncate flex-1">{lessonForm.video_url}</span>
+              {/* Current video or upload button */}
+              {lessonForm.video_url && !isUploadingVideo ? (
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                  <Video className="h-5 w-5 text-green-500" />
+                  <span className="text-sm truncate flex-1">{lessonForm.video_url.split('/').pop() || 'Uploaded video'}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => videoInputRef.current?.click()}
+                  >
+                    Replace
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -878,10 +848,35 @@ export default function CourseDetailPage() {
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={isUploadingVideo}
+                  className="w-full h-24 border-dashed flex-col gap-2"
+                >
+                  {isUploadingVideo ? (
+                    <>
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <span>Uploading... {videoUploadProgress}%</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-6 w-6" />
+                      <span>Click to upload video</span>
+                    </>
+                  )}
+                </Button>
+              )}
+              
+              {/* Upload progress */}
+              {isUploadingVideo && (
+                <Progress value={videoUploadProgress} className="h-2" />
               )}
 
               <p className="text-xs text-muted-foreground">
-                YouTube, Vimeo, or upload video file (max 500MB)
+                Upload video file (MP4, WebM, MOV - max 500MB)
               </p>
             </div>
 

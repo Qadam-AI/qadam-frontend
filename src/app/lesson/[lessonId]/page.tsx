@@ -35,73 +35,7 @@ interface CourseLessons {
   lessons: { id: string; title: string; position: number }[]
 }
 
-// Helper to detect and parse video URLs
-function getVideoType(url: string): { type: 'youtube' | 'vimeo' | 'direct'; embedUrl?: string } {
-  if (!url) return { type: 'direct' }
-  
-  // YouTube patterns
-  const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
-  const youtubeMatch = url.match(youtubeRegex)
-  if (youtubeMatch) {
-    return { 
-      type: 'youtube', 
-      embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}?rel=0&modestbranding=1` 
-    }
-  }
-  
-  // Vimeo patterns
-  const vimeoRegex = /(?:vimeo\.com\/)(\d+)/
-  const vimeoMatch = url.match(vimeoRegex)
-  if (vimeoMatch) {
-    return { 
-      type: 'vimeo', 
-      embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}` 
-    }
-  }
-  
-  return { type: 'direct' }
-}
-
-// Embedded video player for YouTube/Vimeo
-function EmbeddedVideoPlayer({ 
-  src, 
-  onComplete 
-}: { 
-  src: string
-  onComplete: () => void 
-}) {
-  const [hasTriggeredComplete, setHasTriggeredComplete] = useState(false)
-  const videoInfo = getVideoType(src)
-  
-  // For embedded videos, trigger completion after 2 minutes of viewing
-  useEffect(() => {
-    if (!hasTriggeredComplete) {
-      const timer = setTimeout(() => {
-        setHasTriggeredComplete(true)
-        onComplete()
-      }, 2 * 60 * 1000) // 2 minutes
-      
-      return () => clearTimeout(timer)
-    }
-  }, [hasTriggeredComplete, onComplete])
-  
-  if (!videoInfo.embedUrl) return null
-  
-  return (
-    <div className="relative aspect-video bg-black rounded-xl overflow-hidden">
-      <iframe
-        src={videoInfo.embedUrl}
-        className="w-full h-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        title="Video lesson"
-      />
-    </div>
-  )
-}
-
-// Native video player for direct file URLs
-function NativeVideoPlayer({ 
+function VideoPlayer({ 
   src, 
   onComplete 
 }: { 
@@ -320,23 +254,6 @@ function NativeVideoPlayer({
       </AnimatePresence>
     </div>
   )
-}
-
-// Smart VideoPlayer that chooses the right player based on URL type
-function VideoPlayer({ 
-  src, 
-  onComplete 
-}: { 
-  src: string
-  onComplete: () => void 
-}) {
-  const videoInfo = getVideoType(src)
-  
-  if (videoInfo.type === 'youtube' || videoInfo.type === 'vimeo') {
-    return <EmbeddedVideoPlayer src={src} onComplete={onComplete} />
-  }
-  
-  return <NativeVideoPlayer src={src} onComplete={onComplete} />
 }
 
 function LessonContent() {
