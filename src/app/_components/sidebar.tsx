@@ -81,7 +81,7 @@ export function Sidebar() {
               )
             })}
             
-            {user?.role === 'admin' && (
+            {(user?.role === 'admin' || user?.role === 'instructor') && (
               <>
                 <Separator className="my-2" />
                 <Link href="/admin">
@@ -93,7 +93,7 @@ export function Sidebar() {
                     )}
                   >
                     <Settings className="mr-2 h-4 w-4" />
-                    {t('admin')}
+                    {user?.role === 'instructor' ? t('instructor') : t('admin')}
                   </Button>
                 </Link>
               </>

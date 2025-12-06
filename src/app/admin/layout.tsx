@@ -90,14 +90,14 @@ export default function AdminLayout({
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login')
-    } else if (user?.role !== 'admin') {
-      // Redirect non-admins back to dashboard
+    } else if (user?.role !== 'admin' && user?.role !== 'instructor') {
+      // Redirect non-admins/instructors back to dashboard
       router.push('/')
     }
   }, [isAuthenticated, user, router])
 
-  // Don't render admin layout for non-admins
-  if (!user || user.role !== 'admin') {
+  // Don't render admin layout for non-admins/instructors
+  if (!user || (user.role !== 'admin' && user.role !== 'instructor')) {
     return null
   }
 
