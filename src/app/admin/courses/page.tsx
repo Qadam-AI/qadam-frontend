@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,7 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { TableSkeleton } from '@/app/_components/skeletons'
-import { Plus, Pencil, Trash2, Eye, EyeOff, User } from 'lucide-react'
+import { Plus, Pencil, Trash2, Eye, EyeOff, User, Users, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Course {
@@ -56,6 +57,7 @@ interface Instructor {
 }
 
 export default function CoursesManagement() {
+  const router = useRouter()
   const queryClient = useQueryClient()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -277,6 +279,14 @@ export default function CoursesManagement() {
                   <TableCell>{course.lesson_count}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/admin/courses/${course.id}`)}
+                      >
+                        <Users className="h-4 w-4 mr-1" />
+                        Manage
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
