@@ -25,6 +25,8 @@ import { AuthGuard } from '../_components/auth-guard'
 import Confetti from 'react-confetti'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { useTranslations } from '@/lib/i18n'
+import { AIAssistant } from '@/components/ai-assistant'
+import { HintButton } from '@/components/hint-button'
 
 function PracticeContent() {
   const { user } = useAuth()
@@ -220,6 +222,12 @@ function PracticeContent() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">{t('yourSolution')}</h2>
             <div className="flex items-center gap-2">
+              <HintButton
+                taskPrompt={currentTask.prompt}
+                userCode={code}
+                failures={feedback?.failures}
+                concept={nextTaskData.conceptName}
+              />
               <span className="text-xs text-muted-foreground hidden sm:inline">
                 {t('shortcuts')}
               </span>
@@ -281,6 +289,8 @@ export default function PracticePage() {
           </main>
         </div>
         <Footer />
+        {/* AI Assistant floating button */}
+        <AIAssistant context="Python programming practice with adaptive difficulty tasks" />
       </div>
     </AuthGuard>
   )

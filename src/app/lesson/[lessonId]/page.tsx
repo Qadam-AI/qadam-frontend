@@ -19,6 +19,7 @@ import { CheckCircle2, BookOpen, Play, Pause, Volume2, VolumeX, Maximize, Chevro
 import { toast } from 'sonner'
 import { AuthGuard } from '../../_components/auth-guard'
 import Link from 'next/link'
+import { AIAssistant } from '@/components/ai-assistant'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -507,6 +508,8 @@ export default function LessonPage() {
           </main>
         </div>
         <Footer />
+        {/* AI Assistant for lesson Q&A */}
+        <AIAssistant context="Learning Python programming with video lessons" />
       </div>
     </AuthGuard>
   )

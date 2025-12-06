@@ -136,5 +136,78 @@ api.interceptors.response.use(
   }
 )
 
+// ============ AI Chat API Functions ============
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface ChatRequest {
+  message: string
+  context?: string
+  course_id?: string
+  lesson_id?: string
+  history?: ChatMessage[]
+}
+
+export interface ChatResponse {
+  response: string
+  suggested_topics: string[]
+  confidence: number
+}
+
+export interface HintRequest {
+  task_prompt: string
+  user_code: string
+  failures?: { name?: string; expected?: string; received?: string }[]
+  hint_level?: number
+  concept?: string
+}
+
+export interface HintResponse {
+  hint: string
+  level: number
+  remaining_levels: number
+  encouragement?: string
+}
+
+export interface ExplanationRequest {
+  question: string
+  correct_answer: string
+  student_answer: string
+  topic?: string
+}
+
+export interface ExplanationResponse {
+  explanation: string
+  key_concept: string
+  tips: string[]
+}
+
+/**
+ * Ask AI assistant a question
+ */
+export async function askAI(request: ChatRequest): Promise<ChatResponse> {
+  const response = await api.post<ChatResponse>('/api/v1/chat/ask', request)
+  return response.data
+}
+
+/**
+ * Get a progressive hint for a task
+ */
+export async function getHint(request: HintRequest): Promise<HintResponse> {
+  const response = await api.post<HintResponse>('/api/v1/chat/hint', request)
+  return response.data
+}
+
+/**
+ * Get an explanation for a wrong answer
+ */
+export async function getExplanation(request: ExplanationRequest): Promise<ExplanationResponse> {
+  const response = await api.post<ExplanationResponse>('/api/v1/chat/explain', request)
+  return response.data
+}
+
 export default api
 
