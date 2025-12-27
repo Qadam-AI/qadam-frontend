@@ -43,10 +43,10 @@ export default function LoginPage() {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-2xl">Q</span>
+                <span className="text-primary-foreground font-bold text-2xl">E</span>
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Welcome to QADAM</CardTitle>
+            <CardTitle className="text-2xl font-bold">Welcome to Edusistent</CardTitle>
             <CardDescription>
               Sign in to continue your learning journey
             </CardDescription>
@@ -58,7 +58,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="learner@qadam.dev"
+                  placeholder="learner@edusistent.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -87,7 +87,7 @@ export default function LoginPage() {
 
             <div className="mt-6 p-4 rounded-lg bg-muted/50 text-sm">
               <p className="font-medium mb-2">Demo Credentials:</p>
-              <code className="block text-xs">learner@qadam.dev / demo123</code>
+              <code className="block text-xs">learner@edusistent.com / demo123</code>
             </div>
           </CardContent>
         </Card>

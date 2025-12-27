@@ -136,7 +136,7 @@ export function AIAssistant({ context, lessonId, courseId, className }: AIAssist
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
               <div className="flex items-center gap-2">
                 <Bot className="h-5 w-5" />
-                <span className="font-semibold">Qadam AI</span>
+                <span className="font-semibold">Edusistent AI</span>
                 <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Beta</span>
               </div>
               <Button 

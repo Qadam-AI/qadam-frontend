@@ -17,7 +17,7 @@ export default function TermsPage() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-xl">Qadam</span>
+              <span className="font-bold text-xl">Edusistent</span>
             </Link>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -40,14 +40,14 @@ export default function TermsPage() {
             <div className="prose prose-neutral dark:prose-invert max-w-none">
               <h2>1. Acceptance of Terms</h2>
               <p>
-                By accessing or using Qadam&apos;s services, you agree to be bound by these 
+                By accessing or using Edusistent&apos;s services, you agree to be bound by these 
                 Terms of Service and all applicable laws and regulations. If you do not 
                 agree with any of these terms, you are prohibited from using our services.
               </p>
 
               <h2>2. Description of Service</h2>
               <p>
-                Qadam provides an AI-powered adaptive learning platform that offers 
+                Edusistent provides an AI-powered adaptive learning platform that offers 
                 personalized educational experiences. Our services include but are not 
                 limited to: interactive lessons, practice exercises, progress tracking, 
                 and AI-generated feedback.
@@ -74,7 +74,7 @@ export default function TermsPage() {
               <h2>5. Intellectual Property</h2>
               <p>
                 All content, features, and functionality of our services are owned by 
-                Qadam and are protected by international copyright, trademark, and other 
+                Edusistent and are protected by international copyright, trademark, and other 
                 intellectual property laws.
               </p>
 
@@ -94,7 +94,7 @@ export default function TermsPage() {
 
               <h2>8. Limitation of Liability</h2>
               <p>
-                Qadam shall not be liable for any indirect, incidental, special, or 
+                Edusistent shall not be liable for any indirect, incidental, special, or 
                 consequential damages arising from your use of our services.
               </p>
 
@@ -129,7 +129,7 @@ export default function TermsPage() {
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">© 2025 Qadam. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2025 Edusistent. All rights reserved.</p>
         </div>
       </footer>
     </div>

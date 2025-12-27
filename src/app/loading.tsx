@@ -1,9 +1,9 @@
-import { QadamLoader } from '@/components/ui/loader'
+import { EdusistentLoader } from '@/components/ui/loader'
 
 export default function Loading() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <QadamLoader size="lg" />
+      <EdusistentLoader size="lg" />
     </div>
   )
 }

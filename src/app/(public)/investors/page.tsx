@@ -28,7 +28,7 @@ export default function InvestorsPage() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-xl">Qadam</span>
+              <span className="font-bold text-xl">Edusistent</span>
             </Link>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -50,7 +50,7 @@ export default function InvestorsPage() {
               Invest in the <span className="text-primary">Future of Education</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Qadam is building AI-powered adaptive learning infrastructure 
+              Edusistent is building AI-powered adaptive learning infrastructure 
               to serve the $8 trillion global education market.
             </p>
           </motion.div>
@@ -94,7 +94,7 @@ export default function InvestorsPage() {
         </div>
       </section>
 
-      {/* Why Qadam */}
+      {/* Why Edusistent */}
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-4xl">
           <motion.div
@@ -103,7 +103,7 @@ export default function InvestorsPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold mb-4">Why Qadam?</h2>
+            <h2 className="text-3xl font-bold mb-4">Why Edusistent?</h2>
             <p className="text-muted-foreground">Our competitive advantages</p>
           </motion.div>
 
@@ -193,7 +193,7 @@ export default function InvestorsPage() {
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">© 2025 Qadam. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2025 Edusistent. All rights reserved.</p>
         </div>
       </footer>
     </div>

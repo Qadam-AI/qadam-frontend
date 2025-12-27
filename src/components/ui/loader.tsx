@@ -93,8 +93,8 @@ export function InlineLoader({ className }: { className?: string }) {
   )
 }
 
-// Qadam branded loader
-export function QadamLoader({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+// Edusistent branded loader
+export function EdusistentLoader({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
     md: 'w-12 h-12 text-sm',

@@ -49,7 +49,7 @@ export default function CareersPage() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-xl">Qadam</span>
+              <span className="font-bold text-xl">Edusistent</span>
             </Link>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -87,7 +87,7 @@ export default function CareersPage() {
             viewport={{ once: true }}
             className="text-3xl font-bold text-center mb-12"
           >
-            Why Join Qadam?
+            Why Join Edusistent?
           </motion.h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -187,7 +187,7 @@ export default function CareersPage() {
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">© 2025 Qadam. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2025 Edusistent. All rights reserved.</p>
         </div>
       </footer>
     </div>

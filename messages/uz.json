@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Qadam",
+    "appName": "Edusistent",
     "tagline": "Har narsani o'rganing, hamma narsani egallang",
     "loading": "Yuklanmoqda...",
     "error": "Xatolik yuz berdi",
@@ -58,12 +58,12 @@
       "stat3": { "value": "3x", "label": "shaxsiylashtirilmagan kontent bilan tashlab ketish darajasi yuqori" }
     },
     "solution": {
-      "title": "Qadam bilan tanishing",
+      "title": "Edusistent bilan tanishing",
       "subtitle": "O'rganishni haqiqatan tushunadigan sun'iy intellekt",
-      "description": "Oddiy AI o'qituvchilardan farqli o'laroq, Qadam har bir o'quvchi qayerda va nima uchun qiynalayotganini aniq tushunish uchun xususiy kognitiv modellashtiruvdan foydalanadi. Bizning tizimimiz nafaqat qiyinchilikni - balki o'qitish uslubi, kontent formati va tezlikni ham moslashtiradi."
+      "description": "Oddiy AI o'qituvchilardan farqli o'laroq, Edusistent har bir o'quvchi qayerda va nima uchun qiynalayotganini aniq tushunish uchun xususiy kognitiv modellashtiruvdan foydalanadi. Bizning tizimimiz nafaqat qiyinchilikni - balki o'qitish uslubi, kontent formati va tezlikni ham moslashtiradi."
     },
     "features": {
-      "title": "Nima uchun sanoat yetakchilari Qadamni tanlaydi",
+      "title": "Nima uchun sanoat yetakchilari Edusistentni tanlaydi",
       "subtitle": "Korxona darajasidagi AI o'quv infratuzilmasi",
       "adaptive": {
         "title": "Kognitiv AI dvigateli",
@@ -146,7 +146,7 @@
     "testimonials": {
       "title": "Hamkorlarimiz nima deydi",
       "quote1": {
-        "text": "Qadam o'quv xarajatlarimizni 60% ga kamaytirdi, natijalarni yaxshiladi. ROI 3 oy ichida ko'rindi.",
+        "text": "Edusistent o'quv xarajatlarimizni 60% ga kamaytirdi, natijalarni yaxshiladi. ROI 3 oy ichida ko'rindi.",
         "author": "L&D rahbari, Fortune 500 texnologiya kompaniyasi"
       },
       "quote2": {
@@ -221,7 +221,7 @@
       "careers": "Karyera",
       "privacy": "Maxfiylik",
       "terms": "Shartlar",
-      "copyright": "© 2025 Qadam. Barcha huquqlar himoyalangan.",
+      "copyright": "© 2025 Edusistent. Barcha huquqlar himoyalangan.",
       "contact": "Aloqa",
       "investors": "Investorlar",
       "press": "Matbuot to'plami"

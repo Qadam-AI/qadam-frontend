@@ -1,16 +1,16 @@
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null
-  return localStorage.getItem('qadam_token')
+  return localStorage.getItem('edusistent_token')
 }
 
 export function setToken(token: string): void {
   if (typeof window === 'undefined') return
-  localStorage.setItem('qadam_token', token)
+  localStorage.setItem('edusistent_token', token)
 }
 
 export function removeToken(): void {
   if (typeof window === 'undefined') return
-  localStorage.removeItem('qadam_token')
+  localStorage.removeItem('edusistent_token')
 }
 
 export function isAuthenticated(): boolean {

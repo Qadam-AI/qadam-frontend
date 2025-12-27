@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Qadam",
+    "appName": "Edusistent",
     "tagline": "Learn anything, master everything",
     "loading": "Loading...",
     "error": "Something went wrong",
@@ -58,12 +58,12 @@
       "stat3": { "value": "3x", "label": "higher dropout rates with non-personalized content" }
     },
     "solution": {
-      "title": "Introducing Qadam",
+      "title": "Introducing Edusistent",
       "subtitle": "AI That Truly Understands Learning",
-      "description": "Unlike generic AI tutors, Qadam uses proprietary cognitive modeling to understand exactly where each learner struggles and why. Our system adapts not just difficulty—but teaching style, content format, and pacing."
+      "description": "Unlike generic AI tutors, Edusistent uses proprietary cognitive modeling to understand exactly where each learner struggles and why. Our system adapts not just difficulty—but teaching style, content format, and pacing."
     },
     "features": {
-      "title": "Why Industry Leaders Choose Qadam",
+      "title": "Why Industry Leaders Choose Edusistent",
       "subtitle": "Enterprise-grade AI learning infrastructure",
       "adaptive": {
         "title": "Cognitive AI Engine",
@@ -146,7 +146,7 @@
     "testimonials": {
       "title": "What Our Partners Say",
       "quote1": {
-        "text": "Qadam reduced our training costs by 60% while improving outcomes. The ROI was visible within 3 months.",
+        "text": "Edusistent reduced our training costs by 60% while improving outcomes. The ROI was visible within 3 months.",
         "author": "Head of L&D, Fortune 500 Tech Company"
       },
       "quote2": {
@@ -221,7 +221,7 @@
       "careers": "Careers",
       "privacy": "Privacy",
       "terms": "Terms",
-      "copyright": "© 2025 Qadam. All rights reserved.",
+      "copyright": "© 2025 Edusistent. All rights reserved.",
       "contact": "Contact",
       "investors": "Investors",
       "press": "Press Kit"

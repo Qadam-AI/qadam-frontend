@@ -166,27 +166,50 @@ function StepCard({ number, title, description, icon: Icon, isLast }: { number: 
 const teamMembers = [
   {
     name: "Shukrullo Jumanazarov",
-    role: "Backend Developer",
+    role: "CEO, Co-Founder",
+    company: "Yandex Uzbekistan",
     image: "https://www.dropbox.com/scl/fi/okf59jf1e7e6vvj6ejrvj/1740572402226.jpg?rlkey=twighk7nq8kws6vvs7y65gn6m&dl=1",
     linkedin: "https://www.linkedin.com/in/shukrullo-jumanazarov/",
-    github: "https://github.com/Jumanazarov-Shukrullo",
-    skills: ["Python", "FastAPI", "PostgreSQL", "Docker"]
+    skills: ["Backend", "Teaching", "Python"]
   },
   {
-    name: "Shoislom Abloberdiev",
-    role: "Backend Developer",
-    image: "/team/shoislom.jpg",
-    linkedin: "https://www.linkedin.com/in/shoislom-abloberdiev-797264287",
-    github: "https://github.com/usershoislom",
-    skills: ["Python", "FastAPI", "SQLAlchemy", "Redis"]
+    name: "Ziyobek Khazratkulov",
+    role: "Co-Founder",
+    company: "Wildberries",
+    image: "https://www.dropbox.com/scl/fi/xrab0fn0nt5aouw416dtd/2025-12-25-20.25.04.jpg?rlkey=xnw1skq1nkhclxjusbzaatr5m&st=lrp1x5a0&dl=1",
+    linkedin: "https://www.linkedin.com/in/ziyobek-khazratkulov-677098211/",
+    skills: ["Data Science", "ML Engineering", "AI"]
   },
   {
-    name: "Sohibjon Qurolov",
-    role: "Data Analyst",
-    image: "https://www.dropbox.com/scl/fi/o3u4l83n8q9bly4fxkte8/IMG_2203.JPG?rlkey=9dy3dgapfwtq3irxis3r316r7&st=aa1vwad1&dl=1",
-    linkedin: "https://www.linkedin.com/in/sohibjon-qurolov/",
-    github: "https://github.com/KuroloffS",
-    skills: ["Python", "Pandas", "Data Visualization", "SQL"]
+    name: "Bahrom Abdimuminov",
+    role: "Co-Founder",
+    company: "Qatar Airways, Ohio State University",
+    image: "https://www.dropbox.com/scl/fi/8r9bm89udtmtiljcj4d2j/2025-12-25-19.04.50.jpg?rlkey=wfh5tx9a88iktutauqdxp2qzy&st=sde7de5u&dl=1",
+    linkedin: "https://www.linkedin.com/in/bakhrom-abdimuminov-0a479218a/",
+    skills: ["Teaching", "Law", "Operations"]
+  },
+  {
+    name: "Saidorif Kadirov",
+    role: "Co-Founder",
+    company: "Uzum Nasiya",
+    image: "https://www.dropbox.com/scl/fi/13sdmpiifu10kqr6z1ora/1648523182106.jpg?rlkey=9058kw1gbu9hn9xmbkeshkv42&st=9416r2bf&dl=1",
+    linkedin: "https://www.linkedin.com/in/saidorif-kadirov-046b47235/",
+    skills: ["Full Stack", "12+ years experience"]
+  },
+  {
+    name: "Sergey Nazarov",
+    role: "Advisor",
+    company: "Yandex",
+    image: "https://www.dropbox.com/scl/fi/3d1lsob94p05ujp42zyea/2025-12-26-15.06.46.jpg?rlkey=j7ew7iwmg0lf61qanbyy0fo3w&st=0m9sncrz&dl=1",
+    skills: ["Product Analytics", "Director", "Strategy"]
+  },
+  {
+    name: "Samandar Mirzaev",
+    role: "Advisor",
+    company: "MultiBank Group",
+    image: "https://www.dropbox.com/scl/fi/xjo8q8ein87wzabfejomv/2025-12-25-19.05.01.jpg?rlkey=izj6efkaskisy70kcwxg3r3n3&st=7dp8dv2a&dl=1",
+    linkedin: "https://www.linkedin.com/in/samandar-mirzaev-802181b3/",
+    skills: ["Full Stack", "15+ years experience"]
   },
 ];
 
@@ -219,7 +242,10 @@ function TeamMemberCard({ member, isActive }: { member: typeof teamMembers[0]; i
           </div>
           <div className="p-6 text-center">
             <h3 className="text-xl font-bold mb-1">{member.name}</h3>
-            <p className="text-primary font-medium mb-3">{member.role}</p>
+            <p className="text-primary font-medium mb-1">{member.role}</p>
+            {member.company && (
+              <p className="text-sm text-muted-foreground mb-3">{member.company}</p>
+            )}
             <div className="flex flex-wrap justify-center gap-1 mb-4">
               {member.skills.map((skill, i) => (
                 <Badge key={i} variant="secondary" className="text-xs">{skill}</Badge>
@@ -484,7 +510,7 @@ export default function LandingPage() {
                       <Brain className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="font-bold">Qadam Cognitive Engine</div>
+                      <div className="font-bold">Edusistent Cognitive Engine</div>
                       <div className="text-sm text-muted-foreground">Real-time adaptation</div>
                     </div>
                   </div>

@@ -31,7 +31,7 @@ export default function AboutPage() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-xl">Qadam</span>
+              <span className="font-bold text-xl">Edusistent</span>
             </Link>
             <div className="flex items-center gap-2">
               <LanguageSwitcher />
@@ -50,7 +50,7 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              About <span className="text-primary">Qadam</span>
+              About <span className="text-primary">Edusistent</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               We&apos;re building the future of education — where every learner gets 
@@ -160,7 +160,7 @@ export default function AboutPage() {
           >
             <h2 className="text-3xl font-bold mb-4">Built in Uzbekistan 🇺🇿</h2>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Qadam is proudly built by a passionate team in Tashkent, Uzbekistan. 
+              Edusistent is proudly built by a passionate team in Tashkent, Uzbekistan. 
               We&apos;re combining world-class AI research with deep understanding 
               of educational challenges in emerging markets.
             </p>
@@ -185,7 +185,7 @@ export default function AboutPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/login">
                   <Button size="lg" variant="secondary" className="gap-2">
-                    Try Qadam Free <ArrowRight className="w-4 h-4" />
+                    Try Edusistent Free <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
                 <Link href="/contact">
@@ -203,7 +203,7 @@ export default function AboutPage() {
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-muted-foreground">© 2025 Qadam. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">© 2025 Edusistent. All rights reserved.</p>
             <div className="flex gap-3">
               <a href="#" className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"><Twitter className="w-4 h-4" /></a>
               <a href="#" className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"><Linkedin className="w-4 h-4" /></a>

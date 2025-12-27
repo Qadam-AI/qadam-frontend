@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { toast } from 'sonner'
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE || 'https://qadam-backend-production.up.railway.app/',
+  baseURL: 'https://qadam-backend-production.up.railway.app/', // Update with your backend URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,7 +19,7 @@ api.interceptors.request.use(
   (config: ExtendedAxiosRequestConfig) => {
     // Get token from localStorage
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('qadam_token')
+      const token = localStorage.getItem('edusistent_token')
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
@@ -43,8 +43,8 @@ api.interceptors.response.use(
     if (status === 401) {
       // Clear auth data
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('qadam_token')
-        localStorage.removeItem('qadam_user')
+        localStorage.removeItem('edusistent_token')
+        localStorage.removeItem('edusistent_user')
         
         // Show toast and redirect to login
         toast.error('Your session has expired. Please log in again.', {

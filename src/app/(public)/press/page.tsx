@@ -26,7 +26,7 @@ export default function PressPage() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-xl">Qadam</span>
+              <span className="font-bold text-xl">Edusistent</span>
             </Link>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -48,7 +48,7 @@ export default function PressPage() {
               Press &amp; Media <span className="text-primary">Resources</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to write about Qadam. Logos, brand guidelines, 
+              Everything you need to write about Edusistent. Logos, brand guidelines, 
               and company information.
             </p>
           </motion.div>
@@ -63,14 +63,14 @@ export default function PressPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-2xl font-bold mb-6">About Qadam</h2>
+            <h2 className="text-2xl font-bold mb-6">About Edusistent</h2>
             <Card>
               <CardContent className="py-6">
                 <p className="text-muted-foreground mb-4">
-                  <strong>Qadam</strong> (meaning &quot;step&quot; in Uzbek) is an AI-powered 
+                  <strong>Edusistent</strong> is an AI-powered 
                   adaptive learning platform that creates personalized educational 
                   experiences for every learner. Founded in Tashkent, Uzbekistan, 
-                  Qadam aims to democratize quality education through cutting-edge 
+                  Edusistent aims to democratize quality education through cutting-edge 
                   artificial intelligence.
                 </p>
                 <p className="text-muted-foreground mb-4">
@@ -193,7 +193,7 @@ export default function PressPage() {
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">© 2025 Qadam. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2025 Edusistent. All rights reserved.</p>
         </div>
       </footer>
     </div>

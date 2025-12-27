@@ -121,7 +121,7 @@ export function WhyThisTaskDrawer({
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-4">
             <h4 className="font-medium text-sm mb-2">🧠 Adaptive Learning</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              QADAM continuously adapts to your progress. Each task is selected to
+              Edusistent continuously adapts to your progress. Each task is selected to
               maximize your learning efficiency, focusing on your weakest concepts
               while adjusting difficulty to keep you engaged.
             </p>

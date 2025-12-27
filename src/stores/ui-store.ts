@@ -19,7 +19,7 @@ export const useUIStore = create<UIState>()(
       setTheme: (theme) => set({ theme }),
     }),
     {
-      name: 'qadam-ui',
+      name: 'edusistent-ui',
     }
   )
 )

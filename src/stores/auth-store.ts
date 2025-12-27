@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'qadam-auth',
+      name: 'edusistent-auth',
       partialize: (state) => ({ user: state.user, token: state.token }),
     }
   )

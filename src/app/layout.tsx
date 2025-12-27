@@ -9,7 +9,7 @@ import { Toaster } from 'sonner'
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'QADAM - Personalized Learning',
+  title: 'Edusistent - Personalized Learning',
   description: 'Personalized, auto-graded practice that adapts to every learner',
 }
 

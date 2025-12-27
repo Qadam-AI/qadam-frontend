@@ -6,7 +6,7 @@ export function Footer() {
           Built with ❤️ for adaptive learning
         </p>
         <p className="text-center text-sm text-muted-foreground">
-          © 2025 QADAM. All rights reserved.
+          © 2025 Edusistent. All rights reserved.
         </p>
       </div>
     </footer>
