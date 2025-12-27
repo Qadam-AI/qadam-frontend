@@ -261,17 +261,6 @@ function TeamMemberCard({ member, isActive }: { member: typeof teamMembers[0]; i
                 <Linkedin className="w-4 h-4" />
                 LinkedIn
               </a>
-              {member.github && (
-                <a 
-                  href={member.github} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Github className="w-4 h-4" />
-                  GitHub
-                </a>
-              )}
             </div>
           </div>
         </CardContent>
