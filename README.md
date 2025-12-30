@@ -31,6 +31,7 @@
 | Backend API | `qadam-backend` | Railway |
 | LLM Service | `qadam-llm` | Railway |
 
+[Ссылка](https://qadam-frontend-production.up.railway.app) на фронтенд
 ---
 
 ## ✨ Ключевые фичи
