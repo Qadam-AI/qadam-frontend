@@ -68,10 +68,10 @@ function MyCoursesContent() {
     }
   })
 
-  const completedCourses = courses?.filter(c => c.progress_percent === 100).length || 0
-  const inProgressCourses = courses?.filter(c => c.progress_percent > 0 && c.progress_percent < 100).length || 0
+  const completedCourses = courses?.filter(c => (c.progress_percent ?? 0) === 100).length || 0
+  const inProgressCourses = courses?.filter(c => (c.progress_percent ?? 0) > 0 && (c.progress_percent ?? 0) < 100).length || 0
   const totalProgress = courses?.length 
-    ? Math.round(courses.reduce((sum, c) => sum + c.progress_percent, 0) / courses.length) 
+    ? Math.round(courses.reduce((sum, c) => sum + (c.progress_percent ?? 0), 0) / courses.length) 
     : 0
 
   const containerVariants = {
@@ -322,25 +322,25 @@ function MyCoursesContent() {
                         <div>
                           <div className="flex items-center justify-between text-sm mb-2">
                             <span className="text-muted-foreground">
-                              {course.lessons_completed} of {course.total_lessons} lessons
+                              {course.lessons_completed ?? 0} of {course.total_lessons ?? 0} lessons
                             </span>
                             <span className="font-semibold text-primary">
-                              {Math.round(course.progress_percent)}%
+                              {Math.round(course.progress_percent ?? 0)}%
                             </span>
                           </div>
-                          <Progress value={course.progress_percent} className="h-2" />
+                          <Progress value={course.progress_percent ?? 0} className="h-2" />
                         </div>
 
                         {/* Continue button */}
                         <Button className="w-full gap-2 group-hover:gap-3 transition-all" variant={
-                          course.progress_percent > 0 ? 'default' : 'outline'
+                          (course.progress_percent ?? 0) > 0 ? 'default' : 'outline'
                         }>
-                          {course.progress_percent === 100 ? (
+                          {(course.progress_percent ?? 0) === 100 ? (
                             <>
                               <CheckCircle2 className="h-4 w-4" />
                               Review Course
                             </>
-                          ) : course.progress_percent > 0 ? (
+                          ) : (course.progress_percent ?? 0) > 0 ? (
                             <>
                               <Play className="h-4 w-4" />
                               Continue

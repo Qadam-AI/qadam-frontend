@@ -19,25 +19,27 @@ import {
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 
-// Types
+// Types - matching actual backend response
 interface CourseCard {
   id: string
   title: string
-  description: string
+  description?: string
   thumbnail?: string
-  instructor: string
-  language: string
-  level: 'beginner' | 'intermediate' | 'advanced'
-  duration: string  // e.g., "4 hours"
-  lessonsCount: number
-  enrolledCount: number
-  rating: number
-  ratingCount: number
-  tags: string[]
+  instructor?: string
+  language?: string
+  level?: 'beginner' | 'intermediate' | 'advanced'
+  duration?: string  // e.g., "4 hours"
+  lessonsCount?: number
+  enrolledCount?: number
+  rating?: number
+  ratingCount?: number
+  tags?: string[]
   isEnrolled?: boolean
   progress?: number
   isFeatured?: boolean
   isNew?: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 interface CourseFilters {
@@ -157,49 +159,65 @@ function CourseCardComponent({
 
           {/* Description */}
           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-            {course.description}
+            {course.description || 'No description available'}
           </p>
 
           {/* Instructor */}
-          <p className="text-sm text-muted-foreground mt-2">
-            by <span className="font-medium text-foreground">{course.instructor}</span>
-          </p>
+          {course.instructor && (
+            <p className="text-sm text-muted-foreground mt-2">
+              by <span className="font-medium text-foreground">{course.instructor}</span>
+            </p>
+          )}
 
           {/* Stats */}
           <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              {course.duration}
-            </div>
-            <div className="flex items-center gap-1">
-              <BookOpen className="h-4 w-4" />
-              {course.lessonsCount} lessons
-            </div>
+            {course.duration && (
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                {course.duration}
+              </div>
+            )}
+            {course.lessonsCount !== undefined && (
+              <div className="flex items-center gap-1">
+                <BookOpen className="h-4 w-4" />
+                {course.lessonsCount} lessons
+              </div>
+            )}
           </div>
 
           {/* Rating */}
-          <div className="flex items-center gap-2 mt-2">
-            <div className="flex items-center">
-              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-              <span className="ml-1 font-medium">{course.rating.toFixed(1)}</span>
+          {(course.rating !== undefined || course.enrolledCount !== undefined) && (
+            <div className="flex items-center gap-2 mt-2">
+              {course.rating !== undefined && (
+                <div className="flex items-center">
+                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                  <span className="ml-1 font-medium">{course.rating.toFixed(1)}</span>
+                </div>
+              )}
+              {course.ratingCount !== undefined && (
+                <span className="text-sm text-muted-foreground">
+                  ({course.ratingCount.toLocaleString()} ratings)
+                </span>
+              )}
+              {course.enrolledCount !== undefined && (
+                <div className="flex items-center gap-1 ml-auto text-sm text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  {course.enrolledCount.toLocaleString()}
+                </div>
+              )}
             </div>
-            <span className="text-sm text-muted-foreground">
-              ({course.ratingCount.toLocaleString()} ratings)
-            </span>
-            <div className="flex items-center gap-1 ml-auto text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              {course.enrolledCount.toLocaleString()}
-            </div>
-          </div>
+          )}
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-1 mt-3">
-            {course.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
+          {course.tags && course.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-3">
+              {course.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="p-4 pt-0">
@@ -376,9 +394,9 @@ export function CourseDiscovery() {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
       result = result.filter(c => 
-        c.title.toLowerCase().includes(searchLower) ||
-        c.description.toLowerCase().includes(searchLower) ||
-        c.tags.some(t => t.toLowerCase().includes(searchLower))
+        c.title?.toLowerCase().includes(searchLower) ||
+        c.description?.toLowerCase().includes(searchLower) ||
+        c.tags?.some(t => t.toLowerCase().includes(searchLower))
       )
     }
     
@@ -399,14 +417,14 @@ export function CourseDiscovery() {
         result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0))
         break
       case 'rating':
-        result.sort((a, b) => b.rating - a.rating)
+        result.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
         break
       case 'trending':
         // Sort by recent enrollment trend
-        result.sort((a, b) => b.enrolledCount - a.enrolledCount)
+        result.sort((a, b) => (b.enrolledCount ?? 0) - (a.enrolledCount ?? 0))
         break
       default: // popular
-        result.sort((a, b) => b.enrolledCount - a.enrolledCount)
+        result.sort((a, b) => (b.enrolledCount ?? 0) - (a.enrolledCount ?? 0))
     }
     
     return result
