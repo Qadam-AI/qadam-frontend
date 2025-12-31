@@ -378,6 +378,10 @@
     "events": "Events",
     "analyticsNav": "Analytics",
     "settings": "Settings",
+    "communities": "Communities",
+    "subscriptions": "Subscriptions",
+    "gamification": "Gamification",
+    "backToLearner": "Back to Learner",
     "stats": {
       "totalUsers": "Total Users",
       "totalCourses": "Total Courses",

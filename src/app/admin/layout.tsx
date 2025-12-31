@@ -19,7 +19,11 @@ import {
   Brain,
   Blocks,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  UsersRound,
+  CreditCard,
+  Trophy,
+  Home
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -58,6 +62,21 @@ const navItems: NavItem[] = [
     icon: <Brain className="h-5 w-5" />
   },
   {
+    titleKey: 'communities',
+    href: '/admin/communities',
+    icon: <UsersRound className="h-5 w-5" />
+  },
+  {
+    titleKey: 'subscriptions',
+    href: '/admin/subscriptions',
+    icon: <CreditCard className="h-5 w-5" />
+  },
+  {
+    titleKey: 'gamification',
+    href: '/admin/gamification',
+    icon: <Trophy className="h-5 w-5" />
+  },
+  {
     titleKey: 'analyticsNav',
     href: '/admin/analytics',
     icon: <BarChart3 className="h-5 w-5" />
@@ -71,6 +90,11 @@ const navItems: NavItem[] = [
     titleKey: 'settings',
     href: '/admin/llm',
     icon: <Settings className="h-5 w-5" />
+  },
+  {
+    titleKey: 'backToLearner',
+    href: '/',
+    icon: <Home className="h-5 w-5" />
   },
 ]
 

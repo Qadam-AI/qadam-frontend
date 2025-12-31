@@ -5,7 +5,23 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Home, Code, BookOpen, History, X, Settings, User } from 'lucide-react'
+import { 
+  Home, 
+  Code, 
+  BookOpen, 
+  History, 
+  X, 
+  Settings, 
+  User,
+  Users,
+  Trophy,
+  Map,
+  BarChart3,
+  Bookmark,
+  RefreshCcw,
+  FileText,
+  UsersRound
+} from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { useAuth } from '@/hooks/useAuth'
 import { useEffect } from 'react'
@@ -18,11 +34,28 @@ export function Sidebar() {
   const { user } = useAuth()
   const t = useTranslations('nav')
 
-  const navItems = [
+  // Core learning items
+  const coreNavItems = [
     { href: '/', label: t('dashboard'), icon: Home },
+    { href: '/courses', label: 'Courses', icon: BookOpen },
     { href: '/practice', label: t('practice'), icon: Code },
-    { href: '/lessons', label: t('lessons'), icon: BookOpen },
     { href: '/attempts', label: t('attempts'), icon: History },
+  ]
+
+  // New features
+  const featureNavItems = [
+    { href: '/learning-paths', label: 'Learning Paths', icon: Map },
+    { href: '/communities', label: 'Communities', icon: Users },
+    { href: '/collaborate', label: 'Collaboration', icon: UsersRound },
+    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+    { href: '/review', label: 'Spaced Review', icon: RefreshCcw },
+    { href: '/bookmarks', label: 'Bookmarks', icon: Bookmark },
+    { href: '/study-guides', label: 'Study Guides', icon: FileText },
+  ]
+
+  // User items
+  const userNavItems = [
+    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/profile', label: t('profile'), icon: User },
   ]
 
@@ -60,8 +93,57 @@ export function Sidebar() {
           </div>
           <Separator className="lg:hidden" />
           
-          <nav className="flex-1 space-y-1 p-4">
-            {navItems.map((item) => {
+          <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+            {/* Core Learning */}
+            <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Learning</p>
+            {coreNavItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href
+              
+              return (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant={isActive ? 'secondary' : 'ghost'}
+                    className={cn(
+                      'w-full justify-start',
+                      isActive && 'bg-secondary font-medium'
+                    )}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                </Link>
+              )
+            })}
+
+            {/* Features */}
+            <Separator className="my-3" />
+            <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Features</p>
+            {featureNavItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+              
+              return (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant={isActive ? 'secondary' : 'ghost'}
+                    className={cn(
+                      'w-full justify-start text-sm',
+                      isActive && 'bg-secondary font-medium'
+                    )}
+                    size="sm"
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                </Link>
+              )
+            })}
+
+            {/* User */}
+            <Separator className="my-3" />
+            <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Account</p>
+            {userNavItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
               
@@ -83,7 +165,7 @@ export function Sidebar() {
             
             {(user?.role === 'admin' || user?.role === 'instructor') && (
               <>
-                <Separator className="my-2" />
+                <Separator className="my-3" />
                 <Link href="/admin">
                   <Button
                     variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'}
