@@ -24,7 +24,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 export default function InstructorSettings() {
   const { user } = useAuth()
-  const [displayName, setDisplayName] = useState(user?.full_name || '')
+  const [displayName, setDisplayName] = useState(user?.name || '')
   const [bio, setBio] = useState('')
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [studentMessages, setStudentMessages] = useState(true)
