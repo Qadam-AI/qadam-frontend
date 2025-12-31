@@ -163,9 +163,41 @@ export function Sidebar() {
               )
             })}
             
-            {(user?.role === 'admin' || user?.role === 'instructor') && (
+            {/* Instructor Panel - for instructors only */}
+            {user?.role === 'instructor' && (
               <>
                 <Separator className="my-3" />
+                <Link href="/instructor">
+                  <Button
+                    variant={pathname.startsWith('/instructor') ? 'secondary' : 'ghost'}
+                    className={cn(
+                      'w-full justify-start',
+                      pathname.startsWith('/instructor') && 'bg-secondary font-medium'
+                    )}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    {t('instructor')}
+                  </Button>
+                </Link>
+              </>
+            )}
+            
+            {/* Admin Dashboard - for admins only */}
+            {user?.role === 'admin' && (
+              <>
+                <Separator className="my-3" />
+                <Link href="/instructor">
+                  <Button
+                    variant={pathname.startsWith('/instructor') ? 'secondary' : 'ghost'}
+                    className={cn(
+                      'w-full justify-start',
+                      pathname.startsWith('/instructor') && 'bg-secondary font-medium'
+                    )}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    {t('instructor')}
+                  </Button>
+                </Link>
                 <Link href="/admin">
                   <Button
                     variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'}
@@ -175,7 +207,7 @@ export function Sidebar() {
                     )}
                   >
                     <Settings className="mr-2 h-4 w-4" />
-                    {user?.role === 'instructor' ? t('instructor') : t('admin')}
+                    {t('admin')}
                   </Button>
                 </Link>
               </>
