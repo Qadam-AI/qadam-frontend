@@ -373,7 +373,7 @@ export default function MyCoursesPage() {
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+          <main className="flex-1 overflow-y-auto p-6 lg:p-8 lg:ml-64">
             <div className="mx-auto max-w-7xl">
               <MyCoursesContent />
             </div>

@@ -13,7 +13,7 @@ export default function DiscoverPage() {
         <Navbar />
         <div className="flex-1 flex">
           <Sidebar />
-          <main className="flex-1 p-8 overflow-y-auto">
+          <main className="flex-1 p-8 overflow-y-auto lg:ml-64">
             <div className="max-w-7xl mx-auto">
               <CourseDiscovery />
             </div>
