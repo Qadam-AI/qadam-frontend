@@ -20,7 +20,12 @@ import {
   Bookmark,
   RefreshCcw,
   FileText,
-  UsersRound
+  UsersRound,
+  Search,
+  CreditCard,
+  PlusCircle,
+  Shield,
+  GraduationCap
 } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { useAuth } from '@/hooks/useAuth'
@@ -37,12 +42,14 @@ export function Sidebar() {
   // Core learning items
   const coreNavItems = [
     { href: '/', label: t('dashboard'), icon: Home },
-    { href: '/courses', label: 'Courses', icon: BookOpen },
+    { href: '/courses', label: 'My Courses', icon: BookOpen },
+    { href: '/courses/create', label: 'Create Course', icon: PlusCircle },
+    { href: '/discover', label: 'Discover', icon: Search },
     { href: '/practice', label: t('practice'), icon: Code },
     { href: '/attempts', label: t('attempts'), icon: History },
   ]
 
-  // New features
+  // New features - available to all users
   const featureNavItems = [
     { href: '/learning-paths', label: 'Learning Paths', icon: Map },
     { href: '/communities', label: 'Communities', icon: Users },
@@ -51,12 +58,14 @@ export function Sidebar() {
     { href: '/review', label: 'Spaced Review', icon: RefreshCcw },
     { href: '/bookmarks', label: 'Bookmarks', icon: Bookmark },
     { href: '/study-guides', label: 'Study Guides', icon: FileText },
+    { href: '/code-review', label: 'Code Review', icon: Code },
   ]
 
   // User items
   const userNavItems = [
-    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/analytics', label: 'My Analytics', icon: BarChart3 },
     { href: '/profile', label: t('profile'), icon: User },
+    { href: '/pricing', label: 'Subscription', icon: CreditCard },
   ]
 
   // Close sidebar on mobile when route changes
@@ -163,10 +172,11 @@ export function Sidebar() {
               )
             })}
             
-            {/* Instructor Panel - for instructors only */}
-            {user?.role === 'instructor' && (
+            {/* Instructor Panel - for instructors and admins */}
+            {(user?.role === 'instructor' || user?.role === 'admin') && (
               <>
                 <Separator className="my-3" />
+                <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Teach</p>
                 <Link href="/instructor">
                   <Button
                     variant={pathname.startsWith('/instructor') ? 'secondary' : 'ghost'}
@@ -175,7 +185,7 @@ export function Sidebar() {
                       pathname.startsWith('/instructor') && 'bg-secondary font-medium'
                     )}
                   >
-                    <Settings className="mr-2 h-4 w-4" />
+                    <GraduationCap className="mr-2 h-4 w-4" />
                     {t('instructor')}
                   </Button>
                 </Link>
@@ -186,18 +196,7 @@ export function Sidebar() {
             {user?.role === 'admin' && (
               <>
                 <Separator className="my-3" />
-                <Link href="/instructor">
-                  <Button
-                    variant={pathname.startsWith('/instructor') ? 'secondary' : 'ghost'}
-                    className={cn(
-                      'w-full justify-start',
-                      pathname.startsWith('/instructor') && 'bg-secondary font-medium'
-                    )}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    {t('instructor')}
-                  </Button>
-                </Link>
+                <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Platform</p>
                 <Link href="/admin">
                   <Button
                     variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'}
@@ -206,7 +205,7 @@ export function Sidebar() {
                       pathname.startsWith('/admin') && 'bg-secondary font-medium'
                     )}
                   >
-                    <Settings className="mr-2 h-4 w-4" />
+                    <Shield className="mr-2 h-4 w-4" />
                     {t('admin')}
                   </Button>
                 </Link>
