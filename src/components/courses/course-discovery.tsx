@@ -141,12 +141,14 @@ function CourseCardComponent({
 
         <CardContent className="flex-1 p-4">
           {/* Level Badge */}
-          <Badge 
-            variant="secondary" 
-            className={`mb-2 ${LEVEL_COLORS[course.level]}`}
-          >
-            {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
-          </Badge>
+          {course.level && (
+            <Badge 
+              variant="secondary" 
+              className={`mb-2 ${LEVEL_COLORS[course.level] || ''}`}
+            >
+              {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
+            </Badge>
+          )}
 
           {/* Title */}
           <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
