@@ -68,9 +68,9 @@ const VISIBILITY_OPTIONS = [
 
 const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters').max(100),
-  slug: z.string().min(3).max(50).regex(/^[a-z0-9-]+$/, 'Only lowercase letters, numbers, and hyphens'),
+  slug: z.string().max(50).regex(/^[a-z0-9-]*$/, 'Only lowercase letters, numbers, and hyphens').optional().or(z.literal('')),
   description: z.string().min(10, 'Description must be at least 10 characters').max(500),
-  long_description: z.string().max(5000).optional(),
+  mission: z.string().max(5000).optional().or(z.literal('')),
   category: z.string().min(1, 'Please select a category'),
   difficulty: z.string().min(1, 'Please select a difficulty level'),
   visibility: z.string().min(1, 'Please select visibility'),
@@ -93,7 +93,7 @@ export default function CreateCommunityPage() {
       name: '',
       slug: '',
       description: '',
-      long_description: '',
+      mission: '',
       category: '',
       difficulty: '',
       visibility: 'public',
@@ -106,7 +106,14 @@ export default function CreateCommunityPage() {
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const payload = {
-        ...data,
+        name: data.name,
+        description: data.description,
+        mission: data.mission || undefined,
+        category: data.category,
+        difficulty: data.difficulty,
+        visibility: data.visibility,
+        tags: data.tags,
+        slug: data.slug || undefined, // Let backend auto-generate if empty
         cover_image_url: data.cover_image_url || undefined,
         icon_url: data.icon_url || undefined,
       }
@@ -285,18 +292,18 @@ export default function CreateCommunityPage() {
 
                   <FormField
                     control={form.control}
-                    name="long_description"
+                    name="mission"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Detailed Description</FormLabel>
+                        <FormLabel>Mission Statement</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Provide more details about your community's purpose, expectations, and benefits..."
+                            placeholder="What does this community stand for? What are the goals and values?"
                             rows={6}
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription>Supports Markdown formatting</FormDescription>
+                        <FormDescription>Describe the purpose and standards of your community</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
