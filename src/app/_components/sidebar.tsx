@@ -39,14 +39,19 @@ export function Sidebar() {
   const { user } = useAuth()
   const t = useTranslations('nav')
 
-  // Core learning items
+  // Core learning items - available to all
   const coreNavItems = [
     { href: '/', label: t('dashboard'), icon: Home },
     { href: '/courses', label: 'My Courses', icon: BookOpen },
-    { href: '/courses/create', label: 'Create Course', icon: PlusCircle },
     { href: '/discover', label: 'Discover', icon: Search },
     { href: '/practice', label: t('practice'), icon: Code },
     { href: '/attempts', label: t('attempts'), icon: History },
+  ]
+
+  // Instructor items - only for instructors/admins
+  const instructorNavItems = [
+    { href: '/instructor/courses/new', label: 'Create Course', icon: PlusCircle },
+    { href: '/instructor/courses', label: 'Manage Courses', icon: GraduationCap },
   ]
 
   // New features - available to all users
@@ -177,12 +182,31 @@ export function Sidebar() {
               <>
                 <Separator className="my-3" />
                 <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Teach</p>
+                {instructorNavItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                  
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <Button
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        className={cn(
+                          'w-full justify-start',
+                          isActive && 'bg-secondary font-medium'
+                        )}
+                      >
+                        <Icon className="mr-2 h-4 w-4" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  )
+                })}
                 <Link href="/instructor">
                   <Button
-                    variant={pathname.startsWith('/instructor') ? 'secondary' : 'ghost'}
+                    variant={pathname === '/instructor' ? 'secondary' : 'ghost'}
                     className={cn(
                       'w-full justify-start',
-                      pathname.startsWith('/instructor') && 'bg-secondary font-medium'
+                      pathname === '/instructor' && 'bg-secondary font-medium'
                     )}
                   >
                     <GraduationCap className="mr-2 h-4 w-4" />
