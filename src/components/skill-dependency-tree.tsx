@@ -55,8 +55,13 @@ export function SkillDependencyTree({ currentSkills = [], targetSkills = [] }: S
     dependencies: data[skill] || [],
   }))
 
+  // Guard against empty array
+  if (skillLevels.length === 0) {
+    return null
+  }
+
   // Group by level
-  const maxLevel = Math.max(...skillLevels.map(s => s.level))
+  const maxLevel = Math.max(...skillLevels.map(s => s.level ?? 0))
   const levels: Record<number, SkillDependency[]> = {}
   
   for (let i = 0; i <= maxLevel; i++) {
