@@ -20,7 +20,11 @@ import {
   BarChart3,
   Clock,
   CheckCircle2,
-  UserPlus
+  UserPlus,
+  Crown,
+  HardDrive,
+  Zap,
+  AlertTriangle
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -40,6 +44,48 @@ interface RecentCourse {
   created_at: string
 }
 
+interface SubscriptionUsage {
+  courses_created: number
+  storage_used_bytes: number
+  storage_used_display: string
+  tasks_generated_total: number
+  tasks_generated_this_month: number
+}
+
+interface SubscriptionLimits {
+  max_courses: number
+  max_lessons_per_course: number
+  max_storage_bytes: number
+  max_storage_display: string
+  max_tasks_total: number
+  max_tasks_per_month: number
+  max_students_per_course: number
+  max_tasks_per_student: number
+}
+
+interface SubscriptionPlan {
+  id: string
+  name: string
+  display_name: string
+  description: string | null
+}
+
+interface SubscriptionInfo {
+  subscription: {
+    id: string
+    status: string
+    billing_cycle: string
+    expires_at: string | null
+    plan: SubscriptionPlan
+  }
+  plan: SubscriptionPlan
+  usage: SubscriptionUsage
+  limits: SubscriptionLimits
+  courses_usage_percent: number
+  storage_usage_percent: number
+  tasks_usage_percent: number
+}
+
 export default function InstructorDashboard() {
   const { user } = useAuth()
 
@@ -55,6 +101,14 @@ export default function InstructorDashboard() {
     queryKey: ['instructor-courses'],
     queryFn: async () => {
       const res = await api.get<RecentCourse[]>('/api/v1/instructor/courses')
+      return res.data
+    }
+  })
+
+  const { data: subscription, isLoading: loadingSubscription } = useQuery({
+    queryKey: ['subscription-info'],
+    queryFn: async () => {
+      const res = await api.get<SubscriptionInfo>('/api/v1/subscriptions/my')
       return res.data
     }
   })
@@ -215,6 +269,127 @@ export default function InstructorDashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Subscription Usage */}
+      <motion.div variants={itemVariants}>
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-yellow-500" />
+                <CardTitle className="text-lg">
+                  {loadingSubscription ? (
+                    <Skeleton className="h-6 w-32" />
+                  ) : (
+                    <>
+                      {subscription?.plan?.display_name || 'Free'} Plan
+                    </>
+                  )}
+                </CardTitle>
+              </div>
+              <Link href="/pricing">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Zap className="h-4 w-4" />
+                  Upgrade
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loadingSubscription ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-2 w-full" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                ))}
+              </div>
+            ) : subscription ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Courses Usage */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <BookOpen className="h-4 w-4" />
+                      Courses
+                    </span>
+                    <span className="font-medium">
+                      {subscription.usage.courses_created} / {subscription.limits.max_courses === 999999 ? '∞' : subscription.limits.max_courses}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={subscription.limits.max_courses === 999999 ? 0 : subscription.courses_usage_percent} 
+                    className={`h-2 ${subscription.courses_usage_percent >= 90 ? '[&>div]:bg-red-500' : subscription.courses_usage_percent >= 70 ? '[&>div]:bg-yellow-500' : ''}`}
+                  />
+                  {subscription.courses_usage_percent >= 80 && subscription.limits.max_courses !== 999999 && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {subscription.courses_usage_percent >= 100 ? 'Limit reached' : 'Approaching limit'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Storage Usage */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <HardDrive className="h-4 w-4" />
+                      Storage
+                    </span>
+                    <span className="font-medium">
+                      {subscription.usage.storage_used_display} / {subscription.limits.max_storage_display}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={subscription.storage_usage_percent} 
+                    className={`h-2 ${subscription.storage_usage_percent >= 90 ? '[&>div]:bg-red-500' : subscription.storage_usage_percent >= 70 ? '[&>div]:bg-yellow-500' : ''}`}
+                  />
+                  {subscription.storage_usage_percent >= 80 && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {subscription.storage_usage_percent >= 100 ? 'Storage full' : 'Running low on storage'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Tasks Usage */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Zap className="h-4 w-4" />
+                      AI Tasks
+                    </span>
+                    <span className="font-medium">
+                      {subscription.usage.tasks_generated_this_month} / {subscription.limits.max_tasks_per_month === 999999 ? '∞' : subscription.limits.max_tasks_per_month}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={subscription.limits.max_tasks_per_month === 999999 ? 0 : subscription.tasks_usage_percent} 
+                    className={`h-2 ${subscription.tasks_usage_percent >= 90 ? '[&>div]:bg-red-500' : subscription.tasks_usage_percent >= 70 ? '[&>div]:bg-yellow-500' : ''}`}
+                  />
+                  {subscription.tasks_usage_percent >= 80 && subscription.limits.max_tasks_per_month !== 999999 && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {subscription.tasks_usage_percent >= 100 ? 'Monthly limit reached' : 'Approaching monthly limit'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground">No subscription found</p>
+                <Link href="/pricing">
+                  <Button className="mt-2" size="sm">
+                    View Plans
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Recent Courses */}
       <motion.div variants={itemVariants}>

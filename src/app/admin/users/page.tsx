@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TableSkeleton } from '@/app/_components/skeletons'
-import { Plus, Pencil, Trash2, Key } from 'lucide-react'
+import { Plus, Pencil, Trash2, Key, Eye, User as UserIcon, Trophy, BookOpen, Mail, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 
@@ -40,8 +40,37 @@ interface User {
   id: string
   email: string
   name: string
+  username?: string
   role: string
+  user_type?: string
+  xp?: number
   created_at: string
+}
+
+interface UserProfile {
+  id: string
+  email: string
+  name: string
+  username?: string
+  role: string
+  user_type?: string
+  xp: number
+  created_at: string
+  subscription?: {
+    tier: string
+    status: string
+    expires_at?: string
+  }
+  enrolled_courses?: Array<{
+    id: string
+    title: string
+    enrolled_at: string
+  }>
+  created_courses?: Array<{
+    id: string
+    title: string
+    student_count: number
+  }>
 }
 
 export default function UsersManagement() {
@@ -50,7 +79,10 @@ export default function UsersManagement() {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [loadingProfile, setLoadingProfile] = useState(false)
 
   const [formData, setFormData] = useState({
     email: '',
@@ -126,6 +158,25 @@ export default function UsersManagement() {
       toast.error('Failed to reset password')
     },
   })
+
+  const viewProfile = async (user: User) => {
+    setSelectedUser(user)
+    setLoadingProfile(true)
+    setIsProfileOpen(true)
+    try {
+      // Use the main user endpoint which returns full details
+      const response = await api.get(`/admin/users/${user.id}`)
+      setUserProfile(response.data)
+    } catch {
+      // Fallback to basic user data if endpoint fails
+      setUserProfile({
+        ...user,
+        xp: user.xp || 0,
+      } as UserProfile)
+    } finally {
+      setLoadingProfile(false)
+    }
+  }
 
   const handleCreate = () => {
     if (!formData.email || !formData.name || !formData.password) {
@@ -209,24 +260,41 @@ export default function UsersManagement() {
               <TableRow>
                 <TableHead>Email</TableHead>
                 <TableHead>Name</TableHead>
+                <TableHead>Username</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>XP</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users?.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user.id} className="cursor-pointer hover:bg-muted/50" onClick={() => viewProfile(user)}>
                   <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>{user.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{user.username || '-'}</TableCell>
                   <TableCell>
-                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                    <Badge variant={user.role === 'admin' ? 'default' : user.role === 'instructor' ? 'outline' : 'secondary'}>
                       {user.role}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Trophy className="h-3 w-3 text-yellow-500" />
+                      {user.xp || 0}
+                    </div>
+                  </TableCell>
                   <TableCell>{format(new Date(user.created_at), 'MMM d, yyyy')}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => viewProfile(user)}
+                        title="View Profile"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -299,6 +367,7 @@ export default function UsersManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="learner">Learner</SelectItem>
+                  <SelectItem value="instructor">Instructor</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -348,6 +417,7 @@ export default function UsersManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="learner">Learner</SelectItem>
+                  <SelectItem value="instructor">Instructor</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -410,6 +480,140 @@ export default function UsersManagement() {
             </Button>
             <Button onClick={handleResetPassword} disabled={resetPasswordMutation.isPending}>
               {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* User Profile Dialog */}
+      <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserIcon className="h-5 w-5" />
+              User Profile
+            </DialogTitle>
+            <DialogDescription>
+              Detailed information about {selectedUser?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {loadingProfile ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+          ) : userProfile ? (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground text-xs">Name</Label>
+                  <p className="font-medium">{userProfile.name}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground text-xs">Username</Label>
+                  <p className="font-medium">{userProfile.username || '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground text-xs flex items-center gap-1">
+                    <Mail className="h-3 w-3" /> Email
+                  </Label>
+                  <p className="font-medium">{userProfile.email}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground text-xs">Role</Label>
+                  <Badge variant={userProfile.role === 'admin' ? 'default' : userProfile.role === 'instructor' ? 'outline' : 'secondary'}>
+                    {userProfile.role}
+                  </Badge>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground text-xs flex items-center gap-1">
+                    <Trophy className="h-3 w-3" /> Experience Points
+                  </Label>
+                  <p className="font-medium text-lg">{userProfile.xp} XP</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground text-xs flex items-center gap-1">
+                    <Calendar className="h-3 w-3" /> Member Since
+                  </Label>
+                  <p className="font-medium">{format(new Date(userProfile.created_at), 'MMMM d, yyyy')}</p>
+                </div>
+              </div>
+
+              {/* Subscription Info */}
+              {userProfile.subscription && (
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">Subscription</h4>
+                  <div className="flex items-center gap-4">
+                    <Badge variant={userProfile.subscription.status === 'active' ? 'default' : 'secondary'}>
+                      {userProfile.subscription.tier}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      Status: {userProfile.subscription.status}
+                    </span>
+                    {userProfile.subscription.expires_at && (
+                      <span className="text-sm text-muted-foreground">
+                        Expires: {format(new Date(userProfile.subscription.expires_at), 'MMM d, yyyy')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Enrolled Courses */}
+              {userProfile.enrolled_courses && userProfile.enrolled_courses.length > 0 && (
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Enrolled Courses ({userProfile.enrolled_courses.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {userProfile.enrolled_courses.slice(0, 5).map((course) => (
+                      <div key={course.id} className="flex justify-between items-center text-sm">
+                        <span>{course.title}</span>
+                        <span className="text-muted-foreground">
+                          {format(new Date(course.enrolled_at), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                    ))}
+                    {userProfile.enrolled_courses.length > 5 && (
+                      <p className="text-sm text-muted-foreground">
+                        +{userProfile.enrolled_courses.length - 5} more courses
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Created Courses (for instructors) */}
+              {userProfile.created_courses && userProfile.created_courses.length > 0 && (
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Created Courses ({userProfile.created_courses.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {userProfile.created_courses.map((course) => (
+                      <div key={course.id} className="flex justify-between items-center text-sm">
+                        <span>{course.title}</span>
+                        <Badge variant="outline">{course.student_count} students</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsProfileOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              setIsProfileOpen(false)
+              if (selectedUser) openEditDialog(selectedUser)
+            }}>
+              Edit User
             </Button>
           </DialogFooter>
         </DialogContent>
