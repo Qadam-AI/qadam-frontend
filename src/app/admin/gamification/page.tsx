@@ -1,10 +1,30 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { 
   Table, 
   TableBody, 
@@ -20,9 +40,12 @@ import {
   Target,
   Award,
   Zap,
-  TrendingUp,
-  Users
+  Users,
+  Plus,
+  Pencil,
+  Trash2
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface LeaderboardEntry {
   user_id: string
@@ -36,13 +59,40 @@ interface LeaderboardEntry {
 interface BadgeInfo {
   id: string
   name: string
+  display_name: string
   description: string
   icon: string
+  category: string
   rarity: string
+  requirement_type: string
+  requirement_value: number
+  xp_reward: number
+  color: string
+  is_secret: boolean
   earned_count?: number
 }
 
 export default function AdminGamification() {
+  const queryClient = useQueryClient()
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [selectedBadge, setSelectedBadge] = useState<BadgeInfo | null>(null)
+
+  const [formData, setFormData] = useState({
+    name: '',
+    display_name: '',
+    description: '',
+    icon: '🏆',
+    category: 'progress',
+    rarity: 'common',
+    requirement_type: 'tasks_completed',
+    requirement_value: 1,
+    xp_reward: 50,
+    color: '#4F46E5',
+    is_secret: false,
+  })
+
   const { data: leaderboard, isLoading: lbLoading } = useQuery<{ entries: LeaderboardEntry[] }>({
     queryKey: ['admin-leaderboard'],
     queryFn: async () => {
@@ -59,13 +109,131 @@ export default function AdminGamification() {
     queryKey: ['admin-badges'],
     queryFn: async () => {
       try {
+        const res = await api.get('/admin/gamification/badges')
+        // Handle array response directly if that's what the backend returns
+        if (Array.isArray(res.data)) {
+          return { badges: res.data }
+        }
+        return { badges: res.data }
+      } catch {
+        // Fallback to public endpoint
         const res = await api.get('/api/v1/gamification/badges/all?include_secret=true')
         return res.data
-      } catch {
-        return { badges: [] }
       }
     },
   })
+
+  const createMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      await api.post('/admin/gamification/badges', data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-badges'] })
+      setIsCreateOpen(false)
+      resetForm()
+      toast.success('Badge created successfully')
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to create badge')
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<BadgeInfo> }) => {
+      await api.patch(`/admin/gamification/badges/${id}`, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-badges'] })
+      setIsEditOpen(false)
+      setSelectedBadge(null)
+      toast.success('Badge updated successfully')
+    },
+    onError: () => {
+      toast.error('Failed to update badge')
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/admin/gamification/badges/${id}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-badges'] })
+      setIsDeleteOpen(false)
+      setSelectedBadge(null)
+      toast.success('Badge deleted successfully')
+    },
+    onError: () => {
+      toast.error('Failed to delete badge')
+    },
+  })
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      display_name: '',
+      description: '',
+      icon: '🏆',
+      category: 'progress',
+      rarity: 'common',
+      requirement_type: 'tasks_completed',
+      requirement_value: 1,
+      xp_reward: 50,
+      color: '#4F46E5',
+      is_secret: false,
+    })
+  }
+
+  const handleCreate = () => {
+    if (!formData.name || !formData.display_name) {
+      toast.error('Please fill all required fields')
+      return
+    }
+    createMutation.mutate(formData)
+  }
+
+  const handleEdit = () => {
+    if (!selectedBadge) return
+    updateMutation.mutate({
+      id: selectedBadge.id,
+      data: {
+        display_name: formData.display_name,
+        description: formData.description,
+        icon: formData.icon,
+        category: formData.category,
+        rarity: formData.rarity,
+        requirement_type: formData.requirement_type,
+        requirement_value: formData.requirement_value,
+        xp_reward: formData.xp_reward,
+        color: formData.color,
+        is_secret: formData.is_secret,
+      },
+    })
+  }
+
+  const handleDelete = () => {
+    if (!selectedBadge) return
+    deleteMutation.mutate(selectedBadge.id)
+  }
+
+  const openEditDialog = (badge: BadgeInfo) => {
+    setSelectedBadge(badge)
+    setFormData({
+      name: badge.name,
+      display_name: badge.display_name,
+      description: badge.description,
+      icon: badge.icon,
+      category: badge.category,
+      rarity: badge.rarity,
+      requirement_type: badge.requirement_type,
+      requirement_value: badge.requirement_value,
+      xp_reward: badge.xp_reward,
+      color: badge.color,
+      is_secret: badge.is_secret,
+    })
+    setIsEditOpen(true)
+  }
 
   if (lbLoading || badgesLoading) {
     return (
@@ -91,9 +259,15 @@ export default function AdminGamification() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Gamification</h1>
-        <p className="text-muted-foreground">Manage XP, badges, and leaderboards</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Gamification</h1>
+          <p className="text-muted-foreground">Manage XP, badges, and leaderboards</p>
+        </div>
+        <Button onClick={() => { resetForm(); setIsCreateOpen(true) }}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Badge
+        </Button>
       </div>
 
       {/* Stats */}
@@ -148,6 +322,7 @@ export default function AdminGamification() {
         </Card>
       </div>
 
+      {/* Leaderboard and Badges */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Leaderboard */}
         <Card>
@@ -207,29 +382,50 @@ export default function AdminGamification() {
             {allBadges.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground">No badges configured</p>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {allBadges.map((badge) => (
                   <div
                     key={badge.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border bg-card"
+                    className="flex items-center gap-3 p-3 rounded-lg border bg-card group"
                   >
                     <div className="text-2xl">{badge.icon || '🏆'}</div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{badge.name}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm truncate">{badge.display_name || badge.name}</span>
+                        {badge.is_secret && <Badge variant="secondary" className="text-[10px]">Secret</Badge>}
+                      </div>
                       <div className="text-xs text-muted-foreground truncate">
                         {badge.description}
                       </div>
-                      <Badge 
-                        variant="outline" 
-                        className={
-                          badge.rarity === 'legendary' ? 'text-yellow-500 border-yellow-500' :
-                          badge.rarity === 'epic' ? 'text-purple-500 border-purple-500' :
-                          badge.rarity === 'rare' ? 'text-blue-500 border-blue-500' :
-                          ''
-                        }
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-[10px] capitalize ${
+                            badge.rarity === 'legendary' ? 'text-yellow-500 border-yellow-500' :
+                            badge.rarity === 'epic' ? 'text-purple-500 border-purple-500' :
+                            badge.rarity === 'rare' ? 'text-blue-500 border-blue-500' :
+                            ''
+                          }`}
+                        >
+                          {badge.rarity}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground">
+                          +{badge.xp_reward} XP
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(badge)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-destructive hover:text-destructive" 
+                        onClick={() => { setSelectedBadge(badge); setIsDeleteOpen(true) }}
                       >
-                        {badge.rarity}
-                      </Badge>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -277,6 +473,171 @@ export default function AdminGamification() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={isCreateOpen || isEditOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsCreateOpen(false)
+          setIsEditOpen(false)
+          setSelectedBadge(null)
+        }
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{isCreateOpen ? 'Create Badge' : 'Edit Badge'}</DialogTitle>
+            <DialogDescription>
+              {isCreateOpen ? 'Add a new achievement badge to the system.' : 'Update badge details.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Internal Name (ID)</Label>
+                <Input 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="first_step"
+                  disabled={isEditOpen}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Display Name</Label>
+                <Input 
+                  value={formData.display_name} 
+                  onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
+                  placeholder="First Step"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input 
+                value={formData.description} 
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Complete your first task"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Icon (Emoji)</Label>
+                <Input 
+                  value={formData.icon} 
+                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                  placeholder="🎯"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>XP Reward</Label>
+                <Input 
+                  type="number"
+                  value={formData.xp_reward} 
+                  onChange={(e) => setFormData({ ...formData, xp_reward: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(val) => setFormData({ ...formData, category: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="progress">Progress</SelectItem>
+                    <SelectItem value="streak">Streak</SelectItem>
+                    <SelectItem value="mastery">Mastery</SelectItem>
+                    <SelectItem value="social">Social</SelectItem>
+                    <SelectItem value="special">Special</SelectItem>
+                    <SelectItem value="challenge">Challenge</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Rarity</Label>
+                <Select 
+                  value={formData.rarity} 
+                  onValueChange={(val) => setFormData({ ...formData, rarity: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="common">Common</SelectItem>
+                    <SelectItem value="uncommon">Uncommon</SelectItem>
+                    <SelectItem value="rare">Rare</SelectItem>
+                    <SelectItem value="epic">Epic</SelectItem>
+                    <SelectItem value="legendary">Legendary</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Requirement Type</Label>
+                <Select 
+                  value={formData.requirement_type} 
+                  onValueChange={(val) => setFormData({ ...formData, requirement_type: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tasks_completed">Tasks Completed</SelectItem>
+                    <SelectItem value="streak_days">Streak Days</SelectItem>
+                    <SelectItem value="xp_earned">XP Earned</SelectItem>
+                    <SelectItem value="courses_completed">Courses Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Requirement Value</Label>
+                <Input 
+                  type="number"
+                  value={formData.requirement_value} 
+                  onChange={(e) => setFormData({ ...formData, requirement_value: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label>Secret Badge</Label>
+                <p className="text-sm text-muted-foreground">Hidden until earned</p>
+              </div>
+              <Switch 
+                checked={formData.is_secret}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_secret: checked })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsCreateOpen(false); setIsEditOpen(false) }}>
+              Cancel
+            </Button>
+            <Button onClick={isCreateOpen ? handleCreate : handleEdit}>
+              {isCreateOpen ? 'Create Badge' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Badge</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &quot;{selectedBadge?.display_name || selectedBadge?.name}&quot;? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
