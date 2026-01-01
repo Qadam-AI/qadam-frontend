@@ -46,6 +46,7 @@ import {
   Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { IconPicker } from '@/components/icon-picker'
 
 interface LeaderboardEntry {
   user_id: string
@@ -388,7 +389,13 @@ export default function AdminGamification() {
                     key={badge.id}
                     className="flex items-center gap-3 p-3 rounded-lg border bg-card group"
                   >
-                    <div className="text-2xl">{badge.icon || '🏆'}</div>
+                    <div className="w-10 h-10 flex items-center justify-center text-primary">
+                      {badge.icon?.startsWith('<svg') ? (
+                        <div dangerouslySetInnerHTML={{ __html: badge.icon }} className="w-8 h-8 [&>svg]:w-full [&>svg]:h-full" />
+                      ) : (
+                        <span className="text-2xl">{badge.icon || '🏆'}</span>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm truncate">{badge.display_name || badge.name}</span>
@@ -519,11 +526,11 @@ export default function AdminGamification() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Icon (Emoji)</Label>
-                <Input 
-                  value={formData.icon} 
-                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  placeholder="🎯"
+                <Label>Icon</Label>
+                <IconPicker
+                  value={formData.icon}
+                  onChange={(svgContent, iconName) => setFormData({ ...formData, icon: svgContent })}
+                  placeholder="Select an icon"
                 />
               </div>
               <div className="space-y-2">
