@@ -75,8 +75,8 @@ const formSchema = z.object({
   difficulty: z.string().min(1, 'Please select a difficulty level'),
   visibility: z.string().min(1, 'Please select visibility'),
   tags: z.array(z.string()).max(10),
-  cover_image_url: z.string().url().optional().or(z.literal('')),
-  icon_url: z.string().url().optional().or(z.literal('')),
+  cover_image_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')).transform(val => val || undefined),
+  icon_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')).transform(val => val || undefined),
 })
 
 type FormData = z.infer<typeof formSchema>
