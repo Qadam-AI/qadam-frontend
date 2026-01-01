@@ -158,7 +158,17 @@ export default function CreateCommunityPage() {
   }
 
   const onSubmit = (data: FormData) => {
+    console.log('Form submitted with data:', data)
     createMutation.mutate(data)
+  }
+
+  const onError = (errors: any) => {
+    console.error('Form validation errors:', errors)
+    toast({
+      variant: 'destructive',
+      title: 'Validation Error',
+      description: 'Please check all required fields are filled correctly.',
+    })
   }
 
   const canProceed = () => {
@@ -212,7 +222,7 @@ export default function CreateCommunityPage() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit, onError)}>
           {/* Step 1: Basic Info */}
           {step === 1 && (
             <motion.div
