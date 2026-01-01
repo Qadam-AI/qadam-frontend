@@ -86,6 +86,7 @@ export default function CreateCommunityPage() {
   const { toast } = useToast()
   const [step, setStep] = useState(1)
   const [tagInput, setTagInput] = useState('')
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -247,7 +248,7 @@ export default function CreateCommunityPage() {
                             {...field}
                             onChange={(e) => {
                               field.onChange(e)
-                              if (!form.getValues('slug')) {
+                              if (!slugManuallyEdited) {
                                 form.setValue('slug', generateSlug(e.target.value))
                               }
                             }}
@@ -271,7 +272,10 @@ export default function CreateCommunityPage() {
                             <Input
                               placeholder="advanced-python"
                               {...field}
-                              onChange={(e) => field.onChange(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                              onChange={(e) => {
+                                setSlugManuallyEdited(true)
+                                field.onChange(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
+                              }}
                             />
                           </div>
                         </FormControl>
