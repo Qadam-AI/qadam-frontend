@@ -436,22 +436,11 @@ export default function LandingPage() {
                   {t('hero.cta')}<ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="text-lg px-8 h-14 gap-2"><Play className="w-5 h-5" />{t('hero.secondaryCta')}</Button>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-sm text-muted-foreground">
-              <p className="mb-4">{t('hero.trustedBy')}</p>
-              <div className="flex justify-center items-center gap-8 opacity-50">
-                <Building2 className="w-8 h-8" /><GraduationCap className="w-8 h-8" /><Globe className="w-8 h-8" /><Building2 className="w-8 h-8" /><GraduationCap className="w-8 h-8" />
-              </div>
+              <Link href="/contact">
+                <Button size="lg" variant="outline" className="text-lg px-8 h-14 gap-2"><Play className="w-5 h-5" />{t('hero.secondaryCta')}</Button>
+              </Link>
             </motion.div>
           </div>
-        </motion.div>
-        
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="absolute bottom-10 left-1/2 -translate-x-1/2">
-          <motion.div animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }} className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex justify-center">
-            <motion.div animate={{ y: [0, 12, 0] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-3 bg-primary rounded-full mt-2" />
-          </motion.div>
         </motion.div>
       </section>
 
@@ -797,76 +786,6 @@ export default function LandingPage() {
               </CardContent>
             </Card>
           </motion.div>
-        </div>
-      </section>
-
-      {/* Tech Stack & AI Section */}
-      <section id="tech" className="py-24">
-        <div className="container mx-auto px-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">Technology</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">{t('tech.title')}</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{t('tech.subtitle')}</p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* AI & ML */}
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}>
-              <Card className="h-full border-2 hover:border-primary/50 transition-all">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-4">
-                    <Brain className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{t('tech.ai.title')}</h3>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />OpenAI GPT-4 / GPT-3.5</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />LangChain for RAG pipelines</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Vector DB (embeddings)</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Custom AI grading engine</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Adaptive difficulty algorithm</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Backend */}
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
-              <Card className="h-full border-2 hover:border-primary/50 transition-all">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-4">
-                    <Zap className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{t('tech.backend.title')}</h3>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Python + FastAPI</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />PostgreSQL database</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />SQLAlchemy ORM</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Docker containerization</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Railway cloud hosting</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Frontend */}
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
-              <Card className="h-full border-2 hover:border-primary/50 transition-all">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-4">
-                    <Globe className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{t('tech.frontend.title')}</h3>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Next.js 15 (React)</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />TypeScript</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Tailwind CSS + shadcn/ui</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Framer Motion animations</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />i18n (EN/UZ/RU)</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
         </div>
       </section>
 
