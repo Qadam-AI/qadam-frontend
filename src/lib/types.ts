@@ -84,12 +84,36 @@ export type TestCase = {
   expected?: string
 }
 
+// Task types from dynamic orchestrator
+export type TaskType = 
+  | 'coding'
+  | 'multiple_choice'
+  | 'fill_blank'
+  | 'short_answer'
+  | 'matching'
+  | 'ordering'
+  | 'true_false'
+  | 'diagram_label'
+  | 'case_study'
+  | 'practical'
+  | 'reflection'
+  | 'calculation'
+  | 'comparison'
+  | 'definition'
+  | 'example'
+
 export type GeneratedTask = {
   taskId: string
+  taskType: TaskType  // NEW: dynamic task type
   prompt: string
   starterCode: string | null
   tests: TestCase[]
   hint: string | null
+  // Additional task-specific data
+  options?: string[] | null  // For multiple choice
+  pairs?: { left: string; right: string }[] | null  // For matching
+  items?: string[] | null  // For ordering
+  statements?: { statement: string; answer?: boolean }[] | null  // For true/false
 }
 
 export type TaskGenerateRequest = {

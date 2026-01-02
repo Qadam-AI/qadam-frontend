@@ -15,12 +15,14 @@ import { CodeEditor } from '../_components/code-editor'
 import { FeedbackPanel } from '../_components/feedback-panel'
 import { WhyThisTaskDrawer } from '../_components/why-this-task-drawer'
 import { TaskCardSkeleton } from '../_components/skeletons'
+import { TaskRenderer, isCodeTask, getTaskTypeLabel, getTaskTypeIcon } from '@/components/task-renderers'
+import type { TaskType } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { Play, RotateCcw, Sparkles, BookOpen, GraduationCap, Rocket, Target, Trophy, ArrowRight, Zap, AlertCircle } from 'lucide-react'
+import { Play, RotateCcw, Sparkles, BookOpen, GraduationCap, Rocket, Target, Trophy, ArrowRight, Zap, AlertCircle, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { AuthGuard } from '../_components/auth-guard'
 import Confetti from 'react-confetti'
@@ -269,14 +271,14 @@ function PracticeContent() {
 
   const handleRunTests = async () => {
     if (!currentTask || !code.trim()) {
-      toast.error('Please write some code first')
+      toast.error('Please provide an answer first')
       return
     }
 
     try {
       const result = await gradeTaskAsync({
         taskId: currentTask.taskId,
-        code,
+        code, // code is the user's answer for any task type
       })
       setFeedback(result)
 
@@ -583,10 +585,11 @@ function PracticeContent() {
           tests={currentTask.tests}
           hint={currentTask.hint}
           difficulty={nextTaskData.difficulty}
+          taskType={currentTask.taskType}
         />
       </motion.div>
 
-      {/* Editor */}
+      {/* Dynamic Task Input - renders appropriate UI based on task type */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -594,7 +597,9 @@ function PracticeContent() {
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">{t('yourSolution')}</h2>
+            <h2 className="text-xl font-semibold">
+              {isCodeTask(currentTask.taskType as TaskType) ? t('yourSolution') : t('yourAnswer') || 'Your Answer'}
+            </h2>
             <div className="flex items-center gap-2">
               <HintButton
                 taskPrompt={currentTask.prompt}
@@ -603,19 +608,41 @@ function PracticeContent() {
                 concept={nextTaskData.conceptName}
               />
               <span className="text-xs text-muted-foreground hidden sm:inline">
-                {t('shortcuts')}
+                {isCodeTask(currentTask.taskType as TaskType) ? t('shortcuts') : ''}
               </span>
-              <Button variant="outline" size="sm" onClick={handleReset} disabled={isGrading} title="Reset (Ctrl+Shift+R)">
+              <Button variant="outline" size="sm" onClick={handleReset} disabled={isGrading} title="Reset">
                 <RotateCcw className="h-4 w-4 mr-1" />
                 {t('reset')}
               </Button>
-              <Button onClick={handleRunTests} disabled={isGrading} size="sm" title="Run Tests (Ctrl+Enter)">
-                <Play className="h-4 w-4 mr-1" />
-                {isGrading ? t('running') : t('runTests')}
+              <Button onClick={handleRunTests} disabled={isGrading} size="sm" title="Submit">
+                {isCodeTask(currentTask.taskType as TaskType) ? (
+                  <>
+                    <Play className="h-4 w-4 mr-1" />
+                    {isGrading ? t('running') : t('runTests')}
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-1" />
+                    {isGrading ? t('running') : t('submit') || 'Submit'}
+                  </>
+                )}
               </Button>
             </div>
           </div>
-          <CodeEditor initialCode={code} onChange={setCode} />
+          
+          {/* Render dynamic task input based on task type */}
+          <TaskRenderer
+            taskType={(currentTask.taskType || 'short_answer') as TaskType}
+            prompt={currentTask.prompt}
+            starterCode={currentTask.starterCode}
+            options={currentTask.options}
+            pairs={currentTask.pairs}
+            items={currentTask.items}
+            statements={currentTask.statements}
+            value={code}
+            onChange={setCode}
+            disabled={isGrading}
+          />
         </div>
       </motion.div>
 

@@ -80,12 +80,37 @@ export const testCaseSchema = z.object({
   expected: z.string().optional(),
 })
 
+// Task types from the dynamic orchestrator
+export const taskTypeSchema = z.enum([
+  'coding',
+  'multiple_choice',
+  'fill_blank',
+  'short_answer',
+  'matching',
+  'ordering',
+  'true_false',
+  'diagram_label',
+  'case_study',
+  'practical',
+  'reflection',
+  'calculation',
+  'comparison',
+  'definition',
+  'example',
+])
+
 export const generatedTaskSchema = z.object({
   taskId: z.string(),
+  taskType: taskTypeSchema.optional().default('short_answer'), // NEW: dynamic task type
   prompt: z.string(),
   starterCode: z.string().nullable(),
   tests: z.array(testCaseSchema),
   hint: z.string().nullable(),
+  // Additional task-specific data
+  options: z.array(z.string()).nullable().optional(),  // For multiple choice
+  pairs: z.array(z.object({ left: z.string(), right: z.string() })).nullable().optional(),  // For matching
+  items: z.array(z.string()).nullable().optional(),  // For ordering
+  statements: z.array(z.object({ statement: z.string(), answer: z.boolean().optional() })).nullable().optional(),  // For true/false
 })
 
 export const testFailureSchema = z.object({
