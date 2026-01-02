@@ -532,10 +532,10 @@ export default function LandingPage() {
       <section id="preview" className="py-24 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">Platform Preview</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">What You'll Get Access To</h2>
+            <Badge variant="outline" className="mb-4">{t('platformPreview.badge')}</Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">{t('platformPreview.title')}</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              After signing up, you'll unlock a complete learning ecosystem designed to maximize your potential
+              {t('platformPreview.subtitle')}
             </p>
           </motion.div>
           
@@ -548,12 +548,12 @@ export default function LandingPage() {
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <BarChart3 className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Personal Dashboard</h3>
-                  <p className="text-muted-foreground text-sm mb-4">Track your progress with detailed analytics, streak tracking, and mastery visualization</p>
+                  <h3 className="text-xl font-bold mb-2">{t('platformPreview.dashboard.title')}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{t('platformPreview.dashboard.description')}</p>
                   <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Daily streak & XP tracking</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Mastery level per concept</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Course completion progress</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.dashboard.feature1')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.dashboard.feature2')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.dashboard.feature3')}</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -567,12 +567,12 @@ export default function LandingPage() {
                   <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Video className="w-6 h-6 text-violet-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Rich Content Library</h3>
-                  <p className="text-muted-foreground text-sm mb-4">Access video lessons, transcripts, AI-generated practice questions, and interactive exercises</p>
+                  <h3 className="text-xl font-bold mb-2">{t('platformPreview.content.title')}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{t('platformPreview.content.description')}</p>
                   <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Video lessons with transcripts</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />AI-graded coding challenges</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Conceptual quizzes</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.content.feature1')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.content.feature2')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.content.feature3')}</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -586,12 +586,12 @@ export default function LandingPage() {
                   <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <MessageSquare className="w-6 h-6 text-blue-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">AI Learning Assistant</h3>
-                  <p className="text-muted-foreground text-sm mb-4">Get help anytime with our AI tutor that understands your learning context</p>
+                  <h3 className="text-xl font-bold mb-2">{t('platformPreview.aiTutor.title')}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{t('platformPreview.aiTutor.description')}</p>
                   <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Smart hints (not answers)</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Concept explanations</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Code review & feedback</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.aiTutor.feature1')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.aiTutor.feature2')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.aiTutor.feature3')}</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -605,12 +605,12 @@ export default function LandingPage() {
                   <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Users className="w-6 h-6 text-orange-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Learning Communities</h3>
-                  <p className="text-muted-foreground text-sm mb-4">Join gated cohorts with strict entry requirements to learn with serious peers</p>
+                  <h3 className="text-xl font-bold mb-2">{t('platformPreview.communities.title')}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{t('platformPreview.communities.description')}</p>
                   <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Rule-based membership</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Quality-gated cohorts</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Community leaderboards</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.communities.feature1')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.communities.feature2')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.communities.feature3')}</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -624,12 +624,12 @@ export default function LandingPage() {
                   <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Trophy className="w-6 h-6 text-green-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Practice & Compete</h3>
-                  <p className="text-muted-foreground text-sm mb-4">Reinforce learning with adaptive practice sessions and compete on leaderboards</p>
+                  <h3 className="text-xl font-bold mb-2">{t('platformPreview.practice.title')}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{t('platformPreview.practice.description')}</p>
                   <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Adaptive difficulty</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Global leaderboards</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Achievement badges</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.practice.feature1')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.practice.feature2')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{t('platformPreview.practice.feature3')}</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -644,14 +644,14 @@ export default function LandingPage() {
                     <Sparkles className="w-6 h-6 text-yellow-500" />
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold">Premium Features</h3>
-                    <Badge className="bg-yellow-500/20 text-yellow-600">PRO</Badge>
+                    <h3 className="text-xl font-bold">{t('platformPreview.premium.title')}</h3>
+                    <Badge className="bg-yellow-500/20 text-yellow-600">{t('platformPreview.premium.pro')}</Badge>
                   </div>
-                  <p className="text-muted-foreground text-sm mb-4">Unlock advanced features with our subscription plans</p>
+                  <p className="text-muted-foreground text-sm mb-4">{t('platformPreview.premium.description')}</p>
                   <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" />Unlimited AI hints</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" />Priority code review</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" />Advanced analytics</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" />{t('platformPreview.premium.feature1')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" />{t('platformPreview.premium.feature2')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-yellow-500" />{t('platformPreview.premium.feature3')}</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -661,7 +661,7 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mt-12">
             <Link href="/pricing">
               <Button size="lg" variant="outline" className="gap-2">
-                View Pricing Plans <ArrowRight className="w-4 h-4" />
+                {t('platformPreview.viewPricing')} <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
           </motion.div>

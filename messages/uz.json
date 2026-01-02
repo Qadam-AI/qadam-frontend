@@ -204,6 +204,55 @@
         "title": "Frontend va UX"
       }
     },
+    "platformPreview": {
+      "badge": "Platforma ko'rinishi",
+      "title": "Nimaga kirish huquqiga ega bo'lasiz",
+      "subtitle": "Ro'yxatdan o'tgandan so'ng, sizning salohiyatingizni maksimal darajada oshirish uchun yaratilgan to'liq o'quv ekotizimini ochishingiz mumkin",
+      "viewPricing": "Narxlar rejalarini ko'rish",
+      "dashboard": {
+        "title": "Shaxsiy panel",
+        "description": "Taraqqiyotingizni batafsil tahlillar, ketma-ketlik hisoblash va mahorat vizualizatsiyasi bilan kuzating",
+        "feature1": "Kundalik ketma-ketlik va XP",
+        "feature2": "Tushuncha bo'yicha mahorat darajasi",
+        "feature3": "Kurs tugatish jarayoni"
+      },
+      "content": {
+        "title": "Boy kontent kutubxonasi",
+        "description": "Video darslar, transkripsiyalar, AI yaratgan amaliy savollar va interaktiv mashqlarga kirish",
+        "feature1": "Transkripsiyali video darslar",
+        "feature2": "AI baholaydigan kodlash vazifalari",
+        "feature3": "Konseptual testlar"
+      },
+      "aiTutor": {
+        "title": "AI o'quv yordamchisi",
+        "description": "O'rganish kontekstingizni tushunadigan AI o'qituvchimizdan istalgan vaqtda yordam oling",
+        "feature1": "Aqlli maslahatlar (javoblar emas)",
+        "feature2": "Tushuncha tushuntirishlari",
+        "feature3": "Kod ko'rish va fikr-mulohaza"
+      },
+      "communities": {
+        "title": "O'quv jamoalari",
+        "description": "Jiddiy tengdoshlar bilan o'rganish uchun qat'iy kirish talablari bilan yopiq guruhlaraga qo'shiling",
+        "feature1": "Qoidalarga asoslangan a'zolik",
+        "feature2": "Sifat boshqariladigan guruhlar",
+        "feature3": "Jamoa reytinglari"
+      },
+      "practice": {
+        "title": "Mashq qilish va musobaqa",
+        "description": "Moslashuvchan amaliy sessiyalar bilan o'rganishni mustahkamlang va reytinglarda raqobatlashing",
+        "feature1": "Moslashuvchan qiyinchilik",
+        "feature2": "Global reytinglar",
+        "feature3": "Yutuq nishonlari"
+      },
+      "premium": {
+        "title": "Premium xususiyatlar",
+        "pro": "PRO",
+        "description": "Obuna rejalarimiz bilan ilg'or xususiyatlarni oching",
+        "feature1": "Cheksiz AI maslahatlari",
+        "feature2": "Ustuvor kod ko'rish",
+        "feature3": "Kengaytirilgan tahlillar"
+      }
+    },
     "cta": {
       "title": "Kelajakning bir qismi bo'ling",
       "subtitle": "Biz prototip bosqichidamiz — AI-quvvatli moslashuvchan o'rganishni birinchilardan bo'lib tajriba qiling.",

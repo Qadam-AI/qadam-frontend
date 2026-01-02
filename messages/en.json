@@ -204,6 +204,55 @@
         "title": "Frontend & UX"
       }
     },
+    "platformPreview": {
+      "badge": "Platform Preview",
+      "title": "What You'll Get Access To",
+      "subtitle": "After signing up, you'll unlock a complete learning ecosystem designed to maximize your potential",
+      "viewPricing": "View Pricing Plans",
+      "dashboard": {
+        "title": "Personal Dashboard",
+        "description": "Track your progress with detailed analytics, streak tracking, and mastery visualization",
+        "feature1": "Daily streak & XP tracking",
+        "feature2": "Mastery level per concept",
+        "feature3": "Course completion progress"
+      },
+      "content": {
+        "title": "Rich Content Library",
+        "description": "Access video lessons, transcripts, AI-generated practice questions, and interactive exercises",
+        "feature1": "Video lessons with transcripts",
+        "feature2": "AI-graded coding challenges",
+        "feature3": "Conceptual quizzes"
+      },
+      "aiTutor": {
+        "title": "AI Learning Assistant",
+        "description": "Get help anytime with our AI tutor that understands your learning context",
+        "feature1": "Smart hints (not answers)",
+        "feature2": "Concept explanations",
+        "feature3": "Code review & feedback"
+      },
+      "communities": {
+        "title": "Learning Communities",
+        "description": "Join gated cohorts with strict entry requirements to learn with serious peers",
+        "feature1": "Rule-based membership",
+        "feature2": "Quality-gated cohorts",
+        "feature3": "Community leaderboards"
+      },
+      "practice": {
+        "title": "Practice & Compete",
+        "description": "Reinforce learning with adaptive practice sessions and compete on leaderboards",
+        "feature1": "Adaptive difficulty",
+        "feature2": "Global leaderboards",
+        "feature3": "Achievement badges"
+      },
+      "premium": {
+        "title": "Premium Features",
+        "pro": "PRO",
+        "description": "Unlock advanced features with our subscription plans",
+        "feature1": "Unlimited AI hints",
+        "feature2": "Priority code review",
+        "feature3": "Advanced analytics"
+      }
+    },
     "cta": {
       "title": "Be Part of the Future",
       "subtitle": "We're in prototype stage — be among the first to experience AI-powered adaptive learning.",
