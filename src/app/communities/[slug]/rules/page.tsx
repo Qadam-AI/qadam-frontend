@@ -260,12 +260,14 @@ export default function CommunityRulesPage() {
       // Add new rules
       for (const rule of newRules.filter(r => !r.id)) {
         await api.post(`/api/v1/communities/${slug}/rules`, {
-          type: rule.type,
-          label: rule.label,
+          rule_type: rule.type,
+          name: rule.label,
           description: rule.description,
           config: rule.config,
           is_required: rule.is_required,
-          priority: rule.priority,
+          order: rule.priority || 0,
+          is_enabled: true,
+          is_automatic: true,
         })
       }
       

@@ -96,17 +96,20 @@
       "b2c": {
         "title": "O'quvchilar uchun",
         "description": "O'zingizning noyob o'qish uslubingizga moslashadigan AI bilan har qanday ko'nikmani egallang",
-        "features": ["Shaxsiy o'quv yo'llari", "24/7 AI o'qituvchi yordami", "Taraqqiyotni kuzatish va sertifikatlar"]
+        "features": ["Shaxsiy o'quv yo'llari", "24/7 AI o'qituvchi yordami", "Taraqqiyotni kuzatish va sertifikatlar"],
+        "badge": "🧙‍♂️ O'quvchi"
       },
       "b2b": {
         "title": "Korxonalar uchun",
         "description": "Ishchi kuchingiz ko'nikmalarini o'lchanadigan natijalar bilan 3x tezroq oshiring",
-        "features": ["Maxsus kurs yaratish", "Jamoa tahlillar paneli", "LMS integratsiyasi"]
+        "features": ["Maxsus kurs yaratish", "Jamoa tahlillar paneli", "LMS integratsiyasi"],
+        "badge": "🏰 Korxona"
       },
       "b2b2c": {
         "title": "EdTech va Universitetlar uchun",
         "description": "O'quv platformangizni quvvatlash uchun AI'mizni oq yorliq sifatida foydalaning",
-        "features": ["To'liq API kirish", "Maxsus AI o'qitish", "Daromad ulashish modellari"]
+        "features": ["To'liq API kirish", "Maxsus AI o'qitish", "Daromad ulashish modellari"],
+        "badge": "📚 Muassasa"
       }
     },
     "metrics": {
@@ -115,7 +118,8 @@
       "completion": { "value": "94%", "label": "Maqsad tugatish darajasi", "compare": "sanoat o'rtachasi 15% ga nisbatan" },
       "speed": { "value": "3x", "label": "Tezroq o'rganish maqsadi", "compare": "an'anaviy usullarga nisbatan" },
       "retention": { "value": "85%+", "label": "Saqlab qolish maqsadi", "compare": "6 oydan keyin bilim" },
-      "nps": { "value": "70+", "label": "Maqsad NPS", "compare": "foydalanuvchi qoniqishi maqsadi" }
+      "nps": { "value": "70+", "label": "Maqsad NPS", "compare": "foydalanuvchi qoniqishi maqsadi" },
+      "note": "* Maqsad ko'rsatkichlar sanoat tadqiqotlari va shu kabi platformalar benchmarklariga asoslangan"
     },
     "howItWorks": {
       "title": "Qanday ishlaydi",
@@ -154,6 +158,35 @@
         "author": "Raqamli o'quv dekani, Top 20 universitet"
       }
     },
+    "nav": {
+      "features": "Xususiyatlar",
+      "useCases": "Foydalanish holatlari",
+      "team": "Jamoa",
+      "roadmap": "Yo'l xaritasi",
+      "goals": "Maqsadlar"
+    },
+    "badges": {
+      "challenges": "QIYINCHILIKLAR",
+      "powerUp": "KUCH YOQILDI",
+      "skillTree": "KO'NIKMALAR DARAXTI",
+      "choosePath": "YO'LINGNI TANLANG",
+      "achievements": "YUTUQLAR OCHILDI",
+      "yourQuest": "SIZNING SAFARINGIZ",
+      "theGuild": "GILDIYA",
+      "worldMap": "JAHON XARITASI"
+    },
+    "solution": {
+      "title": "Edusistent bilan tanishing",
+      "subtitle": "O'rganishni haqiqatan tushunadigan AI",
+      "description": "Oddiy AI o'qituvchilardan farqli, Edusistent har bir o'quvchi qayerda va nima uchun qiyinchiliklarga duch kelishini aniq tushunish uchun patentlangan kognitiv modellashtirish foydalanadi. Bizning tizimimiz faqat qiyinlik emas, balki o'qitish uslubi, kontent formati va tezligini ham moslashtiradi.",
+      "engineTitle": "Edusistent AI Dvigateli",
+      "smartDetection": "Aqlli aniqlash",
+      "adaptationSpeed": "Moslashish tezligi",
+      "realtime": "Haqiqiy vaqtda",
+      "successRate": "Muvaffaqiyat darajasi",
+      "successValue": "3x yuqori",
+      "activateCta": "O'rganish kuchingni faollashtir"
+    },
     "team": {
       "title": "Bizning jamoa",
       "subtitle": "Shaxsiylashtirilgan ta'limning kelajagini yaratayotgan ishtiyoqli muhandislar va ma'lumotlar olimlari jamoasi",
@@ -176,12 +209,18 @@
     "roadmap": {
       "title": "Bizning yo'l xaritamiz",
       "subtitle": "G'oyadan ta'sirgacha — bizning rivojlanish sayohatimiz",
+      "currentBadge": "Biz bu yerdamiz",
+      "currentTitle": "Prototip bosqichi",
       "currentStage": "Asosiy moslashuvchan o'rganish xususiyatlari, AI-quvvatli kontent yaratish va real vaqtdagi fikr-mulohaza tizimi bilan ishlaydigan prototip",
       "stages": {
         "idea": "O'zbekistondagi bir o'lchamli ta'lim muammosini aniqladik",
+        "ideaName": "G'oya",
         "prototype": "Shaxsiylashtirilgan o'quv yo'llari bilan ishlaydigan AI moslashuvchan dvigatelini yaratdik",
+        "prototypeName": "Prototip",
         "mvp": "Foydalanuvchi autentifikatsiyasi, taraqqiyotni kuzatish va tahlillar bilan to'liq platforma",
-        "launch": "B2B va B2C takliflari bilan ommaviy chiqarish"
+        "mvpName": "MVP",
+        "launch": "B2B va B2C takliflari bilan ommaviy chiqarish",
+        "launchName": "Chiqarish"
       },
       "nextSteps": {
         "title": "Keyingi qadamlar",
@@ -258,7 +297,8 @@
       "subtitle": "Biz prototip bosqichidamiz — AI-quvvatli moslashuvchan o'rganishni birinchilardan bo'lib tajriba qiling.",
       "button": "Prototipni sinab ko'ring",
       "secondary": "Biz bilan bog'laning",
-      "note": "Prototip kirish • Beta davomida bepul • Fikr-mulohazangiz mahsulotni shakllantiradi"
+      "note": "Prototip kirish • Beta davomida bepul • Fikr-mulohazangiz mahsulotni shakllantiradi",
+      "readyBadge": "O'rganish sarguzashtingizni boshlashga tayyormisiz?"
     },
     "footer": {
       "description": "Keyingi avlod ta'limi uchun AI-quvvatli moslashuvchan o'quv infratuzilmasi.",
@@ -273,7 +313,8 @@
       "copyright": "© 2025 Edusistent. Barcha huquqlar himoyalangan.",
       "contact": "Aloqa",
       "investors": "Investorlar",
-      "press": "Matbuot to'plami"
+      "press": "Matbuot to'plami",
+      "madeIn": "O'zbekistonda ishlab chiqilgan"
     }
   },
   "auth": {
@@ -343,11 +384,45 @@
       "failed": "Davom eting!",
       "getHint": "Maslahat olish"
     },
-    "whyThisTask": "Nega bu vazifa?"
+    "whyThisTask": "Nega bu vazifa?",
+    "onboarding": {
+      "welcome": "Mashqga xush kelibsiz",
+      "step1Title": "Kursga yoziling",
+      "step1Desc": "Mavjud kurslarni ko'rib chiqing va mashq kontentini ochish uchun yoziling",
+      "step2Title": "Darslarni tugatig",
+      "step2Desc": "Darslarni tomosha qiling va yangi tushunchalarni o'z sur'atingizda o'rganing",
+      "step3Title": "Mashq qiling va o'zlashting",
+      "step3Desc": "O'rganganlaringizni shaxsiy mashq vazifalari bilan qo'llang",
+      "browseCourses": "Kurslarni ko'rish",
+      "viewLessons": "Darslarni ko'rish",
+      "comingSoon": "Tez orada",
+      "readyTitle": "Boshlashga tayyormisiz?",
+      "readyDesc": "Kurslarimizni o'rganing va bugun o'qish sayohatingizni boshlang",
+      "explore": "Kurslarni o'rganing"
+    },
+    "noContent": {
+      "title": "Mashq kontenti tez orada",
+      "description": "Shaxsiy mashq vazifalarini ochish uchun avval bir necha darsni yakunlang. Taraqqiyotingiz kuzatilmoqda!",
+      "goToLessons": "Darslarga o'tish",
+      "myCourses": "Mening kurslarim"
+    },
+    "error": {
+      "title": "Xatolik yuz berdi",
+      "description": "Keyingi vazifani yuklab bo'lmadi. Iltimos, qayta urinib ko'ring.",
+      "retry": "Qayta urinish"
+    },
+    "allDone": {
+      "title": "Hammasi bajarildi!",
+      "description": "Siz barcha mavjud vazifalarni bajardingiz. Keyinroq qaytib keling yoki boshqa kurslarni o'rganing.",
+      "goToLessons": "O'qishni davom ettirish",
+      "refresh": "Yangi vazifalarni tekshirish"
+    },
+    "selectCourse": "Kursni tanlang"
   },
   "lessons": {
     "title": "Darslar",
     "subtitle": "Kurslar bo'yicha tartiblangan darslarni ko'ring",
+    "badge": "O'QUV MARKAZI",
     "noLessons": "Darslar mavjud emas",
     "noLessonsDesc": "Kurslarga qo'shilgandan so'ng darslar bu yerda paydo bo'ladi",
     "noLessonsInCourse": "Bu kursda hali darslar yo'q",
@@ -355,7 +430,8 @@
     "completed": "Tugallangan",
     "start": "Boshlash",
     "review": "Ko'rib chiqish",
-    "progress": "{completed}/{total} tugallangan"
+    "progress": "{completed}/{total} tugallangan",
+    "allComplete": "Hammasi tugallandi!"
   },
   "lesson": {
     "allLessons": "Barcha darslar",
@@ -366,9 +442,26 @@
     "alreadyCompleted": "Allaqachon tugallangan",
     "saving": "Saqlanmoqda..."
   },
+  "lessonDetail": {
+    "allLessons": "Barcha darslar",
+    "lessonOf": "{total} dan {current}-dars",
+    "completed": "Tugallangan",
+    "lessonCompleted": "Dars tugallandi!",
+    "continueToNext": "Keyingi darsga o'ting",
+    "greatJobFinishing": "Ajoyib! Bu kurs bo'limini tugatdingiz!",
+    "failedToComplete": "Darsni tugatishda xatolik",
+    "additionalResources": "Qo'shimcha materiallar",
+    "conceptsCovered": "O'rganilgan tushunchalar",
+    "previous": "Oldingi",
+    "next": "Keyingi",
+    "alreadyCompleted": "Allaqachon tugallangan",
+    "saving": "Saqlanmoqda...",
+    "complete": "Tugatish"
+  },
   "attempts": {
     "title": "Urinishlar tarixi",
     "subtitle": "Mashq taraqqiyotingizni ko'rib chiqing",
+    "badge": "JANG JURNALI",
     "recent": "So'nggi urinishlar",
     "noAttempts": "Urinishlar hali yo'q",
     "noAttemptsDesc": "Tarixingizni ko'rish uchun mashq qilishni boshlang",
@@ -379,7 +472,8 @@
     "yourCode": "Kodingiz",
     "testFailures": "Test xatoliklari",
     "passed": "Muvaffaqiyatli",
-    "failed": "Muvaffaqiyatsiz"
+    "failed": "Muvaffaqiyatsiz",
+    "successRate": "Muvaffaqiyat darajasi"
   },
   "profile": {
     "title": "Profil",
@@ -396,6 +490,193 @@
     "masteryBreakdownDesc": "Barcha tushunchalar bo'yicha mahoratning batafsil ko'rinishi",
     "preferences": "Sozlamalar",
     "language": "Til"
+  },
+  "courses": {
+    "title": "Kurslarim",
+    "subtitle": "O'rganish sarguzashtingizni davom ettiring",
+    "badge": "📚 KVEST JURNALI",
+    "stats": {
+      "enrolled": "Ro'yxatdan o'tgan",
+      "totalCourses": "Jami kurslar",
+      "inProgress": "Jarayonda",
+      "activeLearning": "Faol o'rganish",
+      "completed": "Tugallangan",
+      "greatJob": "🎉 Ajoyib!",
+      "keepGoing": "Davom eting!",
+      "overall": "Umumiy",
+      "xpEarned": "Olingan XP"
+    },
+    "invitations": {
+      "title": "Kutilayotgan taklifnomalar",
+      "from": "{instructor}dan",
+      "accept": "Qabul qilish"
+    },
+    "empty": {
+      "title": "O'rganish sayohatingizni boshlang",
+      "description": "Siz hali hech qanday kursga yozilmagansiz. O'qituvchingizdan taklif havolasini so'rang yoki bepul darslarni ko'ring.",
+      "browseLessons": "Bepul darslarni ko'rish"
+    },
+    "continueLearning": "O'rganishni davom ettirish",
+    "card": {
+      "by": "Muallif: {instructor}",
+      "lessonsOf": "{completed}/{total} dars",
+      "reviewCourse": "Kursni takrorlash",
+      "continue": "Davom etish",
+      "startLearning": "O'rganishni boshlash"
+    }
+  },
+  "courseDetail": {
+    "backToCourses": "Kurslarimga qaytish",
+    "byInstructor": "Muallif: {name}",
+    "courseProgress": "Kurs progressi",
+    "lessonsCompleted": "{completed}/{total} dars tugallangan",
+    "courseContent": "Kurs mazmuni",
+    "minutes": "{count} daqiqa",
+    "locked": "Qulflangan",
+    "review": "Takrorlash",
+    "start": "Boshlash",
+    "progress": "Progress",
+    "courseCompleted": "Kurs tugallandi!",
+    "notFound": "Kurs topilmadi yoki siz ro'yxatdan o'tmagansiz.",
+    "goToMyCourses": "Kurslarimga o'tish"
+  },
+  "communities": {
+    "title": "O'rganish hamjamiatlari",
+    "subtitle": "Yuqori standartli elit guruhlarga qo'shiling",
+    "badge": "🏰 GILDIYALAR",
+    "search": "Hamjamiyatlarni qidirish...",
+    "createCommunity": "Hamjamiyat yaratish",
+    "members": "{count} a'zo",
+    "defaultDescription": "O'rganish hamjamiyati",
+    "error": "Hamjamiyatlarni yuklashda xatolik",
+    "tryAgain": "Qayta urinish",
+    "noCommunitiesFound": "Hamjamiyatlar topilmadi",
+    "noCommunitiesDesc": "Filtrlarni o'zgartirib ko'ring yoki ushbu toifada birinchi hamjamiyatni yarating.",
+    "filters": {
+      "allCategories": "Barcha toifalar",
+      "allLevels": "Barcha darajalar"
+    },
+    "categories": {
+      "programming": "Dasturlash",
+      "data_science": "Ma'lumotlar fani",
+      "mathematics": "Matematika",
+      "physics": "Fizika",
+      "law": "Huquq",
+      "business": "Biznes",
+      "languages": "Tillar",
+      "arts": "San'at",
+      "music": "Musiqa",
+      "engineering": "Muhandislik",
+      "other": "Boshqa"
+    },
+    "difficulties": {
+      "beginner": "Boshlang'ich",
+      "intermediate": "O'rta",
+      "advanced": "Yuqori",
+      "expert": "Ekspert"
+    },
+    "card": {
+      "members": "{count} a'zo",
+      "pending": "{count} kutilmoqda",
+      "private": "Yopiq",
+      "public": "Ochiq"
+    },
+    "empty": {
+      "title": "Hamjamiyatlar topilmadi",
+      "description": "Filtrlarni o'zgartirib ko'ring yoki yangi hamjamiyat yarating"
+    },
+    "create": "Hamjamiyat yaratish"
+  },
+  "communityDetail": {
+    "welcome": "Xush kelibsiz!",
+    "joinedCommunity": "Siz hamjamiyatga qo'shildingiz.",
+    "requestSubmitted": "So'rov yuborildi",
+    "pendingApproval": "So'rovingiz tasdiqlash kutmoqda.",
+    "failedToJoin": "Qo'shilishda xatolik",
+    "errorOccurred": "Xatolik yuz berdi",
+    "leftCommunity": "Hamjamiyatni tark etdingiz",
+    "youHaveLeft": "Siz hamjamiyatni tark etdingiz.",
+    "notFound": "Hamjamiyat topilmadi",
+    "notFoundDesc": "Bu hamjamiyat mavjud emas yoki sizda kirish huquqi yo'q.",
+    "browseCommunities": "Hamjamiyatlarni ko'rish",
+    "backToCommunities": "Hamjamiyatlarga qaytish",
+    "membersCount": "{count} a'zo",
+    "createdOn": "Yaratilgan: {date}",
+    "manage": "Boshqarish",
+    "leaveCommunity": "Tark etish",
+    "pendingApprovalStatus": "Tasdiqlash kutilmoqda",
+    "joinCommunity": "Qo'shilish",
+    "notEligible": "Mos emas",
+    "checkEligibility": "Moslikni tekshirish",
+    "about": "Haqida",
+    "requirements": "Talablar",
+    "members": "A'zolar",
+    "aboutCommunity": "Bu hamjamiyat haqida",
+    "noDescription": "Batafsil tavsif berilmagan.",
+    "openCommunity": "Ochiq hamjamiyat",
+    "openCommunityDesc": "Bu hamjamiyatda a'zolik talablari yo'q. Har kim qo'shilishi mumkin!",
+    "requirementsDesc": "Bu hamjamiyatga qo'shilish uchun quyidagi talablarga javob berishingiz kerak:"
+  },
+  "learningPaths": {
+    "title": "O'rganish yo'llari",
+    "subtitle": "AI yaratgan shaxsiy yo'l xaritalari",
+    "badge": "🗺️ KVEST XARITASI",
+    "newPath": "Yangi yo'l",
+    "myPaths": "Mening yo'llarim",
+    "skillSequence": "Ko'nikmalar ketma-ketligi",
+    "totalTime": "Jami vaqt",
+    "start": "Boshlash",
+    "goal": "Maqsad",
+    "milestonesCount": "{count} bosqich",
+    "creatingPath": "Yo'l yaratilmoqda...",
+    "analyzingSkills": "Ko'nikmalar tahlil qilinmoqda va yo'l xaritasi yaratilmoqda",
+    "conceptsToLearn": "O'rganiladigan tushunchalar:",
+    "progressLabel": "Progress",
+    "completed": "Tugallandi",
+    "continue": "Davom etish",
+    "locked": "Qulflangan",
+    "noPathSelected": "Yo'l tanlanmagan",
+    "noPathSelectedDesc": "Yangi yo'l yarating yoki ro'yxatdan birini tanlang.",
+    "createPath": "Yo'l yaratish",
+    "createFirst": "Birinchi yo'lingizni yarating",
+    "cancel": "Bekor qilish",
+    "generating": "Yaratilmoqda...",
+    "create": {
+      "title": "Yo'l yaratish",
+      "description": "Maqsadlaringiz asosida shaxsiy yo'l yarating",
+      "targetRole": "Maqsad rol (ixtiyoriy)",
+      "selectRole": "Karyera rolini tanlang...",
+      "targetSkills": "Maqsad ko'nikmalar",
+      "targetSkillsPlaceholder": "python, machine learning, data science",
+      "skillsHint": "O'rganmoqchi bo'lgan ko'nikmalar (vergul bilan)",
+      "currentSkills": "Hozirgi ko'nikmalar",
+      "currentSkillsPlaceholder": "python asoslari, html, css",
+      "currentSkillsHint": "Sizda mavjud ko'nikmalar (vergul bilan)",
+      "weeklyHours": "Haftalik soatlar",
+      "hoursPerWeek": "{hours} soat/hafta",
+      "hoursPerWeekPlus": "{hours}+ soat/hafta",
+      "learningStyle": "O'rganish uslubi",
+      "generate": "Yaratish"
+    },
+    "styles": {
+      "balanced": "Muvozanatli",
+      "projectBased": "Loyiha asosida",
+      "theoryFirst": "Avval nazariya",
+      "handsOn": "Amaliy"
+    },
+    "milestone": {
+      "start": "🚀 Boshlash",
+      "goal": "🏆 Maqsad",
+      "step": "Bosqich {step}"
+    },
+    "milestones": "Bosqichlar",
+    "hours": "{hours} soat",
+    "concepts": "{count} tushuncha",
+    "progress": "{percent}% tugallangan",
+    "empty": {
+      "title": "O'rganish yo'llari yo'q",
+      "description": "AI yordamida birinchi shaxsiy o'rganish yo'lingizni yarating"
+    }
   },
   "bookmarks": {
     "title": "Saqlangan darslar",

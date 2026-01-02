@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from '@/lib/i18n'
 import api from '@/lib/api'
 import { lessonSchema } from '@/lib/validation'
 import { Navbar } from '../../_components/navbar'
@@ -260,6 +261,7 @@ function LessonContent() {
   const params = useParams()
   const router = useRouter()
   const queryClient = useQueryClient()
+  const t = useTranslations('lessonDetail')
   const lessonId = params.lessonId as string
 
   const [canComplete, setCanComplete] = useState(false)
@@ -321,12 +323,12 @@ function LessonContent() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['mastery'] })
       queryClient.invalidateQueries({ queryKey: ['completed-lessons'] })
-      toast.success('Lesson completed!', {
-        description: nextLesson ? 'Continue to the next lesson' : 'Great job finishing this course section!',
+      toast.success(t('lessonCompleted'), {
+        description: nextLesson ? t('continueToNext') : t('greatJobFinishing'),
       })
     },
     onError: () => {
-      toast.error('Failed to complete lesson')
+      toast.error(t('failedToComplete'))
     },
   })
 
@@ -362,7 +364,7 @@ function LessonContent() {
         <Link href="/lessons">
           <Button variant="ghost" size="sm" className="gap-2">
             <ArrowLeft className="w-4 h-4" />
-            All Lessons
+            {t('allLessons')}
           </Button>
         </Link>
         {courseData && (
@@ -370,7 +372,7 @@ function LessonContent() {
             <span className="text-muted-foreground">/</span>
             <Badge variant="secondary">{courseData.title}</Badge>
             <span className="text-muted-foreground text-sm">
-              Lesson {currentIndex + 1} of {courseData.lessons.length}
+              {t('lessonOf', { current: currentIndex + 1, total: courseData.lessons.length })}
             </span>
           </>
         )}
@@ -387,7 +389,7 @@ function LessonContent() {
         {isCompleted && (
           <Badge variant="default" className="bg-green-500 gap-1">
             <CheckCircle2 className="w-3 h-3" />
-            Completed
+            {t('completed')}
           </Badge>
         )}
       </motion.div>
@@ -488,7 +490,7 @@ function LessonContent() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <LinkIcon className="h-5 w-5" />
-                Additional Resources
+                {t('additionalResources')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -538,7 +540,7 @@ function LessonContent() {
         >
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Concepts Covered</CardTitle>
+              <CardTitle className="text-lg">{t('conceptsCovered')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
@@ -567,7 +569,7 @@ function LessonContent() {
               <Button variant="outline" className="gap-2">
                 <ChevronLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">{prevLesson.title}</span>
-                <span className="sm:hidden">Previous</span>
+                <span className="sm:hidden">{t('previous')}</span>
               </Button>
             </Link>
           ) : (
@@ -580,7 +582,7 @@ function LessonContent() {
           {isCompleted ? (
             <Badge variant="outline" className="gap-1 text-green-600 border-green-300">
               <CheckCircle2 className="w-3 h-3" />
-              Already Completed
+              {t('alreadyCompleted')}
             </Badge>
           ) : (canComplete || !lesson.videoUrl) && (
             <Button
@@ -590,7 +592,7 @@ function LessonContent() {
               className="gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
-              {completeLessonMutation.isPending ? 'Saving...' : 'Complete'}
+              {completeLessonMutation.isPending ? t('saving') : t('complete')}
             </Button>
           )}
           
@@ -598,7 +600,7 @@ function LessonContent() {
             <Link href={`/lesson/${nextLesson.id}`}>
               <Button variant={canComplete ? "outline" : "secondary"} className="gap-2">
                 <span className="hidden sm:inline">{nextLesson.title}</span>
-                <span className="sm:hidden">Next</span>
+                <span className="sm:hidden">{t('next')}</span>
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </Link>

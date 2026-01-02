@@ -46,6 +46,7 @@ interface Course {
   instructor_name: string | null
   is_published: boolean
   thumbnail_url: string | null
+  course_type: string
   lesson_count: number
 }
 
@@ -70,6 +71,7 @@ export default function CoursesManagement() {
     instructor_id: '',
     is_published: false,
     thumbnail_url: '',
+    course_type: 'mixed',
   })
 
   const { data: courses, isLoading } = useQuery<Course[]>({
@@ -157,6 +159,7 @@ export default function CoursesManagement() {
       instructor_id: '',
       is_published: false,
       thumbnail_url: '',
+      course_type: 'mixed',
     })
   }
 
@@ -178,6 +181,7 @@ export default function CoursesManagement() {
         instructor_id: formData.instructor_id || null,
         is_published: formData.is_published,
         thumbnail_url: formData.thumbnail_url || undefined,
+        course_type: formData.course_type || undefined,
       },
     })
   }
@@ -195,6 +199,7 @@ export default function CoursesManagement() {
       instructor_id: course.instructor_id || '',
       is_published: course.is_published,
       thumbnail_url: course.thumbnail_url || '',
+      course_type: course.course_type || 'mixed',
     })
     setIsEditOpen(true)
   }
@@ -230,6 +235,7 @@ export default function CoursesManagement() {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Instructor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Lessons</TableHead>
@@ -248,6 +254,15 @@ export default function CoursesManagement() {
                         </div>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={
+                      course.course_type === 'programming' ? 'default' :
+                      course.course_type === 'theory' ? 'secondary' : 'outline'
+                    }>
+                      {course.course_type === 'programming' ? '💻 Programming' :
+                       course.course_type === 'theory' ? '📚 Theory' : '🔄 Mixed'}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     {course.instructor_name ? (
@@ -365,6 +380,25 @@ export default function CoursesManagement() {
                 placeholder="https://..."
               />
             </div>
+            <div>
+              <Label htmlFor="course_type">Course Type</Label>
+              <Select
+                value={formData.course_type}
+                onValueChange={(value) => setFormData({ ...formData, course_type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select course type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="programming">Programming (Coding Tasks)</SelectItem>
+                  <SelectItem value="theory">Theory (Quiz/Text Tasks)</SelectItem>
+                  <SelectItem value="mixed">Mixed (Both Types)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Determines the type of practice tasks generated for this course
+              </p>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <Label>Publish immediately</Label>
@@ -439,6 +473,25 @@ export default function CoursesManagement() {
                 onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
                 placeholder="https://..."
               />
+            </div>
+            <div>
+              <Label htmlFor="edit-course_type">Course Type</Label>
+              <Select
+                value={formData.course_type}
+                onValueChange={(value) => setFormData({ ...formData, course_type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select course type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="programming">Programming (Coding Tasks)</SelectItem>
+                  <SelectItem value="theory">Theory (Quiz/Text Tasks)</SelectItem>
+                  <SelectItem value="mixed">Mixed (Both Types)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Determines the type of practice tasks generated for this course
+              </p>
             </div>
             <div className="flex items-center justify-between">
               <div>

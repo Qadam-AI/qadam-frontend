@@ -96,17 +96,20 @@
       "b2c": {
         "title": "For Learners",
         "description": "Master any skill with AI that adapts to your unique learning style",
-        "features": ["Personalized learning paths", "24/7 AI tutor assistance", "Progress tracking & certificates"]
+        "features": ["Personalized learning paths", "24/7 AI tutor assistance", "Progress tracking & certificates"],
+        "badge": "🧙‍♂️ Learner"
       },
       "b2b": {
         "title": "For Enterprises",
         "description": "Upskill your workforce 3x faster with measurable outcomes",
-        "features": ["Custom course creation", "Team analytics dashboard", "LMS integration"]
+        "features": ["Custom course creation", "Team analytics dashboard", "LMS integration"],
+        "badge": "🏰 Enterprise"
       },
       "b2b2c": {
         "title": "For EdTech & Universities",
         "description": "White-label our AI to power your learning platform",
-        "features": ["Full API access", "Custom AI training", "Revenue sharing models"]
+        "features": ["Full API access", "Custom AI training", "Revenue sharing models"],
+        "badge": "📚 Institution"
       }
     },
     "metrics": {
@@ -115,7 +118,8 @@
       "completion": { "value": "94%", "label": "Target Completion Rate", "compare": "vs 15% industry average" },
       "speed": { "value": "3x", "label": "Faster Learning Goal", "compare": "compared to traditional methods" },
       "retention": { "value": "85%+", "label": "Retention Target", "compare": "knowledge after 6 months" },
-      "nps": { "value": "70+", "label": "Target NPS", "compare": "user satisfaction goal" }
+      "nps": { "value": "70+", "label": "Target NPS", "compare": "user satisfaction goal" },
+      "note": "* Target goals based on industry research and similar platform benchmarks"
     },
     "howItWorks": {
       "title": "How It Works",
@@ -154,6 +158,35 @@
         "author": "Dean of Digital Learning, Top 20 University"
       }
     },
+    "nav": {
+      "features": "Features",
+      "useCases": "Use Cases",
+      "team": "Team",
+      "roadmap": "Roadmap",
+      "goals": "Goals"
+    },
+    "badges": {
+      "challenges": "THE CHALLENGES",
+      "powerUp": "POWER-UP UNLOCKED",
+      "skillTree": "SKILL TREE",
+      "choosePath": "CHOOSE YOUR PATH",
+      "achievements": "ACHIEVEMENTS UNLOCKED",
+      "yourQuest": "YOUR QUEST",
+      "theGuild": "THE GUILD",
+      "worldMap": "WORLD MAP"
+    },
+    "solution": {
+      "title": "Introducing Edusistent",
+      "subtitle": "AI That Truly Understands Learning",
+      "description": "Unlike generic AI tutors, Edusistent uses proprietary cognitive modeling to understand exactly where each learner struggles and why. Our system adapts not just difficulty—but teaching style, content format, and pacing.",
+      "engineTitle": "Edusistent AI Engine",
+      "smartDetection": "Smart Detection",
+      "adaptationSpeed": "Adaptation Speed",
+      "realtime": "Real-time",
+      "successRate": "Success Rate",
+      "successValue": "3x Higher",
+      "activateCta": "Activate Your Learning Power"
+    },
     "team": {
       "title": "Meet Our Team",
       "subtitle": "A passionate team of engineers and data scientists building the future of personalized education",
@@ -176,12 +209,18 @@
     "roadmap": {
       "title": "Our Roadmap",
       "subtitle": "From idea to impact — our development journey",
+      "currentBadge": "We Are Here",
+      "currentTitle": "Prototype Stage",
       "currentStage": "Working prototype with core adaptive learning features, AI-powered content generation, and real-time feedback system",
       "stages": {
         "idea": "Identified the problem of one-size-fits-all education in Uzbekistan",
+        "ideaName": "Idea",
         "prototype": "Built working AI adaptive engine with personalized learning paths",
+        "prototypeName": "Prototype",
         "mvp": "Full platform with user authentication, progress tracking, and analytics",
-        "launch": "Public release with B2B and B2C offerings"
+        "mvpName": "MVP",
+        "launch": "Public release with B2B and B2C offerings",
+        "launchName": "Launch"
       },
       "nextSteps": {
         "title": "Next Steps",
@@ -258,7 +297,8 @@
       "subtitle": "We're in prototype stage — be among the first to experience AI-powered adaptive learning.",
       "button": "Try Prototype",
       "secondary": "Contact Us",
-      "note": "Prototype access • Free during beta • Your feedback shapes the product"
+      "note": "Prototype access • Free during beta • Your feedback shapes the product",
+      "readyBadge": "Ready to Start Your Learning Adventure?"
     },
     "footer": {
       "description": "AI-powered adaptive learning infrastructure for the next generation of education.",
@@ -273,7 +313,8 @@
       "copyright": "© 2025 Edusistent. All rights reserved.",
       "contact": "Contact",
       "investors": "Investors",
-      "press": "Press Kit"
+      "press": "Press Kit",
+      "madeIn": "Made in Uzbekistan"
     }
   },
   "auth": {
@@ -343,11 +384,45 @@
       "failed": "Keep trying!",
       "getHint": "Get Hint"
     },
-    "whyThisTask": "Why this task?"
+    "whyThisTask": "Why this task?",
+    "onboarding": {
+      "welcome": "Welcome to Practice",
+      "step1Title": "Enroll in a Course",
+      "step1Desc": "Browse available courses and enroll to unlock practice content",
+      "step2Title": "Complete Lessons",
+      "step2Desc": "Watch lessons and learn new concepts at your own pace",
+      "step3Title": "Practice & Master",
+      "step3Desc": "Apply what you learned with personalized practice challenges",
+      "browseCourses": "Browse Courses",
+      "viewLessons": "View Lessons",
+      "comingSoon": "Coming Soon",
+      "readyTitle": "Ready to Start?",
+      "readyDesc": "Explore our courses and begin your learning journey today",
+      "explore": "Explore Courses"
+    },
+    "noContent": {
+      "title": "Practice Content Coming Soon",
+      "description": "Complete some lessons first to unlock personalized practice challenges. Your progress is being tracked!",
+      "goToLessons": "Go to Lessons",
+      "myCourses": "My Courses"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "Failed to load your next challenge. Please try again.",
+      "retry": "Try Again"
+    },
+    "allDone": {
+      "title": "All Caught Up!",
+      "description": "You've completed all available challenges. Check back later for more or explore other courses.",
+      "goToLessons": "Continue Learning",
+      "refresh": "Check for New Tasks"
+    },
+    "selectCourse": "Select Course"
   },
   "lessons": {
     "title": "Lessons",
     "subtitle": "Browse lessons organized by course",
+    "badge": "LEARNING HUB",
     "noLessons": "No lessons available",
     "noLessonsDesc": "Lessons will appear here once they are added to courses",
     "noLessonsInCourse": "No lessons in this course yet",
@@ -355,7 +430,8 @@
     "completed": "Completed",
     "start": "Start",
     "review": "Review",
-    "progress": "{completed}/{total} completed"
+    "progress": "{completed}/{total} completed",
+    "allComplete": "All Complete!"
   },
   "lesson": {
     "allLessons": "All Lessons",
@@ -366,9 +442,26 @@
     "alreadyCompleted": "Already Completed",
     "saving": "Saving..."
   },
+  "lessonDetail": {
+    "allLessons": "All Lessons",
+    "lessonOf": "Lesson {current} of {total}",
+    "completed": "Completed",
+    "lessonCompleted": "Lesson completed!",
+    "continueToNext": "Continue to the next lesson",
+    "greatJobFinishing": "Great job finishing this course section!",
+    "failedToComplete": "Failed to complete lesson",
+    "additionalResources": "Additional Resources",
+    "conceptsCovered": "Concepts Covered",
+    "previous": "Previous",
+    "next": "Next",
+    "alreadyCompleted": "Already Completed",
+    "saving": "Saving...",
+    "complete": "Complete"
+  },
   "attempts": {
     "title": "Attempts History",
     "subtitle": "Review your practice progress",
+    "badge": "BATTLE LOG",
     "recent": "Recent Attempts",
     "noAttempts": "No attempts yet",
     "noAttemptsDesc": "Start practicing to see your history here",
@@ -379,7 +472,8 @@
     "yourCode": "Your Code",
     "testFailures": "Test Failures",
     "passed": "Passed",
-    "failed": "Failed"
+    "failed": "Failed",
+    "successRate": "Success Rate"
   },
   "profile": {
     "title": "Profile",
@@ -396,6 +490,193 @@
     "masteryBreakdownDesc": "Detailed view of your mastery across all concepts",
     "preferences": "Preferences",
     "language": "Language"
+  },
+  "courses": {
+    "title": "My Courses",
+    "subtitle": "Continue your learning adventure",
+    "badge": "📚 QUEST LOG",
+    "stats": {
+      "enrolled": "Enrolled",
+      "totalCourses": "Total courses",
+      "inProgress": "In Progress",
+      "activeLearning": "Active learning",
+      "completed": "Completed",
+      "greatJob": "🎉 Great job!",
+      "keepGoing": "Keep going!",
+      "overall": "Overall",
+      "xpEarned": "XP Earned"
+    },
+    "invitations": {
+      "title": "Pending Invitations",
+      "from": "From {instructor}",
+      "accept": "Accept"
+    },
+    "empty": {
+      "title": "Start Your Learning Journey",
+      "description": "You haven't enrolled in any courses yet. Ask your instructor for an invitation link or explore our free lessons.",
+      "browseLessons": "Browse Free Lessons"
+    },
+    "continueLearning": "Continue Learning",
+    "card": {
+      "by": "By {instructor}",
+      "lessonsOf": "{completed} of {total} lessons",
+      "reviewCourse": "Review Course",
+      "continue": "Continue",
+      "startLearning": "Start Learning"
+    }
+  },
+  "courseDetail": {
+    "backToCourses": "Back to My Courses",
+    "byInstructor": "By {name}",
+    "courseProgress": "Course Progress",
+    "lessonsCompleted": "{completed} of {total} lessons completed",
+    "courseContent": "Course Content",
+    "minutes": "{count} min",
+    "locked": "Locked",
+    "review": "Review",
+    "start": "Start",
+    "progress": "Progress",
+    "courseCompleted": "Course Completed!",
+    "notFound": "Course not found or you're not enrolled.",
+    "goToMyCourses": "Go to My Courses"
+  },
+  "communities": {
+    "title": "Learning Communities",
+    "subtitle": "Join elite learning groups with quality standards",
+    "badge": "🏰 GUILDS",
+    "search": "Search communities...",
+    "createCommunity": "Create Community",
+    "members": "{count} members",
+    "defaultDescription": "A learning community",
+    "error": "Failed to load communities",
+    "tryAgain": "Try Again",
+    "noCommunitiesFound": "No communities found",
+    "noCommunitiesDesc": "Try adjusting your filters or create the first community in this category.",
+    "filters": {
+      "allCategories": "All Categories",
+      "allLevels": "All Levels"
+    },
+    "categories": {
+      "programming": "Programming",
+      "data_science": "Data Science",
+      "mathematics": "Mathematics",
+      "physics": "Physics",
+      "law": "Law",
+      "business": "Business",
+      "languages": "Languages",
+      "arts": "Arts",
+      "music": "Music",
+      "engineering": "Engineering",
+      "other": "Other"
+    },
+    "difficulties": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "expert": "Expert"
+    },
+    "card": {
+      "members": "{count} members",
+      "pending": "{count} pending",
+      "private": "Private",
+      "public": "Public"
+    },
+    "empty": {
+      "title": "No Communities Found",
+      "description": "Try adjusting your filters or create a new community"
+    },
+    "create": "Create Community"
+  },
+  "communityDetail": {
+    "welcome": "Welcome!",
+    "joinedCommunity": "You have joined the community.",
+    "requestSubmitted": "Request Submitted",
+    "pendingApproval": "Your join request is pending approval.",
+    "failedToJoin": "Failed to join",
+    "errorOccurred": "An error occurred",
+    "leftCommunity": "Left Community",
+    "youHaveLeft": "You have left the community.",
+    "notFound": "Community Not Found",
+    "notFoundDesc": "This community doesn't exist or you don't have access to view it.",
+    "browseCommunities": "Browse Communities",
+    "backToCommunities": "Back to Communities",
+    "membersCount": "{count} members",
+    "createdOn": "Created {date}",
+    "manage": "Manage",
+    "leaveCommunity": "Leave Community",
+    "pendingApprovalStatus": "Pending Approval",
+    "joinCommunity": "Join Community",
+    "notEligible": "Not Eligible",
+    "checkEligibility": "Check Eligibility",
+    "about": "About",
+    "requirements": "Requirements",
+    "members": "Members",
+    "aboutCommunity": "About This Community",
+    "noDescription": "No detailed description provided.",
+    "openCommunity": "Open Community",
+    "openCommunityDesc": "This community has no membership requirements. Anyone can join!",
+    "requirementsDesc": "To join this community, you must meet the following requirements:"
+  },
+  "learningPaths": {
+    "title": "Learning Paths",
+    "subtitle": "AI-generated personalized learning roadmaps",
+    "badge": "🗺️ QUEST MAP",
+    "newPath": "New Path",
+    "myPaths": "My Learning Paths",
+    "skillSequence": "Skill Sequence",
+    "totalTime": "Total time",
+    "start": "Start",
+    "goal": "Goal",
+    "milestonesCount": "{count} milestones",
+    "creatingPath": "Creating Your Learning Path...",
+    "analyzingSkills": "Analyzing skills and generating roadmap",
+    "conceptsToLearn": "Concepts to Learn:",
+    "progressLabel": "Progress",
+    "completed": "Completed",
+    "continue": "Continue",
+    "locked": "Locked",
+    "noPathSelected": "No Path Selected",
+    "noPathSelectedDesc": "Create a new learning path or select one from the list to view your roadmap.",
+    "createPath": "Create Learning Path",
+    "createFirst": "Create Your First Path",
+    "cancel": "Cancel",
+    "generating": "Generating...",
+    "create": {
+      "title": "Create Learning Path",
+      "description": "Generate a personalized learning path based on your goals",
+      "targetRole": "Target Role (optional)",
+      "selectRole": "Select a career role...",
+      "targetSkills": "Target Skills",
+      "targetSkillsPlaceholder": "python, machine learning, data science",
+      "skillsHint": "Skills you want to learn (comma-separated)",
+      "currentSkills": "Current Skills",
+      "currentSkillsPlaceholder": "python basics, html, css",
+      "currentSkillsHint": "Skills you already have (comma-separated)",
+      "weeklyHours": "Weekly Study Hours",
+      "hoursPerWeek": "{hours} hours/week",
+      "hoursPerWeekPlus": "{hours}+ hours/week",
+      "learningStyle": "Learning Style",
+      "generate": "Generate Path"
+    },
+    "styles": {
+      "balanced": "Balanced",
+      "projectBased": "Project Based",
+      "theoryFirst": "Theory First",
+      "handsOn": "Hands On"
+    },
+    "milestone": {
+      "start": "🚀 Start",
+      "goal": "🏆 Goal",
+      "step": "Step {step}"
+    },
+    "milestones": "Milestones",
+    "hours": "{hours} hours",
+    "concepts": "{count} concepts",
+    "progress": "{percent}% Complete",
+    "empty": {
+      "title": "No Learning Paths Yet",
+      "description": "Create your first personalized learning path with AI"
+    }
   },
   "bookmarks": {
     "title": "Bookmarked Lessons",

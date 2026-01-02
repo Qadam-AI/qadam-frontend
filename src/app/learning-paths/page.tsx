@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
+import { useTranslations } from '@/lib/i18n'
 import api from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -64,6 +65,7 @@ const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert']
 
 export default function LearningPathsPage() {
   const { user } = useAuth()
+  const t = useTranslations('learningPaths')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedPath, setSelectedPath] = useState<LearningPath | null>(null)
   const [form, setForm] = useState({
@@ -140,40 +142,39 @@ export default function LearningPathsPage() {
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
         <div className="relative z-10 flex justify-between items-start">
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Route className="h-6 w-6" />
-              <span className="text-lg font-medium text-white/80">Learning Paths</span>
-            </div>
+            <Badge className="mb-4 bg-white/20 text-white border-0 text-xs font-bold uppercase tracking-wider">
+              {t('badge')}
+            </Badge>
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              Your Journey to Mastery 🚀
+              {t('title')} 🚀
             </h1>
             <p className="text-white/80 text-lg max-w-2xl">
-              AI-generated personalized learning paths tailored to your goals and current skills.
+              {t('subtitle')}
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-white text-purple-600 hover:bg-white/90 gap-2">
                 <Plus className="h-4 w-4" />
-                New Path
+                {t('newPath')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Create Learning Path</DialogTitle>
+                <DialogTitle>{t('create.title')}</DialogTitle>
                 <DialogDescription>
-                  Generate a personalized learning path based on your goals
+                  {t('create.description')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Target Role (optional)</Label>
+                  <Label>{t('create.targetRole')}</Label>
                   <Select
                     value={form.target_role}
                     onValueChange={(v) => setForm(prev => ({ ...prev, target_role: v }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a career role..." />
+                      <SelectValue placeholder={t('create.selectRole')} />
                     </SelectTrigger>
                     <SelectContent>
                       {roles.map((role) => (
@@ -186,27 +187,27 @@ export default function LearningPathsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Target Skills</Label>
+                  <Label>{t('create.targetSkills')}</Label>
                   <Input
-                    placeholder="python, machine learning, data science"
+                    placeholder={t('create.targetSkillsPlaceholder')}
                     value={form.target_skills}
                     onChange={(e) => setForm(prev => ({ ...prev, target_skills: e.target.value }))}
                   />
-                  <p className="text-xs text-muted-foreground">Skills you want to learn (comma-separated)</p>
+                  <p className="text-xs text-muted-foreground">{t('create.skillsHint')}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Current Skills</Label>
+                  <Label>{t('create.currentSkills')}</Label>
                   <Input
-                    placeholder="python basics, html, css"
+                    placeholder={t('create.currentSkillsPlaceholder')}
                     value={form.current_skills}
                     onChange={(e) => setForm(prev => ({ ...prev, current_skills: e.target.value }))}
                   />
-                  <p className="text-xs text-muted-foreground">Skills you already have (comma-separated)</p>
+                  <p className="text-xs text-muted-foreground">{t('create.currentSkillsHint')}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Weekly Study Hours</Label>
+                  <Label>{t('create.weeklyHours')}</Label>
                   <Select
                     value={String(form.weekly_hours)}
                     onValueChange={(v) => setForm(prev => ({ ...prev, weekly_hours: parseInt(v) }))}
@@ -215,17 +216,17 @@ export default function LearningPathsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="5">5 hours/week</SelectItem>
-                      <SelectItem value="10">10 hours/week</SelectItem>
-                      <SelectItem value="15">15 hours/week</SelectItem>
-                      <SelectItem value="20">20 hours/week</SelectItem>
-                      <SelectItem value="30">30+ hours/week</SelectItem>
+                      <SelectItem value="5">{t('create.hoursPerWeek', { hours: 5 })}</SelectItem>
+                      <SelectItem value="10">{t('create.hoursPerWeek', { hours: 10 })}</SelectItem>
+                      <SelectItem value="15">{t('create.hoursPerWeek', { hours: 15 })}</SelectItem>
+                      <SelectItem value="20">{t('create.hoursPerWeek', { hours: 20 })}</SelectItem>
+                      <SelectItem value="30">{t('create.hoursPerWeekPlus', { hours: 30 })}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Learning Style</Label>
+                  <Label>{t('create.learningStyle')}</Label>
                   <Select
                     value={form.learning_style}
                     onValueChange={(v) => setForm(prev => ({ ...prev, learning_style: v }))}
@@ -234,28 +235,28 @@ export default function LearningPathsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="balanced">Balanced</SelectItem>
-                      <SelectItem value="project_based">Project Based</SelectItem>
-                      <SelectItem value="theory_first">Theory First</SelectItem>
-                      <SelectItem value="hands_on">Hands On</SelectItem>
+                      <SelectItem value="balanced">{t('styles.balanced')}</SelectItem>
+                      <SelectItem value="project_based">{t('styles.projectBased')}</SelectItem>
+                      <SelectItem value="theory_first">{t('styles.theoryFirst')}</SelectItem>
+                      <SelectItem value="hands_on">{t('styles.handsOn')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button onClick={handleGenerate} disabled={generateMutation.isPending} className="gap-2">
                   {generateMutation.isPending ? (
                     <>
                       <span className="animate-spin">⏳</span>
-                      Generating...
+                      {t('generating')}
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4" />
-                      Generate Path
+                      {t('create.generate')}
                     </>
                   )}
                 </Button>
@@ -272,7 +273,7 @@ export default function LearningPathsPage() {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Route className="h-5 w-5 text-purple-500" />
-            My Learning Paths
+            {t('myPaths')}
           </h2>
 
           {pathsLoading ? (
@@ -285,10 +286,10 @@ export default function LearningPathsPage() {
             <Card>
               <CardContent className="py-8 text-center">
                 <Route className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-                <p className="text-muted-foreground mb-4">No learning paths yet</p>
+                <p className="text-muted-foreground mb-4">{t('empty.title')}</p>
                 <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Create Your First Path
+                  {t('createFirst')}
                 </Button>
               </CardContent>
             </Card>
@@ -315,7 +316,7 @@ export default function LearningPathsPage() {
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
-                        {path.milestones.length} milestones
+                        {t('milestonesCount', { count: path.milestones.length })}
                       </p>
                       <Progress value={path.progress || 0} className="h-2" />
                     </CardContent>
@@ -329,7 +330,7 @@ export default function LearningPathsPage() {
           {selectedPath && (
             <Card className="mt-6">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Skill Sequence</CardTitle>
+                <CardTitle className="text-sm">{t('skillSequence')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -356,8 +357,8 @@ export default function LearningPathsPage() {
                   <div className="animate-pulse">
                     <Sparkles className="h-16 w-16 mx-auto text-purple-500 mb-4" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">Creating Your Learning Path...</h3>
-                  <p className="text-muted-foreground mb-4">Analyzing skills and generating roadmap</p>
+                  <h3 className="text-lg font-semibold mb-2">{t('creatingPath')}</h3>
+                  <p className="text-muted-foreground mb-4">{t('analyzingSkills')}</p>
                   <Progress value={45} className="w-48 mx-auto" />
                 </div>
               </CardContent>
@@ -381,7 +382,7 @@ export default function LearningPathsPage() {
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold">{selectedPath.total_hours}h</div>
-                      <p className="text-sm text-muted-foreground">Total time</p>
+                      <p className="text-sm text-muted-foreground">{t('totalTime')}</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -389,12 +390,12 @@ export default function LearningPathsPage() {
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Start</span>
+                      <span className="text-sm">{t('start')}</span>
                     </div>
                     <div className="flex-1 h-0.5 bg-gradient-to-r from-green-500 via-purple-500 to-pink-500" />
                     <div className="flex items-center gap-2">
                       <Flag className="h-4 w-4 text-pink-500" />
-                      <span className="text-sm">Goal</span>
+                      <span className="text-sm">{t('goal')}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -441,7 +442,7 @@ export default function LearningPathsPage() {
                                   variant={isComplete ? 'default' : 'secondary'}
                                   className={`${isComplete ? 'bg-green-500' : ''}`}
                                 >
-                                  {isFirst ? '🚀 Start' : isLast ? '🏆 Goal' : `Step ${milestone.position}`}
+                                  {isFirst ? t('milestone.start') : isLast ? t('milestone.goal') : t('milestone.step', { step: milestone.position })}
                                 </Badge>
                                 <CardTitle className="text-lg">{milestone.skill_name}</CardTitle>
                               </div>
@@ -454,7 +455,7 @@ export default function LearningPathsPage() {
                           <CardContent className="space-y-3">
                             {/* Concepts */}
                             <div>
-                              <p className="text-sm font-medium mb-2">Concepts to Learn:</p>
+                              <p className="text-sm font-medium mb-2">{t('conceptsToLearn')}</p>
                               <div className="flex flex-wrap gap-2">
                                 {milestone.concepts.map((concept, i) => (
                                   <Badge key={i} variant="outline" className="text-xs">
@@ -467,7 +468,7 @@ export default function LearningPathsPage() {
                             {/* Progress */}
                             <div>
                               <div className="flex items-center justify-between text-sm mb-1">
-                                <span className="text-muted-foreground">Progress</span>
+                                <span className="text-muted-foreground">{t('progressLabel')}</span>
                                 <span className="font-medium">{progress}%</span>
                               </div>
                               <Progress value={progress} className="h-2" />
@@ -478,17 +479,17 @@ export default function LearningPathsPage() {
                               {isComplete ? (
                                 <Button variant="outline" size="sm" className="gap-2">
                                   <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                  Completed
+                                  {t('completed')}
                                 </Button>
                               ) : isInProgress ? (
                                 <Button size="sm" className="gap-2">
                                   <Play className="h-4 w-4" />
-                                  Continue
+                                  {t('continue')}
                                 </Button>
                               ) : (
                                 <Button variant="outline" size="sm" className="gap-2" disabled>
                                   <Circle className="h-4 w-4" />
-                                  Locked
+                                  {t('locked')}
                                 </Button>
                               )}
                             </div>
@@ -504,13 +505,13 @@ export default function LearningPathsPage() {
             <Card>
               <CardContent className="py-16 text-center">
                 <Route className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                <h3 className="text-lg font-semibold mb-2">No Path Selected</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('noPathSelected')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Create a new learning path or select one from the list to view your roadmap.
+                  {t('noPathSelectedDesc')}
                 </p>
                 <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Create Learning Path
+                  {t('createPath')}
                 </Button>
               </CardContent>
             </Card>

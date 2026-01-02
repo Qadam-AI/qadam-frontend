@@ -89,11 +89,26 @@ interface Community {
   name: string
   slug: string
   description: string | null
+  mission: string | null
+  category: string | null
+  difficulty: string | null
+  primary_language: string | null
+  tags: string[] | null
   visibility: string
+  max_members: number | null
+  cover_image_url: string | null
+  icon_url: string | null
+  is_active: boolean
+  is_archived: boolean
+  invite_enabled: boolean
   invite_code: string | null
   member_count: number
   pending_count: number
   rules: any[]
+  starts_at: string | null
+  ends_at: string | null
+  enrollment_opens_at: string | null
+  enrollment_closes_at: string | null
 }
 
 export default function CommunityManagePage() {
@@ -104,6 +119,19 @@ export default function CommunityManagePage() {
   const slug = params.slug as string
 
   const [selectedRequests, setSelectedRequests] = useState<string[]>([])
+  const [settingsForm, setSettingsForm] = useState({
+    name: '',
+    description: '',
+    mission: '',
+    category: '',
+    difficulty: '',
+    visibility: '',
+    max_members: '',
+    is_active: true,
+    invite_enabled: true,
+    tags: '',
+  })
+  const [settingsInitialized, setSettingsInitialized] = useState(false)
 
   const { data: community, isLoading } = useQuery<Community>({
     queryKey: ['community', slug],
@@ -113,11 +141,29 @@ export default function CommunityManagePage() {
     },
   })
 
+  // Initialize settings form when community data loads
+  if (community && !settingsInitialized) {
+    setSettingsForm({
+      name: community.name || '',
+      description: community.description || '',
+      mission: community.mission || '',
+      category: community.category || '',
+      difficulty: community.difficulty || '',
+      visibility: community.visibility || '',
+      max_members: community.max_members?.toString() || '',
+      is_active: community.is_active ?? true,
+      invite_enabled: community.invite_enabled ?? true,
+      tags: community.tags?.join(', ') || '',
+    })
+    setSettingsInitialized(true)
+  }
+
   const { data: requests, isLoading: requestsLoading } = useQuery<JoinRequest[]>({
     queryKey: ['community-requests', slug],
     queryFn: async () => {
       const res = await api.get(`/api/v1/communities/${slug}/requests`)
-      return res.data
+      // API returns { items, total, page, page_size } - extract items array
+      return res.data?.items || res.data || []
     },
     enabled: !!community,
   })
@@ -126,7 +172,8 @@ export default function CommunityManagePage() {
     queryKey: ['community-members', slug],
     queryFn: async () => {
       const res = await api.get(`/api/v1/communities/${slug}/members`)
-      return res.data
+      // API returns { items, total, page, page_size } - extract items array
+      return res.data?.items || res.data || []
     },
     enabled: !!community,
   })
@@ -201,6 +248,52 @@ export default function CommunityManagePage() {
       toast({ title: 'Invite Code Regenerated' })
     },
   })
+
+  const updateCommunityMutation = useMutation({
+    mutationFn: async (data: Record<string, any>) => {
+      const res = await api.patch(`/api/v1/communities/${slug}`, data)
+      return res.data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['community', slug] })
+      toast({ title: 'Community Updated', description: 'Your changes have been saved.' })
+      // If slug changed, redirect to new URL
+      if (data.slug && data.slug !== slug) {
+        router.push(`/communities/${data.slug}/manage`)
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Update Failed',
+        description: error.response?.data?.detail || 'Could not update community',
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const handleSettingsSave = () => {
+    const data: Record<string, any> = {}
+    if (settingsForm.name && settingsForm.name !== community?.name) data.name = settingsForm.name
+    if (settingsForm.description !== community?.description) data.description = settingsForm.description || null
+    if (settingsForm.mission !== community?.mission) data.mission = settingsForm.mission || null
+    if (settingsForm.category !== community?.category) data.category = settingsForm.category || null
+    if (settingsForm.difficulty !== community?.difficulty) data.difficulty = settingsForm.difficulty || null
+    if (settingsForm.visibility !== community?.visibility) data.visibility = settingsForm.visibility
+    if (settingsForm.max_members !== (community?.max_members?.toString() || '')) {
+      data.max_members = settingsForm.max_members ? parseInt(settingsForm.max_members) : null
+    }
+    if (settingsForm.is_active !== community?.is_active) data.is_active = settingsForm.is_active
+    if (settingsForm.invite_enabled !== community?.invite_enabled) data.invite_enabled = settingsForm.invite_enabled
+    const tagsArray = settingsForm.tags ? settingsForm.tags.split(',').map(t => t.trim()).filter(Boolean) : []
+    if (JSON.stringify(tagsArray) !== JSON.stringify(community?.tags || [])) data.tags = tagsArray
+
+    if (Object.keys(data).length === 0) {
+      toast({ title: 'No Changes', description: 'Nothing to update.' })
+      return
+    }
+
+    updateCommunityMutation.mutate(data)
+  }
 
   const handleBulkApprove = () => {
     selectedRequests.forEach(id => {
@@ -376,6 +469,10 @@ export default function CommunityManagePage() {
           <TabsTrigger value="activity" className="gap-2">
             <Activity className="w-4 h-4" />
             Activity
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="gap-2">
+            <Settings className="w-4 h-4" />
+            Settings
           </TabsTrigger>
         </TabsList>
 
@@ -702,6 +799,200 @@ export default function CommunityManagePage() {
               <div className="text-center py-12">
                 <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">Activity log coming soon...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Community Settings</CardTitle>
+              <CardDescription>Update your community details, visibility, and preferences</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Basic Information</h3>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Community Name *</label>
+                    <Input
+                      value={settingsForm.name}
+                      onChange={(e) => setSettingsForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter community name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Category</label>
+                    <Select
+                      value={settingsForm.category}
+                      onValueChange={(value) => setSettingsForm(prev => ({ ...prev, category: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="programming">Programming</SelectItem>
+                        <SelectItem value="data_science">Data Science</SelectItem>
+                        <SelectItem value="mathematics">Mathematics</SelectItem>
+                        <SelectItem value="physics">Physics</SelectItem>
+                        <SelectItem value="chemistry">Chemistry</SelectItem>
+                        <SelectItem value="biology">Biology</SelectItem>
+                        <SelectItem value="medicine">Medicine</SelectItem>
+                        <SelectItem value="law">Law</SelectItem>
+                        <SelectItem value="business">Business</SelectItem>
+                        <SelectItem value="economics">Economics</SelectItem>
+                        <SelectItem value="history">History</SelectItem>
+                        <SelectItem value="philosophy">Philosophy</SelectItem>
+                        <SelectItem value="psychology">Psychology</SelectItem>
+                        <SelectItem value="languages">Languages</SelectItem>
+                        <SelectItem value="arts">Arts</SelectItem>
+                        <SelectItem value="music">Music</SelectItem>
+                        <SelectItem value="engineering">Engineering</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={settingsForm.description}
+                    onChange={(e) => setSettingsForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe your community..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Mission Statement</label>
+                  <Textarea
+                    value={settingsForm.mission}
+                    onChange={(e) => setSettingsForm(prev => ({ ...prev, mission: e.target.value }))}
+                    placeholder="What is your community's mission?"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tags (comma-separated)</label>
+                  <Input
+                    value={settingsForm.tags}
+                    onChange={(e) => setSettingsForm(prev => ({ ...prev, tags: e.target.value }))}
+                    placeholder="python, machine-learning, beginner-friendly"
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Access & Visibility */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Access & Visibility</h3>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Visibility</label>
+                    <Select
+                      value={settingsForm.visibility}
+                      onValueChange={(value) => setSettingsForm(prev => ({ ...prev, visibility: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select visibility" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">Public - Anyone can discover and join</SelectItem>
+                        <SelectItem value="private">Private - Only approved members can access</SelectItem>
+                        <SelectItem value="invite_only">Invite Only - Join with invite link</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Difficulty Level</label>
+                    <Select
+                      value={settingsForm.difficulty}
+                      onValueChange={(value) => setSettingsForm(prev => ({ ...prev, difficulty: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select difficulty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="expert">Expert</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Maximum Members (leave empty for unlimited)</label>
+                  <Input
+                    type="number"
+                    value={settingsForm.max_members}
+                    onChange={(e) => setSettingsForm(prev => ({ ...prev, max_members: e.target.value }))}
+                    placeholder="No limit"
+                  />
+                </div>
+
+                <div className="flex items-center gap-6 pt-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.is_active}
+                      onChange={(e) => setSettingsForm(prev => ({ ...prev, is_active: e.target.checked }))}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm">Active (Community is open for activity)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.invite_enabled}
+                      onChange={(e) => setSettingsForm(prev => ({ ...prev, invite_enabled: e.target.checked }))}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm">Enable Invite Links</span>
+                  </label>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Save Button */}
+              <div className="flex justify-end gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSettingsForm({
+                      name: community?.name || '',
+                      description: community?.description || '',
+                      mission: community?.mission || '',
+                      category: community?.category || '',
+                      difficulty: community?.difficulty || '',
+                      visibility: community?.visibility || '',
+                      max_members: community?.max_members?.toString() || '',
+                      is_active: community?.is_active ?? true,
+                      invite_enabled: community?.invite_enabled ?? true,
+                      tags: community?.tags?.join(', ') || '',
+                    })
+                  }}
+                >
+                  Reset
+                </Button>
+                <Button
+                  onClick={handleSettingsSave}
+                  disabled={updateCommunityMutation.isPending}
+                  className="gap-2"
+                >
+                  {updateCommunityMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Save Changes
+                </Button>
               </div>
             </CardContent>
           </Card>

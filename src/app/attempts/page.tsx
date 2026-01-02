@@ -99,10 +99,8 @@ function AttemptsContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
-        </div>
+        <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
       </motion.div>
 
       {/* Attempts Table */}

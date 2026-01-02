@@ -22,6 +22,7 @@ import {
   Sparkles, TrendingUp, BookOpen, Code, FlaskConical,
   Scale, Building2, Brain, Palette, Music, Wrench
 } from 'lucide-react'
+import { useTranslations } from '@/lib/i18n'
 
 interface Community {
   id: string
@@ -86,6 +87,7 @@ const getDifficultyColor = (difficulty: string) => {
 }
 
 function CommunityCard({ community, index }: { community: Community; index: number }) {
+  const t = useTranslations('communities')
   const CategoryIcon = getCategoryIcon(community.category)
   
   return (
@@ -134,7 +136,7 @@ function CommunityCard({ community, index }: { community: Community; index: numb
           
           <CardContent className="pb-3">
             <p className="text-sm text-muted-foreground line-clamp-2">
-              {community.description || 'A learning community'}
+              {community.description || t('defaultDescription')}
             </p>
             
             {community.tags.length > 0 && (
@@ -157,7 +159,7 @@ function CommunityCard({ community, index }: { community: Community; index: numb
             <div className="flex items-center justify-between w-full text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
-                <span>{community.member_count.toLocaleString()} members</span>
+                <span>{t('members', { count: community.member_count })}</span>
               </div>
               {community.visibility === 'private' ? (
                 <Lock className="w-4 h-4" />
@@ -196,6 +198,7 @@ function CommunityCardSkeleton() {
 }
 
 export default function CommunitiesPage() {
+  const t = useTranslations('communities')
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
   const [difficulty, setDifficulty] = useState('all')
@@ -222,12 +225,20 @@ export default function CommunitiesPage() {
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
       <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4"
+        >
+          <span className="text-lg">🏰</span>
+          <span className="text-primary font-bold text-sm">{t('badge')}</span>
+        </motion.div>
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-3xl font-bold mb-2"
         >
-          Learning Communities
+          {t('title')}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: -10 }}
@@ -235,7 +246,7 @@ export default function CommunitiesPage() {
           transition={{ delay: 0.1 }}
           className="text-muted-foreground"
         >
-          Join gated learning groups with serious learners. Communities enforce quality standards through rule-based membership.
+          {t('subtitle')}
         </motion.p>
       </div>
 
@@ -249,7 +260,7 @@ export default function CommunitiesPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search communities..."
+            placeholder={t('search')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -289,7 +300,7 @@ export default function CommunitiesPage() {
         <Link href="/communities/create">
           <Button className="gap-2">
             <Sparkles className="w-4 h-4" />
-            Create Community
+            {t('createCommunity')}
           </Button>
         </Link>
       </motion.div>
@@ -297,9 +308,9 @@ export default function CommunitiesPage() {
       {/* Results */}
       {error ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Failed to load communities</p>
+          <p className="text-muted-foreground">{t('error')}</p>
           <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-            Try Again
+            {t('tryAgain')}
           </Button>
         </div>
       ) : isLoading ? (
@@ -311,12 +322,12 @@ export default function CommunitiesPage() {
       ) : data?.items.length === 0 ? (
         <div className="text-center py-12">
           <GraduationCap className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No communities found</h3>
+          <h3 className="text-lg font-medium mb-2">{t('noCommunitiesFound')}</h3>
           <p className="text-muted-foreground mb-4">
-            Try adjusting your filters or create the first community in this category.
+            {t('noCommunitiesDesc')}
           </p>
           <Link href="/communities/create">
-            <Button>Create Community</Button>
+            <Button>{t('createCommunity')}</Button>
           </Link>
         </div>
       ) : (

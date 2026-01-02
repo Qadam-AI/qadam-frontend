@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from '@/lib/i18n'
 import api from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -50,6 +51,7 @@ interface LessonItem {
 export default function CourseViewPage() {
   const params = useParams()
   const queryClient = useQueryClient()
+  const t = useTranslations('courseDetail')
   const courseId = params.courseId as string
 
   const { data: course, isLoading } = useQuery({
@@ -76,7 +78,7 @@ export default function CourseViewPage() {
       <Link href="/courses">
         <Button variant="ghost" size="sm" className="gap-2">
           <ArrowLeft className="h-4 w-4" />
-          Back to My Courses
+          {t('backToCourses')}
         </Button>
       </Link>
 
@@ -112,7 +114,7 @@ export default function CourseViewPage() {
                 {course.instructor_name && (
                   <div className="flex items-center gap-2 mt-2 text-muted-foreground">
                     <User className="h-4 w-4" />
-                    <span>By {course.instructor_name}</span>
+                    <span>{t('byInstructor', { name: course.instructor_name })}</span>
                   </div>
                 )}
               </div>
@@ -126,14 +128,14 @@ export default function CourseViewPage() {
             <Card>
               <CardContent className="py-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">Course Progress</span>
+                  <span className="font-medium">{t('courseProgress')}</span>
                   <span className="text-2xl font-bold text-primary">
                     {Math.round(course.progress_percent)}%
                   </span>
                 </div>
                 <Progress value={course.progress_percent} className="h-3" />
                 <p className="text-sm text-muted-foreground mt-2">
-                  {course.completed_lessons} of {course.total_lessons} lessons completed
+                  {t('lessonsCompleted', { completed: course.completed_lessons, total: course.total_lessons })}
                 </p>
               </CardContent>
             </Card>
@@ -141,7 +143,7 @@ export default function CourseViewPage() {
 
           {/* Lessons List */}
           <div className="space-y-3">
-            <h2 className="text-xl font-semibold">Course Content</h2>
+            <h2 className="text-xl font-semibold">{t('courseContent')}</h2>
             
             {course.lessons.map((lesson, index) => (
               <motion.div
@@ -195,7 +197,7 @@ export default function CourseViewPage() {
                         {lesson.duration_minutes && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                             <Clock className="h-3 w-3" />
-                            {lesson.duration_minutes} min
+                            {t('minutes', { count: lesson.duration_minutes })}
                           </div>
                         )}
                       </div>
@@ -205,20 +207,20 @@ export default function CourseViewPage() {
                         {lesson.is_locked ? (
                           <Button disabled variant="ghost" size="sm">
                             <Lock className="h-4 w-4 mr-2" />
-                            Locked
+                            {t('locked')}
                           </Button>
                         ) : lesson.is_completed ? (
                           <Link href={`/lesson/${lesson.id}`}>
                             <Button variant="outline" size="sm">
                               <Play className="h-4 w-4 mr-2" />
-                              Review
+                              {t('review')}
                             </Button>
                           </Link>
                         ) : (
                           <Link href={`/lesson/${lesson.id}`}>
                             <Button size="sm">
                               <Play className="h-4 w-4 mr-2" />
-                              Start
+                              {t('start')}
                             </Button>
                           </Link>
                         )}
@@ -229,7 +231,7 @@ export default function CourseViewPage() {
                     {!lesson.is_completed && !lesson.is_locked && lesson.progress_percent && lesson.progress_percent > 0 && (
                       <div className="mt-3 pt-3 border-t">
                         <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                          <span>Progress</span>
+                          <span>{t('progress')}</span>
                           <span>{Math.round(lesson.progress_percent)}%</span>
                         </div>
                         <Progress value={lesson.progress_percent} className="h-1" />
@@ -251,7 +253,7 @@ export default function CourseViewPage() {
               <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-green-500/10 border border-green-500/30">
                 <CheckCircle2 className="h-6 w-6 text-green-500" />
                 <span className="font-semibold text-green-600 dark:text-green-400">
-                  Course Completed! 🎉
+                  {t('courseCompleted')} 🎉
                 </span>
               </div>
             </motion.div>
@@ -259,10 +261,10 @@ export default function CourseViewPage() {
         </>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Course not found or you're not enrolled.</p>
+          <p className="text-muted-foreground">{t('notFound')}</p>
           <Link href="/courses">
             <Button variant="outline" className="mt-4">
-              Go to My Courses
+              {t('goToMyCourses')}
             </Button>
           </Link>
         </div>

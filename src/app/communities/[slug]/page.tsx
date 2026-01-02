@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from '@/lib/i18n'
 import Link from 'next/link'
 import api from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -220,6 +221,7 @@ export default function CommunityDetailPage() {
   const router = useRouter()
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const t = useTranslations('communityDetail')
   const slug = params.slug as string
   
   const [showEligibility, setShowEligibility] = useState(false)
@@ -250,21 +252,21 @@ export default function CommunityDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
       if (data.status === 'approved') {
         toast({
-          title: 'Welcome!',
-          description: 'You have joined the community.',
+          title: t('welcome'),
+          description: t('joinedCommunity'),
         })
       } else {
         toast({
-          title: 'Request Submitted',
-          description: 'Your join request is pending approval.',
+          title: t('requestSubmitted'),
+          description: t('pendingApproval'),
         })
       }
     },
     onError: (error: any) => {
       toast({
         variant: 'destructive',
-        title: 'Failed to join',
-        description: error.response?.data?.detail || 'An error occurred',
+        title: t('failedToJoin'),
+        description: error.response?.data?.detail || t('errorOccurred'),
       })
     },
   })
@@ -276,8 +278,8 @@ export default function CommunityDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
       toast({
-        title: 'Left Community',
-        description: 'You have left the community.',
+        title: t('leftCommunity'),
+        description: t('youHaveLeft'),
       })
     },
   })
@@ -304,12 +306,12 @@ export default function CommunityDetailPage() {
     return (
       <div className="container mx-auto py-16 text-center">
         <XCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-        <h2 className="text-xl font-medium mb-2">Community Not Found</h2>
+        <h2 className="text-xl font-medium mb-2">{t('notFound')}</h2>
         <p className="text-muted-foreground mb-4">
-          This community doesn't exist or you don't have access to view it.
+          {t('notFoundDesc')}
         </p>
         <Link href="/communities">
-          <Button>Browse Communities</Button>
+          <Button>{t('browseCommunities')}</Button>
         </Link>
       </div>
     )
@@ -337,7 +339,7 @@ export default function CommunityDetailPage() {
         {/* Back Button */}
         <Link href="/communities" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
           <ArrowLeft className="w-4 h-4" />
-          Back to Communities
+          {t('backToCommunities')}
         </Link>
 
         {/* Header */}
@@ -371,11 +373,11 @@ export default function CommunityDetailPage() {
               <Badge className="capitalize">{community.difficulty}</Badge>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />
-                {community.member_count.toLocaleString()} members
+                {t('membersCount', { count: community.member_count.toLocaleString() })}
               </div>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
-                Created {new Date(community.created_at).toLocaleDateString()}
+                {t('createdOn', { date: new Date(community.created_at).toLocaleDateString() })}
               </div>
             </div>
             
@@ -390,7 +392,7 @@ export default function CommunityDetailPage() {
               <Link href={`/communities/${slug}/manage`}>
                 <Button variant="outline" className="gap-2 w-full">
                   <Settings className="w-4 h-4" />
-                  Manage
+                  {t('manage')}
                 </Button>
               </Link>
             )}
@@ -401,14 +403,14 @@ export default function CommunityDetailPage() {
                 onClick={() => leaveMutation.mutate()}
                 disabled={leaveMutation.isPending}
               >
-                {leaveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Leave Community'}
+                {leaveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('leaveCommunity')}
               </Button>
             )}
             
             {isPending && (
               <Button disabled className="gap-2">
                 <Clock className="w-4 h-4" />
-                Pending Approval
+                {t('pendingApprovalStatus')}
               </Button>
             )}
             
@@ -429,7 +431,7 @@ export default function CommunityDetailPage() {
                 ) : (
                   <UserPlus className="w-4 h-4" />
                 )}
-                {showEligibility ? (eligibility?.is_eligible ? 'Join Community' : 'Not Eligible') : 'Check Eligibility'}
+                {showEligibility ? (eligibility?.is_eligible ? t('joinCommunity') : t('notEligible')) : t('checkEligibility')}
               </Button>
             )}
           </div>
@@ -452,20 +454,20 @@ export default function CommunityDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="about">
               <TabsList>
-                <TabsTrigger value="about">About</TabsTrigger>
-                <TabsTrigger value="requirements">Requirements ({community.rules.length})</TabsTrigger>
-                {isMember && <TabsTrigger value="members">Members</TabsTrigger>}
+                <TabsTrigger value="about">{t('about')}</TabsTrigger>
+                <TabsTrigger value="requirements">{t('requirements')} ({community.rules.length})</TabsTrigger>
+                {isMember && <TabsTrigger value="members">{t('members')}</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="about" className="mt-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>About This Community</CardTitle>
+                    <CardTitle>{t('aboutCommunity')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="prose dark:prose-invert max-w-none">
                       {community.long_description || community.description || (
-                        <p className="text-muted-foreground">No detailed description provided.</p>
+                        <p className="text-muted-foreground">{t('noDescription')}</p>
                       )}
                     </div>
                   </CardContent>
@@ -477,15 +479,15 @@ export default function CommunityDetailPage() {
                   {community.rules.length === 0 ? (
                     <Alert>
                       <Sparkles className="w-4 h-4" />
-                      <AlertTitle>Open Community</AlertTitle>
+                      <AlertTitle>{t('openCommunity')}</AlertTitle>
                       <AlertDescription>
-                        This community has no membership requirements. Anyone can join!
+                        {t('openCommunityDesc')}
                       </AlertDescription>
                     </Alert>
                   ) : (
                     <>
                       <p className="text-sm text-muted-foreground mb-4">
-                        To join this community, you must meet the following requirements:
+                        {t('requirementsDesc')}
                       </p>
                       {community.rules
                         .sort((a, b) => a.priority - b.priority)

@@ -25,6 +25,7 @@ import { Navbar } from '../_components/navbar'
 import { Sidebar } from '../_components/sidebar'
 import { Footer } from '../_components/footer'
 import { AuthGuard } from '../_components/auth-guard'
+import { useTranslations } from '@/lib/i18n'
 
 interface EnrolledCourse {
   id: string
@@ -51,6 +52,7 @@ interface PendingInvitation {
 
 function MyCoursesContent() {
   const { user } = useAuth()
+  const t = useTranslations('courses')
 
   const { data: courses, isLoading, error } = useQuery({
     queryKey: ['my-courses'],
@@ -96,10 +98,8 @@ function MyCoursesContent() {
     >
       {/* Header */}
       <motion.div variants={itemVariants}>
-        <h1 className="text-4xl font-bold tracking-tight">My Courses</h1>
-        <p className="text-muted-foreground mt-2">
-          Continue learning where you left off
-        </p>
+        <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
       </motion.div>
 
       {/* Quick Stats */}
@@ -109,11 +109,11 @@ function MyCoursesContent() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Enrolled</p>
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{t('stats.enrolled')}</p>
                   <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">
                     {courses?.length || 0}
                   </p>
-                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70">Total courses</p>
+                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70">{t('stats.totalCourses')}</p>
                 </div>
                 <div className="p-3 rounded-full bg-blue-200 dark:bg-blue-800">
                   <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />
@@ -128,11 +128,11 @@ function MyCoursesContent() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">In Progress</p>
+                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">{t('stats.inProgress')}</p>
                   <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">
                     {inProgressCourses}
                   </p>
-                  <p className="text-xs text-orange-600/70 dark:text-orange-400/70">Active learning</p>
+                  <p className="text-xs text-orange-600/70 dark:text-orange-400/70">{t('stats.activeLearning')}</p>
                 </div>
                 <div className="p-3 rounded-full bg-orange-200 dark:bg-orange-800">
                   <Clock className="h-6 w-6 text-orange-600 dark:text-orange-300" />
@@ -147,12 +147,12 @@ function MyCoursesContent() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Completed</p>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">{t('stats.completed')}</p>
                   <p className="text-3xl font-bold text-green-700 dark:text-green-300">
                     {completedCourses}
                   </p>
                   <p className="text-xs text-green-600/70 dark:text-green-400/70">
-                    {completedCourses > 0 ? '🎉 Great job!' : 'Keep going!'}
+                    {completedCourses > 0 ? t('stats.greatJob') : t('stats.keepGoing')}
                   </p>
                 </div>
                 <div className="p-3 rounded-full bg-green-200 dark:bg-green-800">
@@ -168,7 +168,7 @@ function MyCoursesContent() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Overall</p>
+                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">{t('stats.overall')}</p>
                   <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">
                     {totalProgress}%
                   </p>
@@ -190,7 +190,7 @@ function MyCoursesContent() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Mail className="h-5 w-5 text-primary" />
-                Pending Invitations
+                {t('invitations.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -207,14 +207,14 @@ function MyCoursesContent() {
                       <p className="font-medium">{inv.course_title}</p>
                       {inv.instructor_name && (
                         <p className="text-sm text-muted-foreground">
-                          From {inv.instructor_name}
+                          {t('invitations.from', { instructor: inv.instructor_name })}
                         </p>
                       )}
                     </div>
                     <Link href={`/courses/join/${inv.invite_token}`}>
                       <Button size="sm" className="gap-1">
                         <Sparkles className="h-3.5 w-3.5" />
-                        Accept
+                        {t('invitations.accept')}
                       </Button>
                     </Link>
                   </motion.div>
@@ -252,16 +252,15 @@ function MyCoursesContent() {
                   <GraduationCap className="h-12 w-12 text-primary" />
                 </div>
               </motion.div>
-              <h2 className="text-2xl font-bold mb-3">Start Your Learning Journey</h2>
+              <h2 className="text-2xl font-bold mb-3">{t('empty.title')}</h2>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                You haven't enrolled in any courses yet. Ask your instructor 
-                for an invitation link or explore our free lessons.
+                {t('empty.description')}
               </p>
               <div className="flex justify-center gap-3">
                 <Link href="/lessons">
                   <Button size="lg" className="gap-2">
                     <BookOpen className="h-5 w-5" />
-                    Browse Free Lessons
+                    {t('empty.browseLessons')}
                   </Button>
                 </Link>
               </div>
@@ -269,7 +268,7 @@ function MyCoursesContent() {
           </Card>
         ) : (
           <>
-            <h2 className="text-2xl font-semibold mb-4">Continue Learning</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('continueLearning')}</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {courses?.map((course, index) => (
                 <motion.div
@@ -298,7 +297,7 @@ function MyCoursesContent() {
                           <div className="absolute top-3 right-3">
                             <Badge className="bg-green-500 gap-1">
                               <CheckCircle2 className="h-3 w-3" />
-                              Completed
+                              {t('stats.completed')}
                             </Badge>
                           </div>
                         )}
@@ -313,7 +312,7 @@ function MyCoursesContent() {
                           </h3>
                           {course.instructor_name && (
                             <p className="text-sm text-muted-foreground mt-1">
-                              By {course.instructor_name}
+                              {t('card.by', { instructor: course.instructor_name })}
                             </p>
                           )}
                         </div>
@@ -322,7 +321,7 @@ function MyCoursesContent() {
                         <div>
                           <div className="flex items-center justify-between text-sm mb-2">
                             <span className="text-muted-foreground">
-                              {course.lessons_completed ?? 0} of {course.total_lessons ?? 0} lessons
+                              {t('card.lessonsOf', { completed: course.lessons_completed ?? 0, total: course.total_lessons ?? 0 })}
                             </span>
                             <span className="font-semibold text-primary">
                               {Math.round(course.progress_percent ?? 0)}%
@@ -338,18 +337,18 @@ function MyCoursesContent() {
                           {(course.progress_percent ?? 0) === 100 ? (
                             <>
                               <CheckCircle2 className="h-4 w-4" />
-                              Review Course
+                              {t('card.reviewCourse')}
                             </>
                           ) : (course.progress_percent ?? 0) > 0 ? (
                             <>
                               <Play className="h-4 w-4" />
-                              Continue
+                              {t('card.continue')}
                               <ArrowRight className="h-4 w-4" />
                             </>
                           ) : (
                             <>
                               <BookOpen className="h-4 w-4" />
-                              Start Learning
+                              {t('card.startLearning')}
                             </>
                           )}
                         </Button>
