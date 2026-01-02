@@ -36,7 +36,7 @@ import {
 import {
   ArrowLeft, ArrowRight, Loader2, Sparkles, Globe, Lock,
   UserPlus, GraduationCap, Code, TrendingUp, Brain, FlaskConical,
-  Scale, Building2, BookOpen, Palette, Music, Wrench, X
+  Scale, Building2, BookOpen, Palette, Music, Wrench, X, Wand2
 } from 'lucide-react'
 
 const CATEGORIES = [
@@ -72,6 +72,7 @@ const formSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters').max(500),
   mission: z.string().max(5000).optional().or(z.literal('')),
   category: z.string().min(1, 'Please select a category'),
+  customCategory: z.string().max(50).optional().or(z.literal('')),
   difficulty: z.string().min(1, 'Please select a difficulty level'),
   visibility: z.string().min(1, 'Please select visibility'),
   tags: z.array(z.string()).max(10),
@@ -96,6 +97,7 @@ export default function CreateCommunityPage() {
       description: '',
       mission: '',
       category: '',
+      customCategory: '',
       difficulty: '',
       visibility: 'public',
       tags: [],
@@ -106,11 +108,16 @@ export default function CreateCommunityPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
+      // Use customCategory as category name if "other" is selected
+      const categoryValue = data.category === 'other' && data.customCategory 
+        ? data.customCategory.toLowerCase().replace(/\s+/g, '_')
+        : data.category
+      
       const payload = {
         name: data.name,
         description: data.description,
         mission: data.mission || undefined,
-        category: data.category,
+        category: categoryValue,
         difficulty: data.difficulty,
         visibility: data.visibility,
         tags: data.tags,
@@ -133,6 +140,44 @@ export default function CreateCommunityPage() {
         variant: 'destructive',
         title: 'Failed to create community',
         description: error.response?.data?.detail || 'An error occurred',
+      })
+    },
+  })
+
+  const generateDescriptionMutation = useMutation({
+    mutationFn: async (field: 'description' | 'mission') => {
+      const name = form.getValues('name')
+      const category = form.getValues('category')
+      const customCategory = form.getValues('customCategory')
+      
+      if (!name) {
+        throw new Error('Please enter a community name first')
+      }
+      
+      const res = await api.post('/api/v1/chat/generate', {
+        prompt: `Generate a ${field === 'description' ? 'short description' : 'mission statement'} for a learning community called "${name}"`,
+        generation_type: field === 'description' ? 'community_description' : 'community_mission',
+        context: {
+          name,
+          category: category === 'other' ? customCategory : category,
+          difficulty: form.getValues('difficulty'),
+        },
+        max_tokens: field === 'description' ? 200 : 400,
+      })
+      return { text: res.data.generated_text, field }
+    },
+    onSuccess: (data) => {
+      form.setValue(data.field, data.text)
+      toast({
+        title: 'Generated!',
+        description: `${data.field === 'description' ? 'Description' : 'Mission'} generated. Feel free to modify it.`,
+      })
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Generation failed',
+        description: error.message || 'Could not generate content. Please try again.',
       })
     },
   })
@@ -290,7 +335,24 @@ export default function CreateCommunityPage() {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Short Description *</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Short Description *</FormLabel>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => generateDescriptionMutation.mutate('description')}
+                            disabled={generateDescriptionMutation.isPending || !form.watch('name')}
+                            className="gap-1"
+                          >
+                            {generateDescriptionMutation.isPending && generateDescriptionMutation.variables === 'description' ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Wand2 className="w-3 h-3" />
+                            )}
+                            Generate
+                          </Button>
+                        </div>
                         <FormControl>
                           <Textarea
                             placeholder="A community for serious Python developers who want to master advanced concepts..."
@@ -309,7 +371,24 @@ export default function CreateCommunityPage() {
                     name="mission"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Mission Statement</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Mission Statement</FormLabel>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => generateDescriptionMutation.mutate('mission')}
+                            disabled={generateDescriptionMutation.isPending || !form.watch('name')}
+                            className="gap-1"
+                          >
+                            {generateDescriptionMutation.isPending && generateDescriptionMutation.variables === 'mission' ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Wand2 className="w-3 h-3" />
+                            )}
+                            Generate
+                          </Button>
+                        </div>
                         <FormControl>
                           <Textarea
                             placeholder="What does this community stand for? What are the goals and values?"
@@ -371,6 +450,26 @@ export default function CreateCommunityPage() {
                       </FormItem>
                     )}
                   />
+
+                  {form.watch('category') === 'other' && (
+                    <FormField
+                      control={form.control}
+                      name="customCategory"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Specify Category</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., Biology, Chemistry, Finance..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>Enter a custom category name for your community</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}
