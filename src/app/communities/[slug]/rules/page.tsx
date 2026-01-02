@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams, useRouter } from 'next/navigation'
@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/components/ui/use-toast'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,12 @@ import {
   Calendar, AlertTriangle, ShieldCheck, GraduationCap, CheckCircle2
 } from 'lucide-react'
 
+interface Course {
+  id: string
+  title: string
+  description?: string
+}
+
 interface Rule {
   id?: string
   type: string
@@ -54,7 +61,7 @@ interface RuleTemplate {
   category: 'mastery' | 'behavioral' | 'time' | 'special'
   fields: {
     name: string
-    type: 'number' | 'string' | 'date' | 'select' | 'multi-select'
+    type: 'number' | 'string' | 'date' | 'select' | 'multi-select' | 'course-picker'
     label: string
     description?: string
     required?: boolean
@@ -103,7 +110,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
     icon: BookOpen,
     category: 'mastery',
     fields: [
-      { name: 'course_ids', type: 'string', label: 'Course IDs (comma-separated)', required: true },
+      { name: 'course_ids', type: 'course-picker', label: 'Select Required Courses', required: true },
     ],
   },
   {
@@ -218,6 +225,16 @@ export default function CommunityRulesPage() {
   const [ruleLabel, setRuleLabel] = useState('')
   const [isRequired, setIsRequired] = useState(true)
   const [hasChanges, setHasChanges] = useState(false)
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([])
+
+  // Fetch available courses for the course picker
+  const { data: courses = [] } = useQuery<Course[]>({
+    queryKey: ['courses'],
+    queryFn: async () => {
+      const res = await api.get('/api/v1/courses')
+      return res.data
+    },
+  })
 
   const { data: community, isLoading } = useQuery({
     queryKey: ['community', slug],
@@ -292,7 +309,18 @@ export default function CommunityRulesPage() {
     setRuleConfig({})
     setRuleLabel('')
     setIsRequired(true)
+    setSelectedCourseIds([])
   }
+
+  // When template changes to course picker, sync ruleConfig
+  useEffect(() => {
+    if (selectedTemplate?.type === 'REQUIRED_COURSES') {
+      setRuleConfig(prev => ({
+        ...prev,
+        course_ids: selectedCourseIds.join(',')
+      }))
+    }
+  }, [selectedCourseIds, selectedTemplate])
 
   if (isLoading) {
     return (
@@ -403,7 +431,16 @@ export default function CommunityRulesPage() {
                           <Badge variant="secondary" className="text-xs">{rule.type}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {Object.entries(rule.config).map(([k, v]) => `${k}: ${v}`).join(', ') || 'No configuration'}
+                          {rule.type === 'REQUIRED_COURSES' && rule.config.course_ids ? (
+                            <>
+                              Courses: {rule.config.course_ids.split(',').map((id: string) => {
+                                const course = courses.find(c => c.id === id.trim())
+                                return course ? course.title : id.trim()
+                              }).join(', ')}
+                            </>
+                          ) : (
+                            Object.entries(rule.config).map(([k, v]) => `${k}: ${v}`).join(', ') || 'No configuration'
+                          )}
                         </p>
                       </div>
                       
@@ -538,7 +575,50 @@ export default function CommunityRulesPage() {
                         })}
                       />
                     )}
-                    {field.description && (
+                    {field.type === 'course-picker' && (
+                      <div className="space-y-2 mt-2">
+                        {courses.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No courses available</p>
+                        ) : (
+                          <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                            {courses.map((course) => (
+                              <div key={course.id} className="flex items-start gap-3 p-2 rounded hover:bg-muted/50">
+                                <Checkbox
+                                  id={`course-${course.id}`}
+                                  checked={selectedCourseIds.includes(course.id)}
+                                  onCheckedChange={(checked: boolean | 'indeterminate') => {
+                                    if (checked === true) {
+                                      setSelectedCourseIds(prev => [...prev, course.id])
+                                    } else {
+                                      setSelectedCourseIds(prev => prev.filter(id => id !== course.id))
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`course-${course.id}`} className="flex-1 cursor-pointer">
+                                  <p className="font-medium text-sm">{course.title}</p>
+                                  {course.description && (
+                                    <p className="text-xs text-muted-foreground line-clamp-1">{course.description}</p>
+                                  )}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {selectedCourseIds.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {selectedCourseIds.map(id => {
+                              const course = courses.find(c => c.id === id)
+                              return course ? (
+                                <Badge key={id} variant="secondary" className="text-xs">
+                                  {course.title}
+                                </Badge>
+                              ) : null
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {field.description && field.type !== 'course-picker' && (
                       <p className="text-xs text-muted-foreground mt-1">{field.description}</p>
                     )}
                   </div>
