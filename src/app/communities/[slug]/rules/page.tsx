@@ -239,7 +239,17 @@ export default function CommunityRulesPage() {
     queryKey: ['community', slug],
     queryFn: async () => {
       const res = await api.get(`/api/v1/communities/${slug}`)
-      setRules(res.data.rules || [])
+      // Transform backend rule format to frontend format
+      const transformedRules = (res.data.rules || []).map((r: any) => ({
+        id: r.id,
+        type: r.rule_type?.toUpperCase() || r.type,
+        label: r.name || r.label || RULE_TEMPLATES.find(t => t.type === (r.rule_type?.toUpperCase() || r.type))?.label || r.rule_type,
+        description: r.description,
+        config: r.config || {},
+        is_required: r.is_required,
+        priority: r.order || 0,
+      }))
+      setRules(transformedRules)
       return res.data
     },
   })
