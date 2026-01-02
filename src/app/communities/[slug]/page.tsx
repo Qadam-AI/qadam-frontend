@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import {
   Users, Lock, Globe, Calendar, Clock, CheckCircle2, XCircle,
   Loader2, ArrowLeft, ShieldCheck, Target, TrendingUp, BookOpen,
@@ -219,7 +219,6 @@ function formatValue(value: any): string {
 export default function CommunityDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { toast } = useToast()
   const queryClient = useQueryClient()
   const t = useTranslations('communityDetail')
   const slug = params.slug as string
@@ -251,23 +250,13 @@ export default function CommunityDetailPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
       if (data.status === 'approved') {
-        toast({
-          title: t('welcome'),
-          description: t('joinedCommunity'),
-        })
+        toast.success(t('welcome'), { description: t('joinedCommunity') })
       } else {
-        toast({
-          title: t('requestSubmitted'),
-          description: t('pendingApproval'),
-        })
+        toast.info(t('requestSubmitted'), { description: t('pendingApproval') })
       }
     },
     onError: (error: any) => {
-      toast({
-        variant: 'destructive',
-        title: t('failedToJoin'),
-        description: error.response?.data?.detail || t('errorOccurred'),
-      })
+      toast.error(t('failedToJoin'), { description: error.response?.data?.detail || t('errorOccurred') })
     },
   })
 
@@ -277,10 +266,7 @@ export default function CommunityDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
-      toast({
-        title: t('leftCommunity'),
-        description: t('youHaveLeft'),
-      })
+      toast.success(t('leftCommunity'), { description: t('youHaveLeft') })
     },
   })
 

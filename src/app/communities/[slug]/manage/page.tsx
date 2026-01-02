@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
@@ -114,7 +114,6 @@ interface Community {
 export default function CommunityManagePage() {
   const params = useParams()
   const router = useRouter()
-  const { toast } = useToast()
   const queryClient = useQueryClient()
   const slug = params.slug as string
 
@@ -199,17 +198,14 @@ export default function CommunityManagePage() {
       queryClient.invalidateQueries({ queryKey: ['community-requests', slug] })
       queryClient.invalidateQueries({ queryKey: ['community-members', slug] })
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
-      toast({
-        title: variables.approved ? 'Request Approved' : 'Request Rejected',
-        description: variables.approved ? 'Member has been added to the community.' : 'Request has been rejected.',
-      })
+      if (variables.approved) {
+        toast.success('Request Approved', { description: 'Member has been added to the community.' })
+      } else {
+        toast.info('Request Rejected', { description: 'Request has been rejected.' })
+      }
     },
     onError: () => {
-      toast({
-        variant: 'destructive',
-        title: 'Action Failed',
-        description: 'Could not process the request.',
-      })
+      toast.error('Action Failed', { description: 'Could not process the request.' })
     },
   })
 
@@ -220,10 +216,7 @@ export default function CommunityManagePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community-members', slug] })
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
-      toast({
-        title: 'Member Removed',
-        description: 'The member has been removed from the community.',
-      })
+      toast.success('Member Removed', { description: 'The member has been removed from the community.' })
     },
   })
 
@@ -234,7 +227,7 @@ export default function CommunityManagePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community-members', slug] })
-      toast({ title: 'Role Updated' })
+      toast.success('Role Updated')
     },
   })
 
@@ -245,7 +238,7 @@ export default function CommunityManagePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
-      toast({ title: 'Invite Code Regenerated' })
+      toast.success('Invite Code Regenerated')
     },
   })
 
@@ -256,18 +249,14 @@ export default function CommunityManagePage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
-      toast({ title: 'Community Updated', description: 'Your changes have been saved.' })
+      toast.success('Community Updated', { description: 'Your changes have been saved.' })
       // If slug changed, redirect to new URL
       if (data.slug && data.slug !== slug) {
         router.push(`/communities/${data.slug}/manage`)
       }
     },
     onError: (error: any) => {
-      toast({
-        title: 'Update Failed',
-        description: error.response?.data?.detail || 'Could not update community',
-        variant: 'destructive',
-      })
+      toast.error('Update Failed', { description: error.response?.data?.detail || 'Could not update community' })
     },
   })
 

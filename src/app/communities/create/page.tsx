@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { Separator } from '@/components/ui/separator'
 import {
   Form,
@@ -84,7 +84,6 @@ type FormData = z.infer<typeof formSchema>
 
 export default function CreateCommunityPage() {
   const router = useRouter()
-  const { toast } = useToast()
   const [step, setStep] = useState(1)
   const [tagInput, setTagInput] = useState('')
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
@@ -129,18 +128,11 @@ export default function CreateCommunityPage() {
       return res.data
     },
     onSuccess: (data) => {
-      toast({
-        title: 'Community Created!',
-        description: 'Your community is ready. Add rules to gate membership.',
-      })
+      toast.success('Community Created!', { description: 'Your community is ready. Add rules to gate membership.' })
       router.push(`/communities/${data.slug}/rules`)
     },
     onError: (error: any) => {
-      toast({
-        variant: 'destructive',
-        title: 'Failed to create community',
-        description: error.response?.data?.detail || 'An error occurred',
-      })
+      toast.error('Failed to create community', { description: error.response?.data?.detail || 'An error occurred' })
     },
   })
 
@@ -168,17 +160,10 @@ export default function CreateCommunityPage() {
     },
     onSuccess: (data) => {
       form.setValue(data.field, data.text)
-      toast({
-        title: 'Generated!',
-        description: `${data.field === 'description' ? 'Description' : 'Mission'} generated. Feel free to modify it.`,
-      })
+      toast.success('Generated!', { description: `${data.field === 'description' ? 'Description' : 'Mission'} generated. Feel free to modify it.` })
     },
     onError: (error: any) => {
-      toast({
-        variant: 'destructive',
-        title: 'Generation failed',
-        description: error.message || 'Could not generate content. Please try again.',
-      })
+      toast.error('Generation failed', { description: error.message || 'Could not generate content. Please try again.' })
     },
   })
 

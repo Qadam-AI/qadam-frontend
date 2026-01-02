@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
@@ -214,7 +214,6 @@ const CATEGORY_LABELS = {
 export default function CommunityRulesPage() {
   const params = useParams()
   const router = useRouter()
-  const { toast } = useToast()
   const queryClient = useQueryClient()
   const slug = params.slug as string
 
@@ -260,7 +259,7 @@ export default function CommunityRulesPage() {
       // Add new rules
       for (const rule of newRules.filter(r => !r.id)) {
         await api.post(`/api/v1/communities/${slug}/rules`, {
-          rule_type: rule.type,
+          rule_type: rule.type.toLowerCase(), // Backend expects lowercase
           name: rule.label,
           description: rule.description,
           config: rule.config,
@@ -276,10 +275,10 @@ export default function CommunityRulesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community', slug] })
       setHasChanges(false)
-      toast({ title: 'Rules Saved', description: 'Membership rules have been updated.' })
+      toast.success('Rules Saved', { description: 'Membership rules have been updated.' })
     },
     onError: () => {
-      toast({ variant: 'destructive', title: 'Failed to save', description: 'Could not save rules.' })
+      toast.error('Failed to save', { description: 'Could not save rules.' })
     },
   })
 
