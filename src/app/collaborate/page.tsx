@@ -317,7 +317,7 @@ export default function CollaboratePage() {
                               <h3 className="font-semibold">{session.title}</h3>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Badge variant="secondary" className="capitalize">
-                                  {session.type.replace('_', ' ')}
+                                  {session.type?.replace('_', ' ') || 'Session'}
                                 </Badge>
                                 <span>•</span>
                                 <span className="flex items-center gap-1">
@@ -410,7 +410,7 @@ export default function CollaboratePage() {
                 <CardHeader>
                   <CardTitle className="text-lg">{sessionDetail.title}</CardTitle>
                   <CardDescription className="capitalize">
-                    {sessionDetail.type.replace('_', ' ')} • {sessionDetail.language}
+                    {sessionDetail.type?.replace('_', ' ') || 'Session'} • {sessionDetail.language || 'Code'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
