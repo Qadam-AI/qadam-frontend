@@ -158,6 +158,14 @@
         "author": "Dean of Digital Learning, Top 20 University"
       }
     },
+    "featureGrid": {
+      "aiTutor": { "title": "AI Tutor", "desc": "Personal learning assistant" },
+      "videoLessons": { "title": "Video Lessons", "desc": "Rich multimedia content" },
+      "practiceMode": { "title": "Practice Mode", "desc": "Interactive challenges" },
+      "communities": { "title": "Communities", "desc": "Learn with peers" },
+      "achievements": { "title": "Achievements", "desc": "Gamified progress" },
+      "analytics": { "title": "Analytics", "desc": "Track your growth" }
+    },
     "nav": {
       "features": "Features",
       "useCases": "Use Cases",
@@ -186,6 +194,15 @@
       "successRate": "Success Rate",
       "successValue": "3x Higher",
       "activateCta": "Activate Your Learning Power"
+    },
+    "gameLearningMap": {
+      "fundamentals": "Fundamentals",
+      "coreConcepts": "Core Concepts",
+      "practiceArena": "Practice Arena",
+      "codeChallenges": "Code Challenges",
+      "masteryPeak": "Mastery Peak",
+      "dayStreak": "Day Streak",
+      "level": "Level"
     },
     "team": {
       "title": "Meet Our Team",

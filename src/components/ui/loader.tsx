@@ -93,6 +93,39 @@ export function InlineLoader({ className }: { className?: string }) {
   )
 }
 
+// Simple macOS-style spinner
+export function MacSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
+  }
+
+  return (
+    <div className={cn('relative', sizeClasses[size])}>
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-[2px] h-[30%] bg-muted-foreground/60 rounded-full origin-center"
+          style={{
+            left: '50%',
+            top: '10%',
+            transform: `translateX(-50%) rotate(${i * 45}deg)`,
+            transformOrigin: '50% 130%',
+          }}
+          animate={{ opacity: [0.2, 1, 0.2] }}
+          transition={{
+            duration: 0.8,
+            repeat: Infinity,
+            delay: i * 0.1,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 // Edusistent branded loader
 export function EdusistentLoader({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const sizeClasses = {

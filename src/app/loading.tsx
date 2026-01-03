@@ -1,9 +1,9 @@
-import { EdusistentLoader } from '@/components/ui/loader'
+import { MacSpinner } from '@/components/ui/loader'
 
 export default function Loading() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <EdusistentLoader size="lg" />
+      <MacSpinner size="lg" />
     </div>
   )
 }

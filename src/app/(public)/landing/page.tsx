@@ -53,13 +53,13 @@ function GradientOrbs() {
 }
 
 // Game-Style Learning Map - Like a real game world map
-function GameLearningMap() {
+function GameLearningMap({ t }: { t: (key: string) => string }) {
   const levels = [
-    { id: 1, name: 'Fundamentals', icon: BookOpen, status: 'completed', xp: 500, color: 'from-emerald-400 to-green-500', position: 'left-[10%]' },
-    { id: 2, name: 'Core Concepts', icon: Brain, status: 'completed', xp: 750, color: 'from-blue-400 to-cyan-500', position: 'left-[30%]' },
-    { id: 3, name: 'Practice Arena', icon: Zap, status: 'current', xp: 1000, color: 'from-orange-400 to-amber-500', position: 'left-[50%]' },
-    { id: 4, name: 'Code Challenges', icon: Code, status: 'locked', xp: 1500, color: 'from-violet-400 to-purple-500', position: 'left-[70%]' },
-    { id: 5, name: 'Mastery Peak', icon: Trophy, status: 'locked', xp: 2500, color: 'from-yellow-400 to-orange-500', position: 'left-[90%]' },
+    { id: 1, nameKey: 'gameLearningMap.fundamentals', icon: BookOpen, status: 'completed', xp: 500, color: 'from-emerald-400 to-green-500', position: 'left-[10%]' },
+    { id: 2, nameKey: 'gameLearningMap.coreConcepts', icon: Brain, status: 'completed', xp: 750, color: 'from-blue-400 to-cyan-500', position: 'left-[30%]' },
+    { id: 3, nameKey: 'gameLearningMap.practiceArena', icon: Zap, status: 'current', xp: 1000, color: 'from-orange-400 to-amber-500', position: 'left-[50%]' },
+    { id: 4, nameKey: 'gameLearningMap.codeChallenges', icon: Code, status: 'locked', xp: 1500, color: 'from-violet-400 to-purple-500', position: 'left-[70%]' },
+    { id: 5, nameKey: 'gameLearningMap.masteryPeak', icon: Trophy, status: 'locked', xp: 2500, color: 'from-yellow-400 to-orange-500', position: 'left-[90%]' },
   ];
 
   return (
@@ -206,7 +206,7 @@ function GameLearningMap() {
                 className="mt-4 text-center"
               >
                 <div className={`font-bold text-sm md:text-base ${isLocked ? 'text-muted-foreground/50' : ''}`}>
-                  {level.name}
+                  {t(level.nameKey)}
                 </div>
                 <div className="flex items-center justify-center gap-1 mt-1">
                   <Star className={`w-3 h-3 ${isLocked ? 'text-muted-foreground/30' : 'text-yellow-500'}`} />
@@ -229,7 +229,7 @@ function GameLearningMap() {
       >
         <div className="flex items-center gap-2 bg-background/80 backdrop-blur px-4 py-2 rounded-full border shadow-lg">
           <Flame className="w-5 h-5 text-orange-500" />
-          <span className="font-bold">5 Day Streak</span>
+          <span className="font-bold">5 {t('gameLearningMap.dayStreak')}</span>
         </div>
         <div className="flex items-center gap-2 bg-background/80 backdrop-blur px-4 py-2 rounded-full border shadow-lg">
           <Trophy className="w-5 h-5 text-yellow-500" />
@@ -237,7 +237,7 @@ function GameLearningMap() {
         </div>
         <div className="flex items-center gap-2 bg-background/80 backdrop-blur px-4 py-2 rounded-full border shadow-lg">
           <Target className="w-5 h-5 text-green-500" />
-          <span className="font-bold">Level 3</span>
+          <span className="font-bold">{t('gameLearningMap.level')} 3</span>
         </div>
       </motion.div>
     </div>
@@ -245,14 +245,14 @@ function GameLearningMap() {
 }
 
 // Hexagonal Feature Grid - Game style
-function HexFeatureGrid() {
+function HexFeatureGrid({ t }: { t: (key: string) => string }) {
   const features = [
-    { icon: Brain, title: 'AI Tutor', desc: 'Personal learning assistant', color: 'from-blue-500 to-cyan-500' },
-    { icon: Video, title: 'Video Lessons', desc: 'Rich multimedia content', color: 'from-violet-500 to-purple-500' },
-    { icon: Zap, title: 'Practice Mode', desc: 'Interactive challenges', color: 'from-orange-500 to-amber-500' },
-    { icon: Users, title: 'Communities', desc: 'Learn with peers', color: 'from-pink-500 to-rose-500' },
-    { icon: Trophy, title: 'Achievements', desc: 'Gamified progress', color: 'from-yellow-500 to-orange-500' },
-    { icon: BarChart3, title: 'Analytics', desc: 'Track your growth', color: 'from-green-500 to-emerald-500' },
+    { icon: Brain, key: 'aiTutor', color: 'from-blue-500 to-cyan-500' },
+    { icon: Video, key: 'videoLessons', color: 'from-violet-500 to-purple-500' },
+    { icon: Zap, key: 'practiceMode', color: 'from-orange-500 to-amber-500' },
+    { icon: Users, key: 'communities', color: 'from-pink-500 to-rose-500' },
+    { icon: Trophy, key: 'achievements', color: 'from-yellow-500 to-orange-500' },
+    { icon: BarChart3, key: 'analytics', color: 'from-green-500 to-emerald-500' },
   ];
 
   return (
@@ -261,7 +261,7 @@ function HexFeatureGrid() {
         const Icon = feature.icon;
         return (
           <motion.div
-            key={feature.title}
+            key={feature.key}
             initial={{ opacity: 0, scale: 0.8, y: 30 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
             viewport={{ once: true }}
@@ -282,8 +282,8 @@ function HexFeatureGrid() {
                 <Icon className="w-7 h-7 text-white" />
               </motion.div>
 
-              <h3 className="font-bold text-lg mb-1">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.desc}</p>
+              <h3 className="font-bold text-lg mb-1">{t(`featureGrid.${feature.key}.title`)}</h3>
+              <p className="text-sm text-muted-foreground">{t(`featureGrid.${feature.key}.desc`)}</p>
 
               {/* Decorative corner */}
               <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -561,10 +561,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="font-bold text-xl">{tCommon('appName')}</span>
+              <span className="font-bold text-xl bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">{tCommon('appName')}</span>
             </Link>
             
             <div className="hidden md:flex items-center gap-6">
@@ -625,7 +622,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="max-w-5xl mx-auto"
           >
-            <GameLearningMap />
+            <GameLearningMap t={t} />
           </motion.div>
         </motion.div>
       </section>
@@ -822,7 +819,7 @@ export default function LandingPage() {
             </p>
           </motion.div>
           
-          <HexFeatureGrid />
+          <HexFeatureGrid t={t} />
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mt-12">
             <Link href="/login">
@@ -1484,10 +1481,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-5 gap-8 mb-12">
             <div className="md:col-span-2">
               <Link href="/" className="flex items-center gap-2 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <span className="font-bold text-xl">{tCommon('appName')}</span>
+                <span className="font-bold text-xl bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">{tCommon('appName')}</span>
               </Link>
               <p className="text-muted-foreground text-sm mb-4 max-w-xs">{t('footer.description')}</p>
               <div className="flex gap-3">

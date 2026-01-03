@@ -60,7 +60,23 @@
     "solution": {
       "title": "Edusistent bilan tanishing",
       "subtitle": "O'rganishni haqiqatan tushunadigan sun'iy intellekt",
-      "description": "Oddiy AI o'qituvchilardan farqli o'laroq, Edusistent har bir o'quvchi qayerda va nima uchun qiynalayotganini aniq tushunish uchun xususiy kognitiv modellashtiruvdan foydalanadi. Bizning tizimimiz nafaqat qiyinchilikni - balki o'qitish uslubi, kontent formati va tezlikni ham moslashtiradi."
+      "description": "Oddiy AI o'qituvchilardan farqli o'laroq, Edusistent har bir o'quvchi qayerda va nima uchun qiynalayotganini aniq tushunish uchun xususiy kognitiv modellashtiruvdan foydalanadi. Bizning tizimimiz nafaqat qiyinchilikni - balki o'qitish uslubi, kontent formati va tezlikni ham moslashtiradi.",
+      "engineTitle": "Edusistent AI dvigateli",
+      "smartDetection": "Aqlli aniqlash",
+      "adaptationSpeed": "Moslashish tezligi",
+      "realtime": "Real vaqtda",
+      "successRate": "Muvaffaqiyat ko'rsatkichi",
+      "successValue": "3 baravar yuqori",
+      "activateCta": "O'rganish kuchingizni faollashtiring"
+    },
+    "gameLearningMap": {
+      "fundamentals": "Asoslar",
+      "coreConcepts": "Asosiy tushunchalar",
+      "practiceArena": "Amaliyot maydoni",
+      "codeChallenges": "Kod sinovi",
+      "masteryPeak": "Ustozlik cho'qqisi",
+      "dayStreak": "kun ketma-ket",
+      "level": "Daraja"
     },
     "features": {
       "title": "Nima uchun sanoat yetakchilari Edusistentni tanlaydi",
@@ -157,6 +173,14 @@
         "text": "Nihoyat, odamlar qanday o'rganishini haqiqatan tushunadigan AI. Bu ta'limning kelajagi.",
         "author": "Raqamli o'quv dekani, Top 20 universitet"
       }
+    },
+    "featureGrid": {
+      "aiTutor": { "title": "AI O'qituvchi", "desc": "Shaxsiy o'quv yordamchisi" },
+      "videoLessons": { "title": "Video Darslar", "desc": "Boy multimedia kontent" },
+      "practiceMode": { "title": "Mashq Rejimi", "desc": "Interaktiv topshiriqlar" },
+      "communities": { "title": "Jamoalar", "desc": "Birga o'rganing" },
+      "achievements": { "title": "Yutuqlar", "desc": "O'yinli o'rganish" },
+      "analytics": { "title": "Tahlillar", "desc": "Taraqqiyotni kuzating" }
     },
     "nav": {
       "features": "Xususiyatlar",
