@@ -154,121 +154,110 @@ export default function CollaboratePage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      {/* Header */}
+      {/* Header - Clean style like Courses page */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 p-8 text-white"
+        className="flex justify-between items-start"
       >
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="h-6 w-6" />
-            <span className="text-lg font-medium text-white/80">Collaborate</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Code Together 👥
-          </h1>
-          <p className="text-white/80 text-lg max-w-2xl">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Code Together</h1>
+          <p className="text-muted-foreground mt-2">
             Join or create real-time collaboration sessions for pair programming, code reviews, and more.
           </p>
-          <div className="flex gap-4 mt-6">
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" variant="secondary" className="gap-2">
-                  <Plus className="h-5 w-5" />
-                  Create Session
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Create Collaboration Session</DialogTitle>
-                  <DialogDescription>
-                    Start a new session and invite others to join.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Session Title</Label>
-                    <Input
-                      id="title"
-                      placeholder="e.g., Algorithm Practice Session"
-                      value={createForm.title}
-                      onChange={(e) => setCreateForm(prev => ({ ...prev, title: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Session Type</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {SESSION_TYPES.map((type) => (
-                        <Button
-                          key={type.value}
-                          variant={createForm.type === type.value ? 'default' : 'outline'}
-                          className="justify-start gap-2 h-auto py-3"
-                          onClick={() => setCreateForm(prev => ({ ...prev, type: type.value }))}
-                        >
-                          {type.icon}
-                          <div className="text-left">
-                            <p className="font-medium text-sm">{type.label}</p>
-                            <p className="text-xs text-muted-foreground hidden md:block">
-                              {type.description}
-                            </p>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Language</Label>
-                      <Select
-                        value={createForm.language}
-                        onValueChange={(v) => setCreateForm(prev => ({ ...prev, language: v }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="python">Python</SelectItem>
-                          <SelectItem value="javascript">JavaScript</SelectItem>
-                          <SelectItem value="typescript">TypeScript</SelectItem>
-                          <SelectItem value="java">Java</SelectItem>
-                          <SelectItem value="cpp">C++</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Max Participants</Label>
-                      <Select
-                        value={String(createForm.max_participants)}
-                        onValueChange={(v) => setCreateForm(prev => ({ ...prev, max_participants: parseInt(v) }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="2">2</SelectItem>
-                          <SelectItem value="3">3</SelectItem>
-                          <SelectItem value="5">5</SelectItem>
-                          <SelectItem value="10">10</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={handleCreate} 
-                    className="w-full" 
-                    disabled={createMutation.isPending}
-                  >
-                    {createMutation.isPending ? 'Creating...' : 'Create Session'}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
         </div>
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -right-20 -bottom-20 h-60 w-60 rounded-full bg-cyan-400/20 blur-3xl" />
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Session
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Create Collaboration Session</DialogTitle>
+              <DialogDescription>
+                Start a new session and invite others to join.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Session Title</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g., Algorithm Practice Session"
+                  value={createForm.title}
+                  onChange={(e) => setCreateForm(prev => ({ ...prev, title: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Session Type</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {SESSION_TYPES.map((type) => (
+                    <Button
+                      key={type.value}
+                      variant={createForm.type === type.value ? 'default' : 'outline'}
+                      className="justify-start gap-2 h-auto py-3"
+                      onClick={() => setCreateForm(prev => ({ ...prev, type: type.value }))}
+                    >
+                      {type.icon}
+                      <div className="text-left">
+                        <p className="font-medium text-sm">{type.label}</p>
+                        <p className="text-xs text-muted-foreground hidden md:block">
+                          {type.description}
+                        </p>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Language</Label>
+                  <Select
+                    value={createForm.language}
+                    onValueChange={(v) => setCreateForm(prev => ({ ...prev, language: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="python">Python</SelectItem>
+                      <SelectItem value="javascript">JavaScript</SelectItem>
+                      <SelectItem value="typescript">TypeScript</SelectItem>
+                      <SelectItem value="java">Java</SelectItem>
+                      <SelectItem value="cpp">C++</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Max Participants</Label>
+                  <Select
+                    value={String(createForm.max_participants)}
+                    onValueChange={(v) => setCreateForm(prev => ({ ...prev, max_participants: parseInt(v) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button 
+                onClick={handleCreate} 
+                className="w-full" 
+                disabled={createMutation.isPending}
+              >
+                {createMutation.isPending ? 'Creating...' : 'Create Session'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

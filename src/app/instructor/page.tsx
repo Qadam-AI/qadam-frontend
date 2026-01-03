@@ -135,38 +135,30 @@ export default function InstructorDashboard() {
       initial="hidden"
       animate="visible"
     >
-      {/* Welcome Header with Gradient */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/90 via-primary to-indigo-600 p-8 text-white">
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-5 w-5" />
-            <span className="text-sm font-medium text-white/80">Instructor Dashboard</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Welcome back, {user?.name?.split(' ')[0] || 'Instructor'}! 👋
+      {/* Welcome Header - Clean style */}
+      <motion.div variants={itemVariants} className="flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Welcome back, {user?.name?.split(' ')[0] || 'Instructor'}!
           </h1>
-          <p className="text-white/80 text-lg max-w-2xl">
+          <p className="text-muted-foreground mt-2">
             Create engaging courses, invite students, and track their learning journey all in one place.
           </p>
-          <div className="flex gap-3 mt-6">
-            <Link href="/instructor/courses/new">
-              <Button size="lg" variant="secondary" className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-all">
-                <Plus className="h-5 w-5" />
-                Create New Course
-              </Button>
-            </Link>
-            <Link href="/instructor/courses">
-              <Button size="lg" variant="ghost" className="gap-2 text-white border-white/30 border hover:bg-white/10">
-                View All Courses
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
         </div>
-        {/* Decorative Elements */}
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -right-20 -bottom-20 h-60 w-60 rounded-full bg-indigo-400/20 blur-3xl" />
+        <div className="flex gap-3">
+          <Link href="/instructor/courses/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create New Course
+            </Button>
+          </Link>
+          <Link href="/instructor/courses">
+            <Button variant="outline" className="gap-2">
+              View All Courses
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </motion.div>
 
       {/* Stats Grid - Matching main dashboard style */}

@@ -152,26 +152,15 @@ export default function JoinLinksPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      {/* Header */}
+      {/* Header - Clean style */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 p-8 text-white"
       >
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Link2 className="h-6 w-6" />
-            <span className="text-lg font-medium text-white/80">Course Management</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Join Links 🔗
-          </h1>
-          <p className="text-white/80 text-lg max-w-2xl">
-            Create shareable links for students to join your courses easily.
-          </p>
-        </div>
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+        <h1 className="text-4xl font-bold tracking-tight">Join Links</h1>
+        <p className="text-muted-foreground mt-2">
+          Create shareable links for students to join your courses easily.
+        </p>
       </motion.div>
 
       {/* Course Selector */}

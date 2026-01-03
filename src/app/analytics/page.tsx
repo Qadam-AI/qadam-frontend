@@ -102,27 +102,15 @@ export default function MyAnalyticsPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      {/* Header */}
+      {/* Header - Clean style like Courses page */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 p-8 text-white"
       >
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="h-6 w-6" />
-            <span className="text-lg font-medium text-white/80">My Analytics</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Your Learning Journey 🎯
-          </h1>
-          <p className="text-white/80 text-lg max-w-2xl">
-            Track your progress, discover your strengths, and get personalized recommendations.
-          </p>
-        </div>
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -right-20 -bottom-20 h-60 w-60 rounded-full bg-teal-400/20 blur-3xl" />
+        <h1 className="text-4xl font-bold tracking-tight">Your Learning Journey</h1>
+        <p className="text-muted-foreground mt-2">
+          Track your progress, discover your strengths, and get personalized recommendations.
+        </p>
       </motion.div>
 
       {/* Quick Stats */}

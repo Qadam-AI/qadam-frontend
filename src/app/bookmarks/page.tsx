@@ -56,8 +56,8 @@ export default function BookmarksPage() {
 
   // Delete bookmark mutation
   const deleteMutation = useMutation({
-    mutationFn: async (bookmarkId: string) => {
-      await api.delete(`/api/v1/lessons/bookmarks/${bookmarkId}`)
+    mutationFn: async (lessonId: string) => {
+      await api.delete(`/api/v1/lessons/${lessonId}/bookmark`)
     },
     onSuccess: () => {
       toast.success('Bookmark removed')
@@ -90,26 +90,15 @@ export default function BookmarksPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      {/* Header */}
+      {/* Header - Clean style */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 p-8 text-white"
       >
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Bookmark className="h-6 w-6" />
-            <span className="text-lg font-medium text-white/80">Your Library</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Bookmarked Lessons 📚
-          </h1>
-          <p className="text-white/80 text-lg max-w-2xl">
-            Quick access to lessons you've saved for later.
-          </p>
-        </div>
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+        <h1 className="text-4xl font-bold tracking-tight">Bookmarked Lessons</h1>
+        <p className="text-muted-foreground mt-2">
+          Quick access to lessons you've saved for later.
+        </p>
       </motion.div>
 
       {/* Search */}
@@ -320,7 +309,7 @@ export default function BookmarksPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
-              onClick={() => deleteBookmark && deleteMutation.mutate(deleteBookmark.id)}
+              onClick={() => deleteBookmark && deleteMutation.mutate(deleteBookmark.lesson_id)}
             >
               Remove
             </AlertDialogAction>

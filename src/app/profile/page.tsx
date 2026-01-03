@@ -110,13 +110,23 @@ function ProfileContent() {
 
   return (
     <div className="space-y-8">
-      {/* Profile Header */}
+      {/* Page Header - Clean style */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+        <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
+      </motion.div>
+
+      {/* Profile Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
+      >
+        <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <Avatar className="h-24 w-24 text-2xl">
@@ -124,8 +134,8 @@ function ProfileContent() {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="text-center sm:text-left">
-                <h1 className="text-3xl font-bold">{user?.name}</h1>
+              <div className="text-center sm:text-left flex-1">
+                <h2 className="text-2xl font-bold">{user?.name}</h2>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 text-muted-foreground">
                   <span className="flex items-center gap-1 justify-center sm:justify-start">
                     <Mail className="h-4 w-4" />

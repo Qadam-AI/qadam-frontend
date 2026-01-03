@@ -34,8 +34,7 @@ export default function InstructorSettings() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      // Simulated save - would connect to actual API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await api.put('/users/profile', { name: displayName })
       toast.success('Settings saved successfully')
     } catch {
       toast.error('Failed to save settings')

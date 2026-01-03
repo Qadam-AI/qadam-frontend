@@ -133,146 +133,134 @@ export default function LearningPathsPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      {/* Header */}
+      {/* Header - Clean style like Courses page */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 text-white"
+        className="flex justify-between items-start"
       >
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
-        <div className="relative z-10 flex justify-between items-start">
-          <div>
-            <Badge className="mb-4 bg-white/20 text-white border-0 text-xs font-bold uppercase tracking-wider">
-              {t('badge')}
-            </Badge>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              {t('title')} 🚀
-            </h1>
-            <p className="text-white/80 text-lg max-w-2xl">
-              {t('subtitle')}
-            </p>
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-white text-purple-600 hover:bg-white/90 gap-2">
-                <Plus className="h-4 w-4" />
-                {t('newPath')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>{t('create.title')}</DialogTitle>
-                <DialogDescription>
-                  {t('create.description')}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label>{t('create.targetRole')}</Label>
-                  <Select
-                    value={form.target_role}
-                    onValueChange={(v) => setForm(prev => ({ ...prev, target_role: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('create.selectRole')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t('create.targetSkills')}</Label>
-                  <Input
-                    placeholder={t('create.targetSkillsPlaceholder')}
-                    value={form.target_skills}
-                    onChange={(e) => setForm(prev => ({ ...prev, target_skills: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground">{t('create.skillsHint')}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t('create.currentSkills')}</Label>
-                  <Input
-                    placeholder={t('create.currentSkillsPlaceholder')}
-                    value={form.current_skills}
-                    onChange={(e) => setForm(prev => ({ ...prev, current_skills: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground">{t('create.currentSkillsHint')}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t('create.weeklyHours')}</Label>
-                  <Select
-                    value={String(form.weekly_hours)}
-                    onValueChange={(v) => setForm(prev => ({ ...prev, weekly_hours: parseInt(v) }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">{t('create.hoursPerWeek', { hours: 5 })}</SelectItem>
-                      <SelectItem value="10">{t('create.hoursPerWeek', { hours: 10 })}</SelectItem>
-                      <SelectItem value="15">{t('create.hoursPerWeek', { hours: 15 })}</SelectItem>
-                      <SelectItem value="20">{t('create.hoursPerWeek', { hours: 20 })}</SelectItem>
-                      <SelectItem value="30">{t('create.hoursPerWeekPlus', { hours: 30 })}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t('create.learningStyle')}</Label>
-                  <Select
-                    value={form.learning_style}
-                    onValueChange={(v) => setForm(prev => ({ ...prev, learning_style: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="balanced">{t('styles.balanced')}</SelectItem>
-                      <SelectItem value="project_based">{t('styles.projectBased')}</SelectItem>
-                      <SelectItem value="theory_first">{t('styles.theoryFirst')}</SelectItem>
-                      <SelectItem value="hands_on">{t('styles.handsOn')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  {t('cancel')}
-                </Button>
-                <Button onClick={handleGenerate} disabled={generateMutation.isPending} className="gap-2">
-                  {generateMutation.isPending ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      {t('generating')}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      {t('create.generate')}
-                    </>
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
         </div>
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -right-20 -bottom-20 h-60 w-60 rounded-full bg-pink-400/20 blur-3xl" />
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t('newPath')}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t('create.title')}</DialogTitle>
+              <DialogDescription>
+                {t('create.description')}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>{t('create.targetRole')}</Label>
+                <Select
+                  value={form.target_role}
+                  onValueChange={(v) => setForm(prev => ({ ...prev, target_role: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('create.selectRole')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('create.targetSkills')}</Label>
+                <Input
+                  placeholder={t('create.targetSkillsPlaceholder')}
+                  value={form.target_skills}
+                  onChange={(e) => setForm(prev => ({ ...prev, target_skills: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">{t('create.skillsHint')}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('create.currentSkills')}</Label>
+                <Input
+                  placeholder={t('create.currentSkillsPlaceholder')}
+                  value={form.current_skills}
+                  onChange={(e) => setForm(prev => ({ ...prev, current_skills: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">{t('create.currentSkillsHint')}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('create.weeklyHours')}</Label>
+                <Select
+                  value={String(form.weekly_hours)}
+                  onValueChange={(v) => setForm(prev => ({ ...prev, weekly_hours: parseInt(v) }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">{t('create.hoursPerWeek', { hours: 5 })}</SelectItem>
+                    <SelectItem value="10">{t('create.hoursPerWeek', { hours: 10 })}</SelectItem>
+                    <SelectItem value="15">{t('create.hoursPerWeek', { hours: 15 })}</SelectItem>
+                    <SelectItem value="20">{t('create.hoursPerWeek', { hours: 20 })}</SelectItem>
+                    <SelectItem value="30">{t('create.hoursPerWeekPlus', { hours: 30 })}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('create.learningStyle')}</Label>
+                <Select
+                  value={form.learning_style}
+                  onValueChange={(v) => setForm(prev => ({ ...prev, learning_style: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="balanced">{t('styles.balanced')}</SelectItem>
+                    <SelectItem value="project_based">{t('styles.projectBased')}</SelectItem>
+                    <SelectItem value="theory_first">{t('styles.theoryFirst')}</SelectItem>
+                    <SelectItem value="hands_on">{t('styles.handsOn')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                {t('cancel')}
+              </Button>
+              <Button onClick={handleGenerate} disabled={generateMutation.isPending} className="gap-2">
+                {generateMutation.isPending ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    {t('generating')}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    {t('create.generate')}
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Paths List */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Route className="h-5 w-5 text-purple-500" />
+            <Route className="h-5 w-5 text-primary" />
             {t('myPaths')}
           </h2>
 

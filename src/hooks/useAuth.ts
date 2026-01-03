@@ -65,6 +65,17 @@ export function useAuth() {
     }
   }
 
+  const refreshUser = async () => {
+    try {
+      const response = await api.get('/auth/me')
+      if (response.data) {
+        setAuth(response.data, token!)
+      }
+    } catch {
+      // Ignore errors - user will see stale data but can refresh manually
+    }
+  }
+
   return {
     user,
     token,
@@ -73,6 +84,7 @@ export function useAuth() {
     loginAsync: loginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
     logout,
+    refreshUser,
   }
 }
 
