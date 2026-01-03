@@ -72,7 +72,8 @@ export default function InstructorTranscriptions() {
     queryFn: async () => {
       try {
         const res = await api.get('/api/v1/instructor/transcriptions')
-        return res.data?.transcriptions || []
+        // Handle both wrapped and direct array responses
+        return Array.isArray(res.data) ? res.data : (res.data?.transcriptions || [])
       } catch {
         return []
       }

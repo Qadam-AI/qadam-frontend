@@ -43,12 +43,7 @@ export function Navbar() {
             </Button>
           )}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">E</span>
-              </div>
-              <span className="font-bold text-xl">Edusistent</span>
-            </div>
+            <span className="font-bold text-xl bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">Edusistent</span>
           </Link>
         </div>
 

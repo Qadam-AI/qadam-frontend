@@ -58,7 +58,8 @@ export default function InstructorStudents() {
         const res = await api.get('/api/v1/instructor/students', {
           params: { search: search || undefined }
         })
-        return res.data?.students || []
+        // Handle both wrapped and direct array responses
+        return Array.isArray(res.data) ? res.data : (res.data?.students || [])
       } catch {
         return []
       }

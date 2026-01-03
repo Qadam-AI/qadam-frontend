@@ -135,69 +135,79 @@ export default function LeaderboardPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      {/* Header with User Stats */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-8 text-white"
-      >
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.5))]" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Trophy className="h-6 w-6" />
-            <span className="text-lg font-medium text-white/80">Leaderboard</span>
-          </div>
-          
-          {loadingStats ? (
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-48 bg-white/20" />
-              <Skeleton className="h-4 w-64 bg-white/20" />
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold tracking-tight">Leaderboard</h1>
+        <p className="text-muted-foreground mt-2">
+          Compete with others and climb the ranks
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-full bg-primary/10">
+                <Crown className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">Level {myStats?.level || 1}</p>
+                <p className="text-sm text-muted-foreground">{myStats?.totalXp?.toLocaleString() || 0} XP total</p>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* XP & Level */}
-              <div className="md:col-span-2">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-4 rounded-full bg-white/20">
-                    <Crown className="h-8 w-8" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-bold">Level {myStats?.level || 1}</h1>
-                    <p className="text-white/80">{myStats?.totalXp?.toLocaleString() || 0} XP total</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progress to Level {(myStats?.level || 1) + 1}</span>
-                    <span>{Math.round(xpProgress)}%</span>
-                  </div>
-                  <Progress value={xpProgress} className="h-3 bg-white/20" />
-                  <p className="text-xs text-white/60">{myStats?.xpToNextLevel || 100} XP to next level</p>
-                </div>
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Progress to Level {(myStats?.level || 1) + 1}</span>
+                <span>{Math.round(xpProgress)}%</span>
               </div>
+              <Progress value={xpProgress} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Rank */}
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/20 mb-2">
-                  <span className="text-3xl font-bold">#{leaderboardData?.myRank || '-'}</span>
-                </div>
-                <p className="text-white/80">Your Rank</p>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-full bg-yellow-500/10">
+                <Trophy className="h-6 w-6 text-yellow-500" />
               </div>
+              <div>
+                <p className="text-2xl font-bold">#{leaderboardData?.myRank || '-'}</p>
+                <p className="text-sm text-muted-foreground">Your Rank</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Streak */}
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-orange-500/30 mb-2">
-                  <Flame className="h-10 w-10 text-orange-300" />
-                </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-full bg-orange-500/10">
+                <Flame className="h-6 w-6 text-orange-500" />
+              </div>
+              <div>
                 <p className="text-2xl font-bold">{myStats?.currentStreak || 0}</p>
-                <p className="text-white/80">Day Streak</p>
+                <p className="text-sm text-muted-foreground">Day Streak</p>
               </div>
             </div>
-          )}
-        </div>
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -right-20 -bottom-20 h-60 w-60 rounded-full bg-purple-400/20 blur-3xl" />
-      </motion.div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-full bg-green-500/10">
+                <Star className="h-6 w-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{myStats?.badgeCount || 0}</p>
+                <p className="text-sm text-muted-foreground">Badges Earned</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Leaderboard */}

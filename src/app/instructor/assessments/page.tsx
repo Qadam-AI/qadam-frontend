@@ -72,7 +72,8 @@ export default function InstructorAssessments() {
     queryFn: async () => {
       try {
         const res = await api.get('/api/v1/instructor/assessments')
-        return res.data?.assessments || []
+        // Handle both wrapped and direct array responses
+        return Array.isArray(res.data) ? res.data : (res.data?.assessments || [])
       } catch {
         return []
       }
@@ -84,7 +85,8 @@ export default function InstructorAssessments() {
     queryFn: async () => {
       try {
         const res = await api.get('/api/v1/instructor/courses')
-        return res.data?.courses || []
+        // Handle both wrapped and direct array responses
+        return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
       } catch {
         return []
       }

@@ -52,8 +52,9 @@ interface Invitation {
   course_id: string
   course_title: string
   status: 'pending' | 'accepted' | 'expired'
-  sent_at: string
-  expires_at: string
+  sent_at?: string
+  created_at?: string
+  expires_at?: string | null
 }
 
 interface Course {
@@ -72,7 +73,8 @@ export default function InstructorInvitations() {
     queryFn: async () => {
       try {
         const res = await api.get('/api/v1/instructor/invitations')
-        return res.data?.invitations || []
+        // Handle both wrapped and direct array responses
+        return Array.isArray(res.data) ? res.data : (res.data?.invitations || [])
       } catch {
         return []
       }
@@ -84,7 +86,8 @@ export default function InstructorInvitations() {
     queryFn: async () => {
       try {
         const res = await api.get('/api/v1/instructor/courses')
-        return res.data?.courses || []
+        // Handle both wrapped and direct array responses
+        return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
       } catch {
         return []
       }
@@ -297,10 +300,10 @@ export default function InstructorInvitations() {
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(invitation.sent_at), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(invitation.sent_at || invitation.created_at || new Date()), { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(invitation.expires_at), { addSuffix: true })}
+                    {invitation.expires_at ? formatDistanceToNow(new Date(invitation.expires_at), { addSuffix: true }) : 'Never'}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
