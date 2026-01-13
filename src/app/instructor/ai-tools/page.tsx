@@ -248,6 +248,34 @@ export default function ContentStructuringPage() {
     },
   })
 
+  // Approve concepts mutation - saves concepts and auto-generates question pool
+  const approveConceptsMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedCourseId) {
+        throw new Error('Please select a course first')
+      }
+      const approvedConcepts = concepts.filter(c => c.selected)
+      const res = await api.post(`/instructor/courses/${selectedCourseId}/concepts/approve`, {
+        concepts: approvedConcepts.map(c => ({
+          name: c.name,
+          description: c.description,
+          prerequisites: c.prerequisites,
+          difficulty: c.difficulty,
+        })),
+        content: content,
+      })
+      return res.data
+    },
+    onSuccess: (result: any) => {
+      const totalQuestions = result.concepts.reduce((sum: number, c: any) => sum + c.questions_generated, 0)
+      toast.success(`Saved ${result.concepts.length} concepts and generated ${totalQuestions} practice questions!`)
+      setCurrentStep('generate')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to save concepts. Please try again.')
+    },
+  })
+
   // Generate assessment mutation
   const generateAssessmentMutation = useMutation({
     mutationFn: async () => {
@@ -794,6 +822,7 @@ export default function ContentStructuringPage() {
                 <Button 
                   variant="ghost" 
                   onClick={() => setCurrentStep('input')}
+                  disabled={approveConceptsMutation.isPending}
                 >
                   Back to Content
                 </Button>
@@ -802,12 +831,21 @@ export default function ContentStructuringPage() {
                 </span>
               </div>
               <Button 
-                onClick={() => setCurrentStep('generate')}
-                disabled={approvedCount === 0}
+                onClick={() => approveConceptsMutation.mutate()}
+                disabled={approvedCount === 0 || approveConceptsMutation.isPending || !selectedCourseId}
                 className="gap-2"
               >
-                <CheckCircle2 className="h-4 w-4" />
-                Approve & Continue
+                {approveConceptsMutation.isPending ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Generating Questions...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" />
+                    Approve & Continue
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>
