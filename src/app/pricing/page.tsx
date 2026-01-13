@@ -99,20 +99,18 @@ export default function PricingPage() {
   const currentPlanId = subscription?.plan_id
 
   const getFeaturesList = (plan: Plan) => {
-    const features: { name: string; included: boolean; icon: React.ReactNode; isAddon?: boolean }[] = []
+    const features: { name: string; included: boolean; icon: React.ReactNode; badge?: string }[] = []
     
-    // Core limits based on plan - Updated January 2026 with enterprise-safe wording
+    // HONEST features - only what actually works today
     if (plan.name === 'free') {
       features.push(
         { name: 'Up to 10 students total', included: true, icon: <Users className="h-4 w-4" /> },
         { name: '1 active course', included: true, icon: <BookOpen className="h-4 w-4" /> },
         { name: 'Manual concept creation', included: true, icon: <ChevronRight className="h-4 w-4" /> },
-        { name: 'AI questions (template-based, limited)', included: true, icon: <Brain className="h-4 w-4" /> },
-        { name: 'Automatic grading (basic)', included: true, icon: <Check className="h-4 w-4" /> },
-        { name: 'Basic mastery tracking', included: true, icon: <Star className="h-4 w-4" /> },
-        { name: 'Limited attempt history', included: true, icon: <ChevronRight className="h-4 w-4" /> },
-        { name: 'Community support only', included: true, icon: <Users className="h-4 w-4" /> },
-        { name: 'Strict AI usage limits', included: true, icon: <X className="h-4 w-4 text-amber-500" /> },
+        { name: 'AI question generation', included: true, icon: <Brain className="h-4 w-4" />, badge: 'LLM required' },
+        { name: 'Automatic grading', included: true, icon: <Check className="h-4 w-4" /> },
+        { name: 'Per-concept mastery tracking', included: true, icon: <Star className="h-4 w-4" /> },
+        { name: 'Student attempt history', included: true, icon: <ChevronRight className="h-4 w-4" /> },
         { name: 'File uploads & content analysis', included: false, icon: <HardDrive className="h-4 w-4" /> },
       )
     } else if (plan.name === 'pro') {
@@ -120,66 +118,38 @@ export default function PricingPage() {
         { name: 'Up to 30 students per course', included: true, icon: <Users className="h-4 w-4" /> },
         { name: 'Up to 3 active courses', included: true, icon: <BookOpen className="h-4 w-4" /> },
         { name: 'Up to 90 students total', included: true, icon: <Users className="h-4 w-4" /> },
-        { name: 'Upload materials (PDF, slides, video)', included: true, icon: <HardDrive className="h-4 w-4" /> },
-        { name: 'Automatic concept extraction', included: true, icon: <Sparkles className="h-4 w-4" /> },
-        { name: 'AI questions aligned to content', included: true, icon: <Brain className="h-4 w-4" /> },
-        { name: 'Adaptive difficulty per student', included: true, icon: <Zap className="h-4 w-4" /> },
-        { name: 'Advanced mastery tracking & analytics', included: true, icon: <Star className="h-4 w-4" /> },
-        { name: 'Progressive hint system', included: true, icon: <ChevronRight className="h-4 w-4" /> },
+        { name: 'Upload materials (PDF, slides)', included: true, icon: <HardDrive className="h-4 w-4" /> },
+        { name: 'AI concept extraction from content', included: true, icon: <Sparkles className="h-4 w-4" />, badge: 'LLM required' },
+        { name: 'AI question generation', included: true, icon: <Brain className="h-4 w-4" />, badge: 'LLM required' },
+        { name: 'Per-concept mastery tracking', included: true, icon: <Star className="h-4 w-4" /> },
         { name: 'Full attempt history', included: true, icon: <Check className="h-4 w-4" /> },
         { name: 'Priority support', included: true, icon: <Crown className="h-4 w-4" /> },
-        { name: 'Monthly AI usage quota', included: true, icon: <Brain className="h-4 w-4" /> },
       )
     } else if (plan.name === 'team') {
       features.push(
+        { name: 'Everything in Pro', included: true, icon: <Check className="h-4 w-4" /> },
         { name: 'Up to 300 students total', included: true, icon: <Users className="h-4 w-4" /> },
         { name: 'Up to 10 active courses', included: true, icon: <BookOpen className="h-4 w-4" /> },
-        { name: 'Up to 10 instructors', included: true, icon: <Users className="h-4 w-4" /> },
-        { name: 'Shared course & content library', included: true, icon: <HardDrive className="h-4 w-4" /> },
-        { name: 'Instructor collaboration', included: true, icon: <Users className="h-4 w-4" /> },
-        { name: 'Cohort-level mastery analytics', included: true, icon: <Zap className="h-4 w-4" /> },
-        { name: 'Centralized student management', included: true, icon: <Star className="h-4 w-4" /> },
-        { name: 'Higher AI usage quota', included: true, icon: <Brain className="h-4 w-4" /> },
+        { name: 'Multiple instructor accounts', included: true, icon: <Users className="h-4 w-4" />, badge: 'Roadmap' },
+        { name: 'Higher upload limits', included: true, icon: <HardDrive className="h-4 w-4" /> },
         { name: 'Onboarding assistance', included: true, icon: <Crown className="h-4 w-4" /> },
       )
     } else if (plan.name === 'enterprise') {
       features.push(
-        { name: 'Unlimited students', included: true, icon: <Users className="h-4 w-4" /> },
-        { name: 'Unlimited courses', included: true, icon: <BookOpen className="h-4 w-4" /> },
-        { name: 'Unlimited instructors', included: true, icon: <Users className="h-4 w-4" /> },
-        { name: 'Faculty / department structure', included: true, icon: <Rocket className="h-4 w-4" /> },
-        { name: 'Advanced admin & analytics dashboards', included: true, icon: <Zap className="h-4 w-4" /> },
-        { name: 'Custom AI policies & model routing', included: true, icon: <Brain className="h-4 w-4" /> },
-        { name: 'Institutional auth (SSO-ready)', included: true, icon: <Star className="h-4 w-4" /> },
-        { name: 'Deployment flexibility (cloud / private)', included: true, icon: <HardDrive className="h-4 w-4" /> },
-        { name: 'SLA & dedicated support', included: true, icon: <Crown className="h-4 w-4" /> },
+        { name: 'Everything in Team', included: true, icon: <Check className="h-4 w-4" /> },
+        { name: 'Unlimited students & courses', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Custom capacity planning', included: true, icon: <Rocket className="h-4 w-4" /> },
+        { name: 'Dedicated support contact', included: true, icon: <Crown className="h-4 w-4" /> },
+        { name: 'SSO integration', included: true, icon: <Star className="h-4 w-4" />, badge: 'Roadmap' },
+        { name: 'On-premise deployment option', included: true, icon: <HardDrive className="h-4 w-4" />, badge: 'Roadmap' },
       )
     }
 
     return features
   }
 
-  // Add-ons section per plan
-  const getAddons = (planName: string) => {
-    if (planName === 'pro') {
-      return [
-        'Mock exams (per student / per cohort)',
-        'Supervised or exam-style assessments',
-      ]
-    } else if (planName === 'team') {
-      return [
-        'Mock exams at scale',
-        'Assessment governance workflows',
-        'Supervised assessments (partner-based)',
-      ]
-    } else if (planName === 'enterprise') {
-      return [
-        'Assessment approval workflows',
-        'Exam governance & audit logs',
-        'Proctoring integrations',
-        'Large-scale mock exams',
-      ]
-    }
+  // Add-ons removed - these features don't exist yet
+  const getAddons = (_planName: string) => {
     return []
   }
 
@@ -280,7 +250,12 @@ export default function PricingPage() {
                           ) : (
                             <X className="h-4 w-4 text-gray-400 flex-shrink-0" />
                           )}
-                          <span>{feature.name}</span>
+                          <span className="flex-1">{feature.name}</span>
+                          {feature.badge && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 font-normal">
+                              {feature.badge}
+                            </Badge>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -347,55 +322,55 @@ export default function PricingPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">What&apos;s included in the Starter (Free) plan?</CardTitle>
+              <CardTitle className="text-lg">What can I do with the Starter (Free) plan?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Starter lets individual tutors test the platform with up to 10 students and 1 course. You can create concepts manually, generate template-based AI questions, and track basic mastery. AI usage is limited. This plan is designed for evaluation before scaling.
+                Starter lets you try the core workflow with 1 course and up to 10 students. You can manually create concepts, generate AI-powered questions (requires LLM service), auto-grade student attempts, and see mastery progress per concept. No file uploads in this tier.
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">What does the Pro plan include?</CardTitle>
+              <CardTitle className="text-lg">What does the Pro plan add?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Pro is for solo tutors and university lecturers. You can upload learning materials (PDF, slides, video), automatically extract concepts, and generate AI questions aligned to your content. Includes adaptive difficulty, advanced analytics, and priority support. Eligible for paid add-ons like mock exams.
+                Pro unlocks file uploads (PDF, slides) and AI-powered concept extraction from your content. Instead of manually typing concepts, you upload your materials and the AI suggests concepts for you to review and approve. You also get higher limits (3 courses, 90 students) and priority support.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">How does Team / Academy differ from Pro?</CardTitle>
+              <CardTitle className="text-lg">What are the &quot;LLM required&quot; and &quot;Roadmap&quot; badges?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Team is designed for training centers, bootcamps, and private schools with multiple instructors. It includes shared content libraries, instructor collaboration tools, cohort-level analytics, and centralized student management. Eligible for assessment governance workflows as paid add-ons.
+                <strong>&quot;LLM required&quot;</strong> means the feature needs our AI service to work. If the AI service is unavailable, those specific features won&apos;t function. <strong>&quot;Roadmap&quot;</strong> means the feature is planned but not yet available — we show it so you know what&apos;s coming, not what&apos;s available today.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">What does Enterprise include?</CardTitle>
+              <CardTitle className="text-lg">Is this platform production-ready?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Enterprise is for universities and large institutions requiring unlimited capacity, faculty/department structures, SSO integration, custom AI policies, and deployment flexibility. Optional services (not included by default) include exam governance workflows, proctoring integrations, and large-scale mock exams. Annual contracts only.
+                We&apos;re in Early Access (pilot phase). The core workflow — creating courses, concepts, generating questions, tracking mastery — works today. We&apos;re onboarding instructors manually to ensure quality. Some advanced features shown on higher tiers are on our roadmap, not yet available.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">What are &quot;paid add-ons&quot;?</CardTitle>
+              <CardTitle className="text-lg">How does pricing work?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Certain operational-heavy features like mock exams, proctoring, and assessment governance workflows are available as paid add-ons rather than included by default. This ensures we can deliver these services reliably at scale. Contact us to discuss add-on pricing for your needs.
+                Starter is free forever for testing. Paid plans are billed monthly. During Early Access, we&apos;re flexible on pricing as we gather feedback. Enterprise requires annual contracts and custom terms. Contact us to discuss your needs.
               </p>
             </CardContent>
           </Card>
@@ -409,16 +384,17 @@ export default function PricingPage() {
         transition={{ delay: 0.6 }}
         className="text-center bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-12 text-white"
       >
-        <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+        <Badge variant="secondary" className="mb-4">Early Access</Badge>
+        <h2 className="text-3xl font-bold mb-4">Ready to Try It?</h2>
         <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-          Join instructors and institutions already using Edusistent to create adaptive learning experiences.
+          Turn your content into structured concepts, generate AI questions, and track student mastery. Start with our free tier.
         </p>
         <div className="flex gap-4 justify-center">
           <Button size="lg" variant="secondary" asChild>
             <Link href="/register">Start for Free</Link>
           </Button>
           <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10" asChild>
-            <Link href="mailto:sales@edusistent.com">Contact Sales</Link>
+            <Link href="mailto:support@edusistent.com">Questions? Contact Us</Link>
           </Button>
         </div>
       </motion.div>

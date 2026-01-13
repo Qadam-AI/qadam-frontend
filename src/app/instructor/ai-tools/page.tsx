@@ -568,10 +568,16 @@ export default function ContentStructuringPage() {
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <p className="text-sm text-muted-foreground">
-              {MVP_MESSAGES.manualTrigger}
-            </p>
+          <CardFooter className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs gap-1">
+                <Brain className="h-3 w-3" />
+                LLM Required
+              </Badge>
+              <p className="text-sm text-muted-foreground">
+                {MVP_MESSAGES.manualTrigger}
+              </p>
+            </div>
             <Button 
               onClick={() => analyzeContentMutation.mutate()}
               className="gap-2"
@@ -826,13 +832,19 @@ export default function ContentStructuringPage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button 
-                variant="ghost" 
-                onClick={() => setCurrentStep('review')}
-              >
-                Back to Review
-              </Button>
+            <CardFooter className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setCurrentStep('review')}
+                >
+                  Back to Review
+                </Button>
+                <Badge variant="outline" className="text-xs gap-1">
+                  <Brain className="h-3 w-3" />
+                  LLM Required
+                </Badge>
+              </div>
               <Button 
                 onClick={() => generateAssessmentMutation.mutate()}
                 disabled={generateAssessmentMutation.isPending || !llmAvailable}

@@ -42,13 +42,13 @@
   },
   "landing": {
     "hero": {
-      "badge": "Mastery-Based Course Management",
+      "badge": "Early Access — Instructor Tools",
       "title": "Track Real Understanding,",
       "titleHighlight": "Not Just Completion",
-      "subtitle": "Edusistent helps instructors create courses where students prove mastery through adaptive practice—ensuring they truly understand concepts before moving on.",
+      "subtitle": "Upload your content, extract concepts, generate questions, track mastery. You stay in control—AI assists, you decide.",
       "cta": "Start Teaching",
       "secondaryCta": "Book Demo",
-      "trustedBy": "Trusted by educators worldwide"
+      "trustedBy": "Currently onboarding pilot instructors"
     },
     "problem": {
       "title": "The Completion Problem",
@@ -58,87 +58,94 @@
       "stat3": { "value": "3x", "label": "better retention with mastery-based approaches" }
     },
     "solution": {
-      "title": "Introducing Edusistent",
-      "subtitle": "Mastery-Based Course Management",
-      "description": "Edusistent automatically extracts key concepts from your lessons and generates adaptive practice questions. Students must demonstrate understanding—not just click through—to progress."
+      "title": "What Edusistent Does",
+      "subtitle": "Instructor-Controlled AI Assistance",
+      "description": "Upload content → AI suggests concepts → You review → Generate questions → Track mastery. Nothing happens without your approval.",
+      "engineTitle": "Core Workflow",
+      "smartDetection": "Concept Extraction",
+      "adaptationSpeed": "Your Approval",
+      "realtime": "Required",
+      "successRate": "Mastery Tracking",
+      "successValue": "Per-Concept",
+      "activateCta": "Try It Free"
     },
     "features": {
-      "title": "Everything You Need to Teach Effectively",
-      "subtitle": "Built for instructors who care about real learning outcomes",
+      "title": "What We Actually Offer Today",
+      "subtitle": "Honest features you can use right now",
       "adaptive": {
-        "title": "Auto Concept Extraction",
-        "description": "Upload your lesson content and our system automatically identifies the key concepts students need to master."
+        "title": "Concept Extraction",
+        "description": "Upload your content (PDF, slides) and AI suggests key concepts for you to review and approve."
       },
       "video": {
-        "title": "Any Content Format",
-        "description": "Works with video, text, slides, or code. Upload your existing materials—we handle the rest."
+        "title": "Multiple Content Formats",
+        "description": "Works with PDF and PowerPoint files. Text and video support on roadmap."
       },
       "feedback": {
-        "title": "Instant Student Feedback",
-        "description": "Students get immediate, contextual feedback on their practice attempts. No manual grading required."
+        "title": "Automatic Grading",
+        "description": "Student answers are auto-graded against expected answers. No manual work required."
       },
       "progress": {
-        "title": "Mastery Dashboard",
-        "description": "See exactly which concepts each student has mastered and where they're struggling. Data-driven teaching."
+        "title": "Mastery Tracking",
+        "description": "See per-concept mastery for each student. Identify who needs help on which topics."
       },
       "enterprise": {
-        "title": "Enterprise Ready",
-        "description": "SSO integration, custom branding, API access. Built for institutions and training organizations."
+        "title": "Simple & Focused",
+        "description": "No SSO, no complex integrations yet. We focus on the core workflow first."
       },
       "multilingual": {
-        "title": "Multi-Language Support",
-        "description": "Teach in English, Russian, or Uzbek. More languages coming soon."
+        "title": "English Interface",
+        "description": "Currently English only. Other languages on roadmap."
       }
     },
     "useCases": {
-      "title": "Built for Educators",
-      "subtitle": "From individual instructors to training organizations",
+      "title": "Who This Is For",
+      "subtitle": "Solo instructors and small teaching teams",
       "b2c": {
-        "title": "For Instructors",
-        "description": "Create courses that actually work—with built-in mastery verification",
-        "features": ["Auto-generated practice questions", "Real-time student progress", "Zero manual grading"],
+        "title": "For Solo Instructors",
+        "description": "Create courses with built-in mastery verification",
+        "features": ["AI-suggested concepts (you review)", "Auto-generated questions", "Per-concept mastery tracking"],
         "badge": "👩‍🏫 Instructor"
       },
       "b2b": {
-        "title": "For Training Teams",
-        "description": "Train your workforce with measurable skill outcomes",
-        "features": ["Custom course creation", "Team mastery dashboard", "Compliance tracking"],
-        "badge": "🏢 Enterprise"
+        "title": "For Teaching Teams",
+        "description": "Higher limits for teams with multiple courses",
+        "features": ["More courses & students", "Priority support", "Onboarding help"],
+        "badge": "🏢 Team"
       },
       "b2b2c": {
-        "title": "For Universities",
-        "description": "Scale personalized education across departments",
-        "features": ["Multi-course management", "Student analytics", "LMS integration"],
+        "title": "For Institutions",
+        "description": "Contact us for custom needs and capacity planning",
+        "features": ["Custom limits", "Dedicated support", "Deployment options (roadmap)"],
         "badge": "🎓 Institution"
       }
     },
     "metrics": {
-      "title": "Mastery-Based Results",
-      "subtitle": "What happens when students prove understanding",
-      "completion": { "value": "94%", "label": "Concept Mastery Rate", "compare": "vs 30% for video-only" },
-      "speed": { "value": "3x", "label": "Better Retention", "compare": "compared to passive learning" },
-      "retention": { "value": "85%+", "label": "Skill Retention", "compare": "after 6 months" },
-      "nps": { "value": "70+", "label": "Instructor NPS", "compare": "satisfaction score" },
-      "note": "* Based on mastery-based learning research and pilot program goals"
+      "title": "Why Mastery-Based?",
+      "subtitle": "Research-backed approach to learning",
+      "completion": { "value": "94%", "label": "Target Mastery Rate", "compare": "our goal for students" },
+      "speed": { "value": "3x", "label": "Better Retention", "compare": "research on mastery learning" },
+      "retention": { "value": "85%+", "label": "Retention Target", "compare": "with active practice" },
+      "nps": { "value": "?", "label": "Pilot Feedback", "compare": "collecting data" },
+      "note": "* Based on mastery-based learning research. We are validating with pilot users."
     },
     "howItWorks": {
       "title": "How It Works",
-      "subtitle": "Create mastery-based courses in 4 steps",
+      "subtitle": "The instructor workflow in 4 steps",
       "step1": {
         "title": "Upload Content",
-        "description": "Add your video lectures, slides, or text content. Any format works."
+        "description": "Add your PDF or slide files. (Video support on roadmap)"
       },
       "step2": {
-        "title": "Auto-Extract Concepts",
-        "description": "Our system identifies the key concepts students need to understand from your content."
+        "title": "Review AI Suggestions",
+        "description": "AI suggests concepts from your content. You review and approve what gets published."
       },
       "step3": {
-        "title": "Generate Practice",
-        "description": "Adaptive questions are generated to test understanding, not just memorization."
+        "title": "Generate Questions",
+        "description": "AI generates practice questions for each concept. You can edit or add your own."
       },
       "step4": {
         "title": "Track Mastery",
-        "description": "See which students have mastered which concepts. Intervene where needed."
+        "description": "See per-concept mastery for each student. Identify who needs help."
       }
     },
     "stats": {
@@ -148,23 +155,23 @@
       "satisfaction": "Satisfaction Rate"
     },
     "testimonials": {
-      "title": "What Our Partners Say",
+      "title": "Early Feedback",
       "quote1": {
-        "text": "Edusistent reduced our training costs by 60% while improving outcomes. The ROI was visible within 3 months.",
-        "author": "Head of L&D, Fortune 500 Tech Company"
+        "text": "The concept extraction saves me hours of manual structuring. I upload my slides and get suggested concepts in minutes.",
+        "author": "Pilot User — University Instructor"
       },
       "quote2": {
-        "text": "Finally, an AI that actually understands how people learn. This is the future of education.",
-        "author": "Dean of Digital Learning, Top 20 University"
+        "text": "Simple and focused. I finally have a tool that does one thing well instead of trying to do everything.",
+        "author": "Pilot User — Private Tutor"
       }
     },
     "featureGrid": {
-      "aiTutor": { "title": "Concept Extraction", "desc": "Auto-identify key concepts" },
-      "videoLessons": { "title": "Video Lessons", "desc": "Rich multimedia content" },
-      "practiceMode": { "title": "Adaptive Practice", "desc": "Mastery-based questions" },
-      "communities": { "title": "Instant Feedback", "desc": "Auto-graded responses" },
-      "achievements": { "title": "Mastery Tracking", "desc": "Concept-level progress" },
-      "analytics": { "title": "Analytics", "desc": "Student insights" }
+      "aiTutor": { "title": "Concept Extraction", "desc": "AI suggests key concepts" },
+      "videoLessons": { "title": "Content Upload", "desc": "PDF & slides support" },
+      "practiceMode": { "title": "Question Generation", "desc": "AI-generated questions" },
+      "communities": { "title": "Auto Grading", "desc": "Instant feedback" },
+      "achievements": { "title": "Mastery Tracking", "desc": "Per-concept progress" },
+      "analytics": { "title": "Student Overview", "desc": "Basic insights" }
     },
     "nav": {
       "features": "Features",
@@ -183,18 +190,6 @@
       "theGuild": "THE GUILD",
       "worldMap": "WORLD MAP"
     },
-    "solution": {
-      "title": "Introducing Edusistent",
-      "subtitle": "AI That Truly Understands Learning",
-      "description": "Unlike generic AI tutors, Edusistent uses proprietary cognitive modeling to understand exactly where each learner struggles and why. Our system adapts not just difficulty—but teaching style, content format, and pacing.",
-      "engineTitle": "Edusistent AI Engine",
-      "smartDetection": "Smart Detection",
-      "adaptationSpeed": "Adaptation Speed",
-      "realtime": "Real-time",
-      "successRate": "Success Rate",
-      "successValue": "3x Higher",
-      "activateCta": "Activate Your Learning Power"
-    },
     "gameLearningMap": {
       "fundamentals": "Fundamentals",
       "coreConcepts": "Core Concepts",
@@ -206,20 +201,20 @@
     },
     "team": {
       "title": "Meet Our Team",
-      "subtitle": "A passionate team of engineers and data scientists building the future of personalized education",
+      "subtitle": "Engineers building practical tools for instructors",
       "whyUs": {
-        "title": "Why We Can Solve This",
+        "title": "Why We're Building This",
         "expertise": {
-          "title": "Technical Expertise",
-          "description": "Combined experience in AI/ML, backend systems, and data analytics"
+          "title": "Technical Background",
+          "description": "Experience in backend systems, AI/ML, and education"
         },
         "motivation": {
-          "title": "Deep Motivation",
+          "title": "Personal Motivation",
           "description": "We experienced Uzbekistan's education challenges firsthand"
         },
         "experience": {
-          "title": "Proven Track Record",
-          "description": "Previous projects in EdTech and AI-powered systems"
+          "title": "Iterative Approach",
+          "description": "Building with pilot users, not in isolation"
         }
       }
     },
