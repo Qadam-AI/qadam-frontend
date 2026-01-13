@@ -102,7 +102,7 @@ export default function CollaboratePage() {
   const { data: sessions, isLoading: loadingSessions, refetch } = useQuery({
     queryKey: ['collaboration-sessions'],
     queryFn: async () => {
-      const res = await api.get<Session[]>('/api/v1/collaboration/sessions')
+      const res = await api.get<Session[]>('/collaboration/sessions')
       return res.data
     },
     refetchInterval: 10000, // Refresh every 10 seconds
@@ -112,7 +112,7 @@ export default function CollaboratePage() {
   const { data: sessionDetail, isLoading: loadingDetail } = useQuery({
     queryKey: ['collaboration-session', selectedSession],
     queryFn: async () => {
-      const res = await api.get<SessionDetail>(`/api/v1/collaboration/sessions/${selectedSession}`)
+      const res = await api.get<SessionDetail>(`/collaboration/sessions/${selectedSession}`)
       return res.data
     },
     enabled: !!selectedSession,
@@ -121,7 +121,7 @@ export default function CollaboratePage() {
   // Create session mutation
   const createMutation = useMutation({
     mutationFn: async (data: typeof createForm) => {
-      const res = await api.post<Session>('/api/v1/collaboration/sessions', data)
+      const res = await api.post<Session>('/collaboration/sessions', data)
       return res.data
     },
     onSuccess: (session) => {

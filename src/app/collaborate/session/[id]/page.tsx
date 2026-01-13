@@ -82,7 +82,7 @@ export default function SessionPage() {
     queryKey: ['session', sessionId],
     queryFn: async () => {
       try {
-        const res = await api.get(`/api/v1/collaboration/sessions/${sessionId}`)
+        const res = await api.get(`/collaboration/sessions/${sessionId}`)
         return res.data as SessionDetail
       } catch (err: any) {
         console.error('Failed to fetch session:', err)
@@ -96,7 +96,7 @@ export default function SessionPage() {
   // Join session mutation
   const joinMutation = useMutation({
     mutationFn: async (role: string) => {
-      const res = await api.post(`/api/v1/collaboration/sessions/${sessionId}/join`, { role })
+      const res = await api.post(`/collaboration/sessions/${sessionId}/join`, { role })
       return res.data
     },
     onSuccess: () => {
@@ -111,7 +111,7 @@ export default function SessionPage() {
   // Leave session mutation
   const leaveMutation = useMutation({
     mutationFn: async () => {
-      await api.post(`/api/v1/collaboration/sessions/${sessionId}/leave`)
+      await api.post(`/collaboration/sessions/${sessionId}/leave`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['session', sessionId] })
@@ -126,7 +126,7 @@ export default function SessionPage() {
   // Update code mutation
   const updateCodeMutation = useMutation({
     mutationFn: async (newCode: string) => {
-      await api.put(`/api/v1/collaboration/sessions/${sessionId}/code`, { code: newCode })
+      await api.put(`/collaboration/sessions/${sessionId}/code`, { code: newCode })
     },
     onError: (error: any) => {
       toast.error('Failed to update code')

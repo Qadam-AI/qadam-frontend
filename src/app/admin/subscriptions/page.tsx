@@ -86,7 +86,7 @@ export default function AdminSubscriptions() {
     queryKey: ['admin-subscription-stats'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/subscriptions/stats')
+        const res = await api.get('/subscriptions/stats')
         return res.data
       } catch {
         // Return mock data if endpoint doesn't exist
@@ -104,7 +104,7 @@ export default function AdminSubscriptions() {
     queryKey: ['admin-subscriptions'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/subscriptions/all')
+        const res = await api.get('/subscriptions/all')
         return res.data?.subscriptions || []
       } catch {
         return []
@@ -116,7 +116,7 @@ export default function AdminSubscriptions() {
     queryKey: ['subscription-plans'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/subscriptions/plans')
+        const res = await api.get('/subscriptions/plans')
         return res.data || []
       } catch {
         return []
@@ -126,7 +126,7 @@ export default function AdminSubscriptions() {
 
   const updateSubscriptionMutation = useMutation({
     mutationFn: async ({ userId, data }: { userId: string; data: any }) => {
-      await api.patch(`/api/v1/subscriptions/admin/users/${userId}`, data)
+      await api.patch(`/subscriptions/admin/users/${userId}`, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] })

@@ -71,7 +71,7 @@ export default function InstructorTranscriptions() {
     queryKey: ['instructor-transcriptions'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/transcriptions')
+        const res = await api.get('/instructor/transcriptions')
         // Handle both wrapped and direct array responses
         return Array.isArray(res.data) ? res.data : (res.data?.transcriptions || [])
       } catch {
@@ -82,7 +82,7 @@ export default function InstructorTranscriptions() {
 
   const startTranscription = useMutation({
     mutationFn: async () => {
-      const res = await api.post('/api/v1/llm/transcribe', {
+      const res = await api.post('/llm/transcribe', {
         video_url: url,
         language: 'auto',
       })
@@ -101,7 +101,7 @@ export default function InstructorTranscriptions() {
 
   const deleteTranscription = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/api/v1/instructor/transcriptions/${id}`)
+      await api.delete(`/instructor/transcriptions/${id}`)
     },
     onSuccess: () => {
       toast.success('Transcription deleted')

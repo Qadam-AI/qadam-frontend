@@ -50,7 +50,7 @@ function InstructorSidebar() {
     queryKey: ['my-subscription'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/subscriptions/my')
+        const res = await api.get('/subscriptions/my')
         return res.data
       } catch {
         return null

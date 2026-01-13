@@ -58,14 +58,14 @@ export default function InstructorCoursesPage() {
   const { data: courses, isLoading } = useQuery({
     queryKey: ['instructor-courses'],
     queryFn: async () => {
-      const res = await api.get<Course[]>('/api/v1/instructor/courses')
+      const res = await api.get<Course[]>('/instructor/courses')
       return res.data
     }
   })
 
   const togglePublishMutation = useMutation({
     mutationFn: async ({ id, is_published }: { id: string; is_published: boolean }) => {
-      await api.patch(`/api/v1/instructor/courses/${id}`, { is_published })
+      await api.patch(`/instructor/courses/${id}`, { is_published })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['instructor-courses'] })
@@ -78,7 +78,7 @@ export default function InstructorCoursesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/api/v1/instructor/courses/${id}`)
+      await api.delete(`/instructor/courses/${id}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['instructor-courses'] })

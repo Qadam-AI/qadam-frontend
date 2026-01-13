@@ -135,7 +135,7 @@ export default function CommunityManagePage() {
   const { data: community, isLoading } = useQuery<Community>({
     queryKey: ['community', slug],
     queryFn: async () => {
-      const res = await api.get(`/api/v1/communities/${slug}`)
+      const res = await api.get(`/communities/${slug}`)
       return res.data
     },
   })
@@ -160,7 +160,7 @@ export default function CommunityManagePage() {
   const { data: requests, isLoading: requestsLoading } = useQuery<JoinRequest[]>({
     queryKey: ['community-requests', slug],
     queryFn: async () => {
-      const res = await api.get(`/api/v1/communities/${slug}/requests`)
+      const res = await api.get(`/communities/${slug}/requests`)
       // API returns { items, total, page, page_size } - extract items array
       return res.data?.items || res.data || []
     },
@@ -170,7 +170,7 @@ export default function CommunityManagePage() {
   const { data: members, isLoading: membersLoading } = useQuery<Member[]>({
     queryKey: ['community-members', slug],
     queryFn: async () => {
-      const res = await api.get(`/api/v1/communities/${slug}/members`)
+      const res = await api.get(`/communities/${slug}/members`)
       // API returns { items, total, page, page_size } - extract items array
       return res.data?.items || res.data || []
     },
@@ -180,7 +180,7 @@ export default function CommunityManagePage() {
   const { data: analytics } = useQuery<Analytics>({
     queryKey: ['community-analytics', slug],
     queryFn: async () => {
-      const res = await api.get(`/api/v1/communities/${slug}/analytics`)
+      const res = await api.get(`/communities/${slug}/analytics`)
       return res.data
     },
     enabled: !!community,
@@ -188,7 +188,7 @@ export default function CommunityManagePage() {
 
   const reviewMutation = useMutation({
     mutationFn: async ({ requestId, approved, reason }: { requestId: string; approved: boolean; reason?: string }) => {
-      const res = await api.post(`/api/v1/communities/${slug}/requests/${requestId}/review`, {
+      const res = await api.post(`/communities/${slug}/requests/${requestId}/review`, {
         approved,
         reason,
       })
@@ -211,7 +211,7 @@ export default function CommunityManagePage() {
 
   const removeMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      await api.delete(`/api/v1/communities/${slug}/members/${memberId}`)
+      await api.delete(`/communities/${slug}/members/${memberId}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community-members', slug] })
@@ -222,7 +222,7 @@ export default function CommunityManagePage() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ memberId, role }: { memberId: string; role: string }) => {
-      const res = await api.patch(`/api/v1/communities/${slug}/members/${memberId}`, { role })
+      const res = await api.patch(`/communities/${slug}/members/${memberId}`, { role })
       return res.data
     },
     onSuccess: () => {
@@ -233,7 +233,7 @@ export default function CommunityManagePage() {
 
   const regenerateInviteMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/api/v1/communities/${slug}/invite-code/regenerate`)
+      const res = await api.post(`/communities/${slug}/invite-code/regenerate`)
       return res.data
     },
     onSuccess: () => {
@@ -244,7 +244,7 @@ export default function CommunityManagePage() {
 
   const updateCommunityMutation = useMutation({
     mutationFn: async (data: Record<string, any>) => {
-      const res = await api.patch(`/api/v1/communities/${slug}`, data)
+      const res = await api.patch(`/communities/${slug}`, data)
       return res.data
     },
     onSuccess: (data) => {

@@ -75,7 +75,7 @@ export default function LeaderboardPage() {
   const { data: leaderboardData, isLoading: loadingLeaderboard } = useQuery({
     queryKey: ['leaderboard', timeframe, leaderboardType],
     queryFn: async () => {
-      const res = await api.get<LeaderboardData>(`/api/v1/gamification/leaderboard?timeframe=${timeframe}&type=${leaderboardType}&limit=50`)
+      const res = await api.get<LeaderboardData>(`/gamification/leaderboard?timeframe=${timeframe}&type=${leaderboardType}&limit=50`)
       return res.data
     }
   })
@@ -83,7 +83,7 @@ export default function LeaderboardPage() {
   const { data: myStats, isLoading: loadingStats } = useQuery({
     queryKey: ['my-gamification-stats'],
     queryFn: async () => {
-      const res = await api.get<UserStats>('/api/v1/gamification/stats')
+      const res = await api.get<UserStats>('/gamification/stats')
       return res.data
     }
   })
@@ -91,7 +91,7 @@ export default function LeaderboardPage() {
   const { data: myBadges, isLoading: loadingBadges } = useQuery({
     queryKey: ['my-badges'],
     queryFn: async () => {
-      const res = await api.get<{ badges: UserBadge[], count: number }>('/api/v1/gamification/badges')
+      const res = await api.get<{ badges: UserBadge[], count: number }>('/gamification/badges')
       return res.data
     }
   })
@@ -99,7 +99,7 @@ export default function LeaderboardPage() {
   const { data: allBadges } = useQuery({
     queryKey: ['all-badges'],
     queryFn: async () => {
-      const res = await api.get<{ badges: BadgeInfo[], count: number }>('/api/v1/gamification/badges/all')
+      const res = await api.get<{ badges: BadgeInfo[], count: number }>('/gamification/badges/all')
       return res.data
     }
   })

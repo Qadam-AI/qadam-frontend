@@ -84,7 +84,7 @@ export default function StudyGuidesPage() {
   // Generate mutation
   const generateMutation = useMutation({
     mutationFn: async (data: typeof form) => {
-      const res = await api.post<StudyGuide>('/api/v1/llm/study-guides/generate', {
+      const res = await api.post<StudyGuide>('/llm/study-guides/generate', {
         ...data,
         concepts: data.concepts.split(',').map(c => c.trim()).filter(Boolean),
       })

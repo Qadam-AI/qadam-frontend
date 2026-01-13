@@ -108,7 +108,7 @@ export default function CourseDetailPage() {
   const { data: course, isLoading: loadingCourse } = useQuery({
     queryKey: ['instructor-course', courseId],
     queryFn: async () => {
-      const res = await api.get<Course>(`/api/v1/instructor/courses/${courseId}`)
+      const res = await api.get<Course>(`/instructor/courses/${courseId}`)
       return res.data
     }
   })
@@ -117,7 +117,7 @@ export default function CourseDetailPage() {
   const { data: lessons, isLoading: loadingLessons } = useQuery({
     queryKey: ['course-lessons', courseId],
     queryFn: async () => {
-      const res = await api.get<Lesson[]>(`/api/v1/instructor/courses/${courseId}/lessons`)
+      const res = await api.get<Lesson[]>(`/instructor/courses/${courseId}/lessons`)
       return res.data
     }
   })
@@ -126,7 +126,7 @@ export default function CourseDetailPage() {
   const { data: students } = useQuery({
     queryKey: ['course-students', courseId],
     queryFn: async () => {
-      const res = await api.get<StudentProgress[]>(`/api/v1/instructor/courses/${courseId}/students`)
+      const res = await api.get<StudentProgress[]>(`/instructor/courses/${courseId}/students`)
       return res.data
     }
   })
@@ -135,7 +135,7 @@ export default function CourseDetailPage() {
   const { data: analytics } = useQuery({
     queryKey: ['course-analytics', courseId],
     queryFn: async () => {
-      const res = await api.get<CourseAnalytics>(`/api/v1/instructor/courses/${courseId}/analytics`)
+      const res = await api.get<CourseAnalytics>(`/instructor/courses/${courseId}/analytics`)
       return res.data
     }
   })
@@ -143,7 +143,7 @@ export default function CourseDetailPage() {
   // Add lesson mutation
   const addLessonMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/api/v1/instructor/courses/${courseId}/lessons`, {
+      const res = await api.post(`/instructor/courses/${courseId}/lessons`, {
         title: lessonTitle,
         description: lessonDescription || undefined,
         video_url: lessonVideoUrl || undefined,
@@ -167,7 +167,7 @@ export default function CourseDetailPage() {
   // Delete lesson mutation
   const deleteLessonMutation = useMutation({
     mutationFn: async (lessonId: string) => {
-      await api.delete(`/api/v1/instructor/lessons/${lessonId}`)
+      await api.delete(`/instructor/lessons/${lessonId}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] })
@@ -181,7 +181,7 @@ export default function CourseDetailPage() {
   // Invite students mutation
   const inviteMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/api/v1/instructor/courses/${courseId}/invite`, {
+      const res = await api.post(`/instructor/courses/${courseId}/invite`, {
         emails
       })
       return res.data

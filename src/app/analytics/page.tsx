@@ -69,7 +69,7 @@ export default function MyAnalyticsPage() {
   const { data: analytics, isLoading: loadingAnalytics } = useQuery({
     queryKey: ['my-analytics'],
     queryFn: async () => {
-      const res = await api.get<UserAnalytics>('/api/v1/analytics/me')
+      const res = await api.get<UserAnalytics>('/analytics/me')
       return res.data
     }
   })
@@ -77,7 +77,7 @@ export default function MyAnalyticsPage() {
   const { data: insights, isLoading: loadingInsights } = useQuery({
     queryKey: ['my-ai-insights'],
     queryFn: async () => {
-      const res = await api.get<AIInsights>('/api/v1/analytics/me/ai-insights')
+      const res = await api.get<AIInsights>('/analytics/me/ai-insights')
       return res.data
     }
   })
@@ -85,7 +85,7 @@ export default function MyAnalyticsPage() {
   const { data: weeklySummary, isLoading: loadingWeekly } = useQuery({
     queryKey: ['my-weekly-summary'],
     queryFn: async () => {
-      const res = await api.get<WeeklySummary>('/api/v1/analytics/me/weekly-summary')
+      const res = await api.get<WeeklySummary>('/analytics/me/weekly-summary')
       return res.data
     }
   })

@@ -23,7 +23,7 @@ export function SkillDependencyTree({ currentSkills = [], targetSkills = [] }: S
   const { data, isLoading } = useQuery({
     queryKey: ['skill-dependencies'],
     queryFn: async () => {
-      const res = await api.get<{ dependencies: Record<string, string[]> }>('/api/v1/llm/learning-paths/skills/dependencies')
+      const res = await api.get<{ dependencies: Record<string, string[]> }>('/llm/learning-paths/skills/dependencies')
       return res.data.dependencies
     },
   })

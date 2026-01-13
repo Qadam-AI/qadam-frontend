@@ -49,7 +49,7 @@ export default function BookmarksPage() {
   const { data: bookmarks, isLoading } = useQuery({
     queryKey: ['bookmarks'],
     queryFn: async () => {
-      const res = await api.get<BookmarkedLesson[]>('/api/v1/lessons/bookmarks')
+      const res = await api.get<BookmarkedLesson[]>('/lessons/bookmarks')
       return res.data
     },
   })
@@ -57,7 +57,7 @@ export default function BookmarksPage() {
   // Delete bookmark mutation
   const deleteMutation = useMutation({
     mutationFn: async (lessonId: string) => {
-      await api.delete(`/api/v1/lessons/${lessonId}/bookmark`)
+      await api.delete(`/lessons/${lessonId}/bookmark`)
     },
     onSuccess: () => {
       toast.success('Bookmark removed')

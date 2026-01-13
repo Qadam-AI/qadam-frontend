@@ -218,7 +218,7 @@ function PracticeContent() {
   const { data: courses, isLoading: coursesLoading } = useQuery({
     queryKey: ['my-courses'],
     queryFn: async () => {
-      const res = await api.get<EnrolledCourse[]>('/api/v1/instructor/my-courses')
+      const res = await api.get<EnrolledCourse[]>('/instructor/my-courses')
       return res.data
     }
   })

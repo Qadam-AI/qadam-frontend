@@ -81,7 +81,7 @@ export default function PricingPage() {
   const { data: plans, isLoading: plansLoading } = useQuery({
     queryKey: ['subscription-plans'],
     queryFn: async () => {
-      const res = await api.get<Plan[]>('/api/v1/subscriptions/plans')
+      const res = await api.get<Plan[]>('/subscriptions/plans')
       return res.data.sort((a, b) => a.sort_order - b.sort_order)
     },
   })
@@ -90,7 +90,7 @@ export default function PricingPage() {
   const { data: subscription } = useQuery({
     queryKey: ['my-subscription'],
     queryFn: async () => {
-      const res = await api.get<Subscription>('/api/v1/subscriptions/my')
+      const res = await api.get<Subscription>('/subscriptions/my')
       return res.data
     },
     enabled: !!user,

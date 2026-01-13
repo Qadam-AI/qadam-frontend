@@ -81,7 +81,7 @@ export default function LearningPathsPage() {
     queryKey: ['learning-paths', user?.id],
     queryFn: async () => {
       const res = await api.get<{ paths: LearningPath[], total: number }>(
-        `/api/v1/llm/learning-paths/user/${user?.id}`
+        `/llm/learning-paths/user/${user?.id}`
       )
       return res.data
     },
@@ -92,7 +92,7 @@ export default function LearningPathsPage() {
   const { data: rolesData } = useQuery({
     queryKey: ['learning-path-roles'],
     queryFn: async () => {
-      const res = await api.get<{ roles: Record<string, string[]> }>('/api/v1/llm/learning-paths/roles')
+      const res = await api.get<{ roles: Record<string, string[]> }>('/llm/learning-paths/roles')
       return res.data
     },
   })
@@ -100,7 +100,7 @@ export default function LearningPathsPage() {
   // Generate path mutation
   const generateMutation = useMutation({
     mutationFn: async (data: typeof form) => {
-      const res = await api.post<LearningPath>('/api/v1/llm/learning-paths/generate', {
+      const res = await api.post<LearningPath>('/llm/learning-paths/generate', {
         user_id: user?.id,
         target_role: data.target_role || null,
         target_skills: data.target_skills.split(',').map(s => s.trim()).filter(Boolean),

@@ -90,7 +90,7 @@ export default function InstructorStudents() {
     queryKey: ['instructor-students', search],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/students', {
+        const res = await api.get('/instructor/students', {
           params: { search: search || undefined }
         })
         // Handle both wrapped and direct array responses
@@ -105,7 +105,7 @@ export default function InstructorStudents() {
     queryKey: ['instructor-courses-list'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/courses')
+        const res = await api.get('/instructor/courses')
         return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
       } catch {
         return []
@@ -117,7 +117,7 @@ export default function InstructorStudents() {
     queryKey: ['instructor-student-stats'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/stats')
+        const res = await api.get('/instructor/stats')
         return res.data
       } catch {
         return { total_students: 0, active_today: 0, avg_progress: 0 }
@@ -127,7 +127,7 @@ export default function InstructorStudents() {
 
   const createStudentMutation = useMutation({
     mutationFn: async (data: { full_name: string; course_id: string }) => {
-      const res = await api.post('/api/v1/instructor/students', data)
+      const res = await api.post('/instructor/students', data)
       return res.data
     },
     onSuccess: (data) => {

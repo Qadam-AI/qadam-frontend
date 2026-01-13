@@ -63,7 +63,7 @@ export function FlashcardImport({ userId, onImportComplete }: FlashcardImportPro
   // Import single flashcard
   const importSingleMutation = useMutation({
     mutationFn: async (card: FlashcardInput) => {
-      const res = await api.post('/api/v1/llm/spaced-repetition/items/add', {
+      const res = await api.post('/llm/spaced-repetition/items/add', {
         user_id: userId,
         ...card,
       })
@@ -120,7 +120,7 @@ export function FlashcardImport({ userId, onImportComplete }: FlashcardImportPro
       }
 
       // Import each card
-      const res = await api.post('/api/v1/llm/spaced-repetition/items/import', {
+      const res = await api.post('/llm/spaced-repetition/items/import', {
         user_id: userId,
         items: cards,
       })
@@ -141,7 +141,7 @@ export function FlashcardImport({ userId, onImportComplete }: FlashcardImportPro
   // AI generate flashcards
   const aiGenerateMutation = useMutation({
     mutationFn: async (topic: string) => {
-      const res = await api.post('/api/v1/llm/study-guides/flashcards/generate', {
+      const res = await api.post('/llm/study-guides/flashcards/generate', {
         content: topic,
         count: 10,
       })

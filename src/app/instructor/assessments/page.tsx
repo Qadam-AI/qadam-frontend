@@ -71,7 +71,7 @@ export default function InstructorAssessments() {
     queryKey: ['instructor-assessments'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/assessments')
+        const res = await api.get('/instructor/assessments')
         // Handle both wrapped and direct array responses
         return Array.isArray(res.data) ? res.data : (res.data?.assessments || [])
       } catch {
@@ -84,7 +84,7 @@ export default function InstructorAssessments() {
     queryKey: ['instructor-courses-simple'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/courses')
+        const res = await api.get('/instructor/courses')
         // Handle both wrapped and direct array responses
         return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
       } catch {
@@ -95,7 +95,7 @@ export default function InstructorAssessments() {
 
   const generateAssessment = useMutation({
     mutationFn: async () => {
-      const res = await api.post('/api/v1/llm/assessment/generate', {
+      const res = await api.post('/llm/assessment/generate', {
         topic,
         content,
         question_count: questionCount,

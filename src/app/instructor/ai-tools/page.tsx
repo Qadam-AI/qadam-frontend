@@ -140,7 +140,7 @@ export default function ContentStructuringPage() {
       const formData = new FormData()
       formData.append('file', file)
       
-      const res = await api.post('/api/v1/uploads/extract-text', formData, {
+      const res = await api.post('/uploads/extract-text', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const progress = progressEvent.total 
@@ -200,7 +200,7 @@ export default function ContentStructuringPage() {
   // Analyze content mutation
   const analyzeContentMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post<ContentAnalysis>(`/api/v1/instructor/analyze-content`, null, {
+      const res = await api.post<ContentAnalysis>(`/instructor/analyze-content`, null, {
         params: {
           content: content,
           title: contentTitle || 'Lesson Content',
@@ -233,7 +233,7 @@ export default function ContentStructuringPage() {
   const generateAssessmentMutation = useMutation({
     mutationFn: async () => {
       const approvedConcepts = concepts.filter(c => c.selected)
-      const res = await api.post<AssessmentResult>('/api/v1/instructor/generate-assessment', {
+      const res = await api.post<AssessmentResult>('/instructor/generate-assessment', {
         topic: approvedConcepts.map(c => c.name).join(', '),
         content: content,
         difficulty: 5,

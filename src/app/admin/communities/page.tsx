@@ -72,14 +72,14 @@ export default function AdminCommunities() {
         page_size: '20',
       })
       if (search) params.append('search', search)
-      const res = await api.get(`/api/v1/communities?${params}`)
+      const res = await api.get(`/communities?${params}`)
       return res.data
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/api/v1/communities/${id}`)
+      await api.delete(`/communities/${id}`)
     },
     onSuccess: () => {
       toast.success('Community deleted')

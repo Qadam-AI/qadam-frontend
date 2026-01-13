@@ -29,7 +29,7 @@ export function SubscriptionLimits({ showUpgrade = true }: SubscriptionLimitsPro
   const { data: coursesLimit } = useQuery({
     queryKey: ['limit-courses'],
     queryFn: async () => {
-      const res = await api.get<LimitCheck>('/api/v1/subscriptions/my/limits/courses')
+      const res = await api.get<LimitCheck>('/subscriptions/my/limits/courses')
       return res.data
     },
   })
@@ -37,7 +37,7 @@ export function SubscriptionLimits({ showUpgrade = true }: SubscriptionLimitsPro
   const { data: tasksLimit } = useQuery({
     queryKey: ['limit-tasks'],
     queryFn: async () => {
-      const res = await api.get<LimitCheck>('/api/v1/subscriptions/my/limits/tasks')
+      const res = await api.get<LimitCheck>('/subscriptions/my/limits/tasks')
       return res.data
     },
   })
@@ -45,7 +45,7 @@ export function SubscriptionLimits({ showUpgrade = true }: SubscriptionLimitsPro
   const { data: storageLimit } = useQuery({
     queryKey: ['limit-storage'],
     queryFn: async () => {
-      const res = await api.get<LimitCheck>('/api/v1/subscriptions/my/limits/storage')
+      const res = await api.get<LimitCheck>('/subscriptions/my/limits/storage')
       return res.data
     },
   })
@@ -166,7 +166,7 @@ export function SubscriptionLimitBanner() {
   const { data: tasksLimit } = useQuery({
     queryKey: ['limit-tasks'],
     queryFn: async () => {
-      const res = await api.get<LimitCheck>('/api/v1/subscriptions/my/limits/tasks')
+      const res = await api.get<LimitCheck>('/subscriptions/my/limits/tasks')
       return res.data
     },
   })

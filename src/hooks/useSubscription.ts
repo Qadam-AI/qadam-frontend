@@ -41,7 +41,7 @@ export function useSubscription() {
     queryKey: ['my-subscription'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/subscriptions/my');
+        const res = await api.get('/subscriptions/my');
         return res.data;
       } catch {
         return null;
@@ -84,7 +84,7 @@ export function useUploadAccess() {
     queryKey: ['upload-access'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/uploads/check-access');
+        const res = await api.get('/uploads/check-access');
         return res.data;
       } catch {
         return {

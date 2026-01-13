@@ -228,7 +228,7 @@ export default function CommunityDetailPage() {
   const { data: community, isLoading, error } = useQuery<Community>({
     queryKey: ['community', slug],
     queryFn: async () => {
-      const res = await api.get(`/api/v1/communities/${slug}`)
+      const res = await api.get(`/communities/${slug}`)
       return res.data
     },
   })
@@ -236,7 +236,7 @@ export default function CommunityDetailPage() {
   const { data: eligibility, isLoading: eligibilityLoading } = useQuery<EligibilityCheck>({
     queryKey: ['community-eligibility', slug],
     queryFn: async () => {
-      const res = await api.get(`/api/v1/communities/${slug}/eligibility`)
+      const res = await api.get(`/communities/${slug}/eligibility`)
       return res.data
     },
     enabled: showEligibility && !!community && !community.user_membership,
@@ -244,7 +244,7 @@ export default function CommunityDetailPage() {
 
   const joinMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/api/v1/communities/${slug}/join`)
+      const res = await api.post(`/communities/${slug}/join`)
       return res.data
     },
     onSuccess: (data) => {
@@ -262,7 +262,7 @@ export default function CommunityDetailPage() {
 
   const leaveMutation = useMutation({
     mutationFn: async () => {
-      await api.delete(`/api/v1/communities/${slug}/members/me`)
+      await api.delete(`/communities/${slug}/members/me`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community', slug] })

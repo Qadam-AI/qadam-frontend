@@ -91,7 +91,7 @@ export default function CodeReviewPage() {
   // Review mutation
   const reviewMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post<CodeReviewResult>('/api/v1/llm/code-review/review', {
+      const res = await api.post<CodeReviewResult>('/llm/code-review/review', {
         code,
         language,
         context: context || undefined,

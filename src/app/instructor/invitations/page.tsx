@@ -72,7 +72,7 @@ export default function InstructorInvitations() {
     queryKey: ['instructor-invitations'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/invitations')
+        const res = await api.get('/instructor/invitations')
         // Handle both wrapped and direct array responses
         return Array.isArray(res.data) ? res.data : (res.data?.invitations || [])
       } catch {
@@ -85,7 +85,7 @@ export default function InstructorInvitations() {
     queryKey: ['instructor-courses-simple'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/courses')
+        const res = await api.get('/instructor/courses')
         // Handle both wrapped and direct array responses
         return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
       } catch {
@@ -96,7 +96,7 @@ export default function InstructorInvitations() {
 
   const sendInvitation = useMutation({
     mutationFn: async () => {
-      await api.post('/api/v1/instructor/invitations', {
+      await api.post('/instructor/invitations', {
         email,
         course_id: selectedCourse,
       })
@@ -115,7 +115,7 @@ export default function InstructorInvitations() {
 
   const resendInvitation = useMutation({
     mutationFn: async (id: string) => {
-      await api.post(`/api/v1/instructor/invitations/${id}/resend`)
+      await api.post(`/instructor/invitations/${id}/resend`)
     },
     onSuccess: () => {
       toast.success('Invitation resent!')
@@ -125,7 +125,7 @@ export default function InstructorInvitations() {
 
   const deleteInvitation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/api/v1/instructor/invitations/${id}`)
+      await api.delete(`/instructor/invitations/${id}`)
     },
     onSuccess: () => {
       toast.success('Invitation deleted')

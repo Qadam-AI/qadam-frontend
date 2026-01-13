@@ -91,7 +91,7 @@ export default function MasteryOverview() {
     queryKey: ['instructor-courses-list'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/instructor/courses')
+        const res = await api.get('/instructor/courses')
         return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
       } catch {
         return []
@@ -105,7 +105,7 @@ export default function MasteryOverview() {
     queryFn: async () => {
       try {
         const params = selectedCourse !== 'all' ? { course_id: selectedCourse } : {}
-        const res = await api.get('/api/v1/instructor/mastery/concepts', { params })
+        const res = await api.get('/instructor/mastery/concepts', { params })
         return Array.isArray(res.data) ? res.data : (res.data?.concepts || [])
       } catch {
         // Return mock data for demo
@@ -127,7 +127,7 @@ export default function MasteryOverview() {
         const params: Record<string, string> = {}
         if (selectedCourse !== 'all') params.course_id = selectedCourse
         if (search) params.search = search
-        const res = await api.get('/api/v1/instructor/mastery/students', { params })
+        const res = await api.get('/instructor/mastery/students', { params })
         return Array.isArray(res.data) ? res.data : (res.data?.students || [])
       } catch {
         // Return mock data for demo

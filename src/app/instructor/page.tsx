@@ -93,7 +93,7 @@ export default function InstructorDashboard() {
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ['instructor-dashboard'],
     queryFn: async () => {
-      const res = await api.get<DashboardStats>('/api/v1/instructor/dashboard')
+      const res = await api.get<DashboardStats>('/instructor/dashboard')
       return res.data
     }
   })
@@ -101,7 +101,7 @@ export default function InstructorDashboard() {
   const { data: courses, isLoading: loadingCourses } = useQuery({
     queryKey: ['instructor-courses'],
     queryFn: async () => {
-      const res = await api.get<RecentCourse[]>('/api/v1/instructor/courses')
+      const res = await api.get<RecentCourse[]>('/instructor/courses')
       return res.data
     }
   })
@@ -109,7 +109,7 @@ export default function InstructorDashboard() {
   const { data: subscription, isLoading: loadingSubscription } = useQuery({
     queryKey: ['subscription-info'],
     queryFn: async () => {
-      const res = await api.get<SubscriptionInfo>('/api/v1/subscriptions/my')
+      const res = await api.get<SubscriptionInfo>('/subscriptions/my')
       return res.data
     }
   })

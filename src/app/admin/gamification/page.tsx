@@ -98,7 +98,7 @@ export default function AdminGamification() {
     queryKey: ['admin-leaderboard'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/v1/gamification/leaderboard?limit=10')
+        const res = await api.get('/gamification/leaderboard?limit=10')
         return res.data
       } catch {
         return { entries: [] }
@@ -118,7 +118,7 @@ export default function AdminGamification() {
         return { badges: res.data }
       } catch {
         // Fallback to public endpoint
-        const res = await api.get('/api/v1/gamification/badges/all?include_secret=true')
+        const res = await api.get('/gamification/badges/all?include_secret=true')
         return res.data
       }
     },

@@ -230,7 +230,7 @@ export default function CommunityRulesPage() {
   const { data: courses = [] } = useQuery<Course[]>({
     queryKey: ['courses'],
     queryFn: async () => {
-      const res = await api.get('/api/v1/courses')
+      const res = await api.get('/courses')
       return res.data
     },
   })
@@ -238,7 +238,7 @@ export default function CommunityRulesPage() {
   const { data: community, isLoading } = useQuery({
     queryKey: ['community', slug],
     queryFn: async () => {
-      const res = await api.get(`/api/v1/communities/${slug}`)
+      const res = await api.get(`/communities/${slug}`)
       // Transform backend rule format to frontend format
       const transformedRules = (res.data.rules || []).map((r: any) => ({
         id: r.id,
@@ -263,12 +263,12 @@ export default function CommunityRulesPage() {
       // Delete removed
       const toDelete = existingIds.filter((id: string) => !newIds.includes(id))
       for (const id of toDelete) {
-        await api.delete(`/api/v1/communities/${slug}/rules/${id}`)
+        await api.delete(`/communities/${slug}/rules/${id}`)
       }
       
       // Add new rules
       for (const rule of newRules.filter(r => !r.id)) {
-        await api.post(`/api/v1/communities/${slug}/rules`, {
+        await api.post(`/communities/${slug}/rules`, {
           rule_type: rule.type.toLowerCase(), // Backend expects lowercase
           name: rule.label,
           description: rule.description,

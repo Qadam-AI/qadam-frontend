@@ -32,7 +32,7 @@ export default function JoinCoursePage() {
   const { data: courseInfo, isLoading: isLoadingInfo, error: infoError } = useQuery({
     queryKey: ['join-link-info', code],
     queryFn: async () => {
-      const res = await api.get<JoinLinkInfo>(`/api/v1/enrollments/join/${code}/info`)
+      const res = await api.get<JoinLinkInfo>(`/enrollments/join/${code}/info`)
       return res.data
     },
     retry: 1
@@ -43,12 +43,12 @@ export default function JoinCoursePage() {
     mutationFn: async () => {
       try {
         // Try join link endpoint first
-        const res = await api.post(`/api/v1/enrollments/join/${code}`)
+        const res = await api.post(`/enrollments/join/${code}`)
         return res.data
       } catch (err: any) {
         // If join link fails, try invitation endpoint (legacy support)
         if (err.response?.status === 404) {
-          const res = await api.post(`/api/v1/instructor/enroll/${code}`)
+          const res = await api.post(`/instructor/enroll/${code}`)
           return res.data
         }
         throw err

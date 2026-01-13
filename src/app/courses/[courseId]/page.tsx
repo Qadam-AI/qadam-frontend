@@ -58,14 +58,14 @@ export default function CourseViewPage() {
     queryKey: ['course-view', courseId],
     queryFn: async () => {
       // Get course details from enrolled courses perspective
-      const res = await api.get<CourseDetails>(`/api/v1/courses/${courseId}/enrolled`)
+      const res = await api.get<CourseDetails>(`/courses/${courseId}/enrolled`)
       return res.data
     }
   })
 
   const markCompleteMutation = useMutation({
     mutationFn: async (lessonId: string) => {
-      await api.post(`/api/v1/courses/${courseId}/lessons/${lessonId}/complete`)
+      await api.post(`/courses/${courseId}/lessons/${lessonId}/complete`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-view', courseId] })

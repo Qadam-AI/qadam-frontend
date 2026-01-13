@@ -57,7 +57,7 @@ function MyCoursesContent() {
   const { data: courses, isLoading, error } = useQuery({
     queryKey: ['my-courses'],
     queryFn: async () => {
-      const res = await api.get<EnrolledCourse[]>('/api/v1/instructor/my-courses')
+      const res = await api.get<EnrolledCourse[]>('/instructor/my-courses')
       return res.data
     }
   })
@@ -65,7 +65,7 @@ function MyCoursesContent() {
   const { data: invitations } = useQuery({
     queryKey: ['my-invitations'],
     queryFn: async () => {
-      const res = await api.get<PendingInvitation[]>('/api/v1/instructor/my-invitations')
+      const res = await api.get<PendingInvitation[]>('/instructor/my-invitations')
       return res.data
     }
   })

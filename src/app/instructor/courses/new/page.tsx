@@ -75,7 +75,7 @@ export default function CreateCoursePage() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post('/api/v1/instructor/courses', formData)
+      const res = await api.post('/instructor/courses', formData)
       return res.data
     },
     onSuccess: (data) => {

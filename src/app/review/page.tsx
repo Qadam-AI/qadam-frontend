@@ -81,7 +81,7 @@ export default function SpacedRepetitionPage() {
   const { data: dueItems, isLoading: loadingItems, refetch: refetchDue } = useQuery({
     queryKey: ['review-due-items', user?.id],
     queryFn: async () => {
-      const res = await api.get<DueItemsResponse>(`/api/v1/llm/spaced-repetition/items/due/${user?.id}?limit=50`)
+      const res = await api.get<DueItemsResponse>(`/llm/spaced-repetition/items/due/${user?.id}?limit=50`)
       return res.data
     },
     enabled: !!user?.id,
@@ -91,7 +91,7 @@ export default function SpacedRepetitionPage() {
   const { data: schedule, isLoading: loadingSchedule } = useQuery({
     queryKey: ['review-schedule', user?.id],
     queryFn: async () => {
-      const res = await api.get<StudySchedule>(`/api/v1/llm/spaced-repetition/schedule/${user?.id}`)
+      const res = await api.get<StudySchedule>(`/llm/spaced-repetition/schedule/${user?.id}`)
       return res.data
     },
     enabled: !!user?.id,
@@ -101,7 +101,7 @@ export default function SpacedRepetitionPage() {
   const reviewMutation = useMutation({
     mutationFn: async ({ itemId, quality }: { itemId: string, quality: number }) => {
       const responseTime = startTime ? (new Date().getTime() - startTime.getTime()) / 1000 : 0
-      const res = await api.post('/api/v1/llm/spaced-repetition/review', {
+      const res = await api.post('/llm/spaced-repetition/review', {
         item_id: itemId,
         quality,
         response_time_seconds: responseTime,

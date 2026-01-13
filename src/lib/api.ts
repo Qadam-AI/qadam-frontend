@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { toast } from 'sonner'
 
 const api = axios.create({
-  baseURL: 'https://qadam-backend-production.up.railway.app/', // Update with your backend URL
+  baseURL: 'https://qadam-backend-production.up.railway.app/api/v1', // Update with your backend URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -189,7 +189,7 @@ export interface ExplanationResponse {
  * Ask AI assistant a question
  */
 export async function askAI(request: ChatRequest): Promise<ChatResponse> {
-  const response = await api.post<ChatResponse>('/api/v1/chat/ask', request)
+  const response = await api.post<ChatResponse>('/chat/ask', request)
   return response.data
 }
 
@@ -197,7 +197,7 @@ export async function askAI(request: ChatRequest): Promise<ChatResponse> {
  * Get a progressive hint for a task
  */
 export async function getHint(request: HintRequest): Promise<HintResponse> {
-  const response = await api.post<HintResponse>('/api/v1/chat/hint', request)
+  const response = await api.post<HintResponse>('/chat/hint', request)
   return response.data
 }
 
@@ -205,7 +205,7 @@ export async function getHint(request: HintRequest): Promise<HintResponse> {
  * Get an explanation for a wrong answer
  */
 export async function getExplanation(request: ExplanationRequest): Promise<ExplanationResponse> {
-  const response = await api.post<ExplanationResponse>('/api/v1/chat/explain', request)
+  const response = await api.post<ExplanationResponse>('/chat/explain', request)
   return response.data
 }
 
@@ -300,80 +300,80 @@ export interface InviteResponse {
 
 // Course management
 export async function getInstructorCourses(): Promise<Course[]> {
-  const response = await api.get<Course[]>('/api/v1/instructor/courses')
+  const response = await api.get<Course[]>('/instructor/courses')
   return response.data
 }
 
 export async function getInstructorCourse(courseId: string): Promise<Course> {
-  const response = await api.get<Course>(`/api/v1/instructor/courses/${courseId}`)
+  const response = await api.get<Course>(`/instructor/courses/${courseId}`)
   return response.data
 }
 
 export async function createCourse(data: CreateCourseRequest): Promise<Course> {
-  const response = await api.post<Course>('/api/v1/instructor/courses', data)
+  const response = await api.post<Course>('/instructor/courses', data)
   return response.data
 }
 
 export async function updateCourse(courseId: string, data: Partial<CreateCourseRequest>): Promise<Course> {
-  const response = await api.patch<Course>(`/api/v1/instructor/courses/${courseId}`, data)
+  const response = await api.patch<Course>(`/instructor/courses/${courseId}`, data)
   return response.data
 }
 
 export async function deleteCourse(courseId: string): Promise<void> {
-  await api.delete(`/api/v1/instructor/courses/${courseId}`)
+  await api.delete(`/instructor/courses/${courseId}`)
 }
 
 // Lesson management
 export async function getCourseLessons(courseId: string): Promise<Lesson[]> {
-  const response = await api.get<Lesson[]>(`/api/v1/instructor/courses/${courseId}/lessons`)
+  const response = await api.get<Lesson[]>(`/instructor/courses/${courseId}/lessons`)
   return response.data
 }
 
 export async function createLesson(courseId: string, data: CreateLessonRequest): Promise<Lesson> {
-  const response = await api.post<Lesson>(`/api/v1/instructor/courses/${courseId}/lessons`, data)
+  const response = await api.post<Lesson>(`/instructor/courses/${courseId}/lessons`, data)
   return response.data
 }
 
 export async function updateLesson(lessonId: string, data: Partial<CreateLessonRequest>): Promise<Lesson> {
-  const response = await api.patch<Lesson>(`/api/v1/instructor/lessons/${lessonId}`, data)
+  const response = await api.patch<Lesson>(`/instructor/lessons/${lessonId}`, data)
   return response.data
 }
 
 export async function deleteLesson(lessonId: string): Promise<void> {
-  await api.delete(`/api/v1/instructor/lessons/${lessonId}`)
+  await api.delete(`/instructor/lessons/${lessonId}`)
 }
 
 export async function reorderLessons(courseId: string, lessonIds: string[]): Promise<void> {
-  await api.post(`/api/v1/instructor/courses/${courseId}/lessons/reorder`, {
+  await api.post(`/instructor/courses/${courseId}/lessons/reorder`, {
     lesson_ids: lessonIds
   })
 }
 
 // Student management
 export async function getCourseStudents(courseId: string): Promise<StudentProgress[]> {
-  const response = await api.get<StudentProgress[]>(`/api/v1/instructor/courses/${courseId}/students`)
+  const response = await api.get<StudentProgress[]>(`/instructor/courses/${courseId}/students`)
   return response.data
 }
 
 export async function getCourseInvitations(courseId: string): Promise<Invitation[]> {
-  const response = await api.get<Invitation[]>(`/api/v1/instructor/courses/${courseId}/invitations`)
+  const response = await api.get<Invitation[]>(`/instructor/courses/${courseId}/invitations`)
   return response.data
 }
 
 export async function getCourseAnalytics(courseId: string): Promise<CourseAnalytics> {
-  const response = await api.get<CourseAnalytics>(`/api/v1/instructor/courses/${courseId}/analytics`)
+  const response = await api.get<CourseAnalytics>(`/instructor/courses/${courseId}/analytics`)
   return response.data
 }
 
 export async function inviteStudents(courseId: string, emails: string[]): Promise<InviteResponse> {
-  const response = await api.post<InviteResponse>(`/api/v1/instructor/courses/${courseId}/invite`, {
+  const response = await api.post<InviteResponse>(`/instructor/courses/${courseId}/invite`, {
     emails
   })
   return response.data
 }
 
 export async function cancelInvitation(invitationId: string): Promise<void> {
-  await api.delete(`/api/v1/instructor/invitations/${invitationId}`)
+  await api.delete(`/instructor/invitations/${invitationId}`)
 }
 
 // Dashboard overview
@@ -383,7 +383,7 @@ export async function getInstructorDashboard(): Promise<{
   total_lessons: number
   recent_enrollments: number
 }> {
-  const response = await api.get('/api/v1/instructor/dashboard')
+  const response = await api.get('/instructor/dashboard')
   return response.data
 }
 

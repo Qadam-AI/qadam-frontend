@@ -71,7 +71,7 @@ export function AdaptiveQuestions({ userId, lessonId, conceptId, onComplete }: A
   const questionQuery = useQuery({
     queryKey: ['adaptive-question', userId, lessonId, conceptId, session.currentDifficulty],
     queryFn: async () => {
-      const res = await api.post('/api/v1/llm/assessments/adaptive', {
+      const res = await api.post('/llm/assessments/adaptive', {
         user_id: userId,
         lesson_id: lessonId,
         concept_id: conceptId,
@@ -101,7 +101,7 @@ export function AdaptiveQuestions({ userId, lessonId, conceptId, onComplete }: A
   // Submit answer
   const submitMutation = useMutation({
     mutationFn: async (userAnswer: string) => {
-      const res = await api.post('/api/v1/llm/assessments/check', {
+      const res = await api.post('/llm/assessments/check', {
         question_id: session.currentQuestion?.id,
         answer: userAnswer,
         user_id: userId,

@@ -20,7 +20,7 @@ export function useLLMService() {
     queryFn: async () => {
       try {
         // Try to reach the LLM health endpoint via backend proxy
-        const response = await api.get('/api/v1/llm/health', {
+        const response = await api.get('/llm/health', {
           timeout: 5000, // 5 second timeout
         });
         
@@ -68,7 +68,7 @@ export function useLLMService() {
 // Standalone check function for one-off checks
 export async function checkLLMServiceAvailability(): Promise<boolean> {
   try {
-    const response = await api.get('/api/v1/llm/health', {
+    const response = await api.get('/llm/health', {
       timeout: 5000,
     });
     return response.data?.status === 'healthy' || response.data?.status === 'ok';

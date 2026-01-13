@@ -124,7 +124,7 @@ export default function CreateCommunityPage() {
         cover_image_url: data.cover_image_url || undefined,
         icon_url: data.icon_url || undefined,
       }
-      const res = await api.post('/api/v1/communities', payload)
+      const res = await api.post('/communities', payload)
       return res.data
     },
     onSuccess: (data) => {
@@ -146,7 +146,7 @@ export default function CreateCommunityPage() {
         throw new Error('Please enter a community name first')
       }
       
-      const res = await api.post('/api/v1/chat/generate', {
+      const res = await api.post('/chat/generate', {
         prompt: `Generate a ${field === 'description' ? 'short description' : 'mission statement'} for a learning community called "${name}"`,
         generation_type: field === 'description' ? 'community_description' : 'community_mission',
         context: {

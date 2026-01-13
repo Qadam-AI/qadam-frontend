@@ -85,7 +85,7 @@ export default function CourseStudentsPage() {
   const { data: students, isLoading: loadingStudents } = useQuery({
     queryKey: ['course-students', courseId],
     queryFn: async () => {
-      const res = await api.get<StudentProgress[]>(`/api/v1/instructor/courses/${courseId}/students`)
+      const res = await api.get<StudentProgress[]>(`/instructor/courses/${courseId}/students`)
       return res.data
     }
   })
@@ -93,7 +93,7 @@ export default function CourseStudentsPage() {
   const { data: invitations, isLoading: loadingInvitations } = useQuery({
     queryKey: ['course-invitations', courseId],
     queryFn: async () => {
-      const res = await api.get<Invitation[]>(`/api/v1/instructor/courses/${courseId}/invitations`)
+      const res = await api.get<Invitation[]>(`/instructor/courses/${courseId}/invitations`)
       return res.data
     }
   })
@@ -101,14 +101,14 @@ export default function CourseStudentsPage() {
   const { data: analytics, isLoading: loadingAnalytics } = useQuery({
     queryKey: ['course-analytics', courseId],
     queryFn: async () => {
-      const res = await api.get<CourseAnalytics>(`/api/v1/instructor/courses/${courseId}/analytics`)
+      const res = await api.get<CourseAnalytics>(`/instructor/courses/${courseId}/analytics`)
       return res.data
     }
   })
 
   const inviteMutation = useMutation({
     mutationFn: async (emailList: string[]) => {
-      const res = await api.post(`/api/v1/instructor/courses/${courseId}/invite`, {
+      const res = await api.post(`/instructor/courses/${courseId}/invite`, {
         emails: emailList
       })
       return res.data
@@ -130,7 +130,7 @@ export default function CourseStudentsPage() {
 
   const cancelInviteMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      await api.delete(`/api/v1/instructor/invitations/${invitationId}`)
+      await api.delete(`/instructor/invitations/${invitationId}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-invitations', courseId] })

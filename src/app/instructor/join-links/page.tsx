@@ -78,7 +78,7 @@ export default function JoinLinksPage() {
   const { data: courses, isLoading: coursesLoading } = useQuery({
     queryKey: ['instructor-courses'],
     queryFn: async () => {
-      const res = await api.get<Course[]>('/api/v1/instructor/courses')
+      const res = await api.get<Course[]>('/instructor/courses')
       return res.data
     },
   })
@@ -87,7 +87,7 @@ export default function JoinLinksPage() {
   const { data: joinLinks, isLoading: linksLoading } = useQuery({
     queryKey: ['join-links', selectedCourse],
     queryFn: async () => {
-      const res = await api.get<JoinLink[]>(`/api/v1/instructor/courses/${selectedCourse}/join-links`)
+      const res = await api.get<JoinLink[]>(`/instructor/courses/${selectedCourse}/join-links`)
       return res.data
     },
     enabled: !!selectedCourse,
@@ -96,7 +96,7 @@ export default function JoinLinksPage() {
   // Create join link mutation
   const createMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post<JoinLink>(`/api/v1/instructor/courses/${selectedCourse}/join-links`, {
+      const res = await api.post<JoinLink>(`/instructor/courses/${selectedCourse}/join-links`, {
         max_uses: form.max_uses ? parseInt(form.max_uses) : null,
         expires_in_days: form.expires_in_days ? parseInt(form.expires_in_days) : null,
       })
@@ -117,7 +117,7 @@ export default function JoinLinksPage() {
   // Delete join link mutation
   const deleteMutation = useMutation({
     mutationFn: async (linkId: string) => {
-      await api.delete(`/api/v1/instructor/join-links/${linkId}`)
+      await api.delete(`/instructor/join-links/${linkId}`)
     },
     onSuccess: () => {
       toast.success('Join link deleted')
@@ -132,7 +132,7 @@ export default function JoinLinksPage() {
   // Deactivate join link mutation
   const deactivateMutation = useMutation({
     mutationFn: async (linkId: string) => {
-      await api.patch(`/api/v1/instructor/join-links/${linkId}/deactivate`)
+      await api.patch(`/instructor/join-links/${linkId}/deactivate`)
     },
     onSuccess: () => {
       toast.success('Join link deactivated')

@@ -90,7 +90,7 @@ export default function CourseLessonsPage() {
   const { data: course } = useQuery({
     queryKey: ['course', courseId],
     queryFn: async () => {
-      const res = await api.get<Course>(`/api/v1/instructor/courses/${courseId}`)
+      const res = await api.get<Course>(`/instructor/courses/${courseId}`)
       return res.data
     }
   })
@@ -98,14 +98,14 @@ export default function CourseLessonsPage() {
   const { data: lessons, isLoading } = useQuery({
     queryKey: ['course-lessons', courseId],
     queryFn: async () => {
-      const res = await api.get<Lesson[]>(`/api/v1/instructor/courses/${courseId}/lessons`)
+      const res = await api.get<Lesson[]>(`/instructor/courses/${courseId}/lessons`)
       return res.data
     }
   })
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await api.post(`/api/v1/instructor/courses/${courseId}/lessons`, {
+      const res = await api.post(`/instructor/courses/${courseId}/lessons`, {
         ...data,
         video_url: data.content_type === 'video' ? data.video_url : null,
         content: data.content_type !== 'video' ? data.content : null,
@@ -125,7 +125,7 @@ export default function CourseLessonsPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const res = await api.patch(`/api/v1/instructor/lessons/${id}`, data)
+      const res = await api.patch(`/instructor/lessons/${id}`, data)
       return res.data
     },
     onSuccess: () => {
@@ -140,7 +140,7 @@ export default function CourseLessonsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/api/v1/instructor/lessons/${id}`)
+      await api.delete(`/instructor/lessons/${id}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] })
@@ -155,7 +155,7 @@ export default function CourseLessonsPage() {
 
   const togglePublishMutation = useMutation({
     mutationFn: async ({ id, is_published }: { id: string; is_published: boolean }) => {
-      await api.patch(`/api/v1/instructor/lessons/${id}`, { is_published })
+      await api.patch(`/instructor/lessons/${id}`, { is_published })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] })
@@ -165,7 +165,7 @@ export default function CourseLessonsPage() {
 
   const reorderMutation = useMutation({
     mutationFn: async (lessonIds: string[]) => {
-      await api.post(`/api/v1/instructor/courses/${courseId}/lessons/reorder`, {
+      await api.post(`/instructor/courses/${courseId}/lessons/reorder`, {
         lesson_ids: lessonIds
       })
     },

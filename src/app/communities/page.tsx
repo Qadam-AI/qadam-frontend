@@ -215,7 +215,7 @@ export default function CommunitiesPage() {
       if (category !== 'all') params.set('category', category)
       if (difficulty !== 'all') params.set('difficulty', difficulty)
       
-      const res = await api.get(`/api/v1/communities?${params}`)
+      const res = await api.get(`/communities?${params}`)
       return res.data
     },
     staleTime: 30000,

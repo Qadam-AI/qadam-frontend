@@ -33,7 +33,7 @@ export function BookmarkButton({
     queryKey: ['bookmark-status', lessonId],
     queryFn: async () => {
       try {
-        const res = await api.get<{ bookmarked: boolean }>(`/api/v1/lessons/${lessonId}/bookmark/status`)
+        const res = await api.get<{ bookmarked: boolean }>(`/lessons/${lessonId}/bookmark/status`)
         return res.data.bookmarked
       } catch {
         return false
@@ -45,9 +45,9 @@ export function BookmarkButton({
   const toggleMutation = useMutation({
     mutationFn: async () => {
       if (isBookmarked) {
-        await api.delete(`/api/v1/lessons/${lessonId}/bookmark`)
+        await api.delete(`/lessons/${lessonId}/bookmark`)
       } else {
-        await api.post(`/api/v1/lessons/${lessonId}/bookmark`)
+        await api.post(`/lessons/${lessonId}/bookmark`)
       }
     },
     onSuccess: () => {
