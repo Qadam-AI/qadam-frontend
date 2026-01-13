@@ -56,11 +56,18 @@ interface ContentAnalysis {
   lesson_mapping?: { concept: string; relevance: number }[]
 }
 
+interface QuestionOption {
+  id?: string
+  text: string
+  is_correct?: boolean
+  explanation?: string
+}
+
 interface GeneratedQuestion {
   id: string
   type: string
   question: string
-  options?: string[]
+  options?: (string | QuestionOption)[]
   answer?: string
   explanation?: string
   concept_id?: string
@@ -936,11 +943,16 @@ export default function ContentStructuringPage() {
                       </div>
                       {q.options && (
                         <div className="space-y-1 ml-4 mt-3">
-                          {q.options.map((opt, j) => (
-                            <p key={j} className="text-sm text-muted-foreground">
-                              {String.fromCharCode(65 + j)}. {opt}
-                            </p>
-                          ))}
+                          {q.options.map((opt, j) => {
+                            const optText = typeof opt === 'string' ? opt : opt.text
+                            const isCorrect = typeof opt === 'object' && opt.is_correct
+                            return (
+                              <p key={j} className={`text-sm ${isCorrect ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
+                                {String.fromCharCode(65 + j)}. {optText}
+                                {isCorrect && ' ✓'}
+                              </p>
+                            )
+                          })}
                         </div>
                       )}
                     </div>
