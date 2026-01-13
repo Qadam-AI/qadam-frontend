@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { LanguageSwitcher } from '@/components/language-switcher'
 import { 
   Sparkles, 
   Target, 
@@ -31,7 +30,6 @@ export default function AboutPage() {
               <span className="font-bold text-xl bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">Edusistent</span>
             </Link>
             <div className="flex items-center gap-2">
-              <LanguageSwitcher />
               <ThemeToggle />
               <Link href="/login"><Button size="sm">Get Started</Button></Link>
             </div>

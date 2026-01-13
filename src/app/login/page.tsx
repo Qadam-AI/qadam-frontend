@@ -10,7 +10,6 @@ import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { LanguageSwitcher } from '@/components/language-switcher'
 import { useTranslations } from '@/lib/i18n'
 import { Twitter, Linkedin, Github } from 'lucide-react'
 
@@ -68,7 +67,6 @@ export default function LoginPage() {
             </div>
             
             <div className="flex items-center gap-2">
-              <LanguageSwitcher />
               <ThemeToggle />
             </div>
           </div>

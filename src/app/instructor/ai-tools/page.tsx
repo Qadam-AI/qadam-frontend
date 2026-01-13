@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { useLLMService, LLM_MESSAGES } from '@/hooks/useLLMService'
+import { useUploadAccess, UPGRADE_MESSAGES } from '@/hooks/useSubscription'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +15,7 @@ import { Progress } from '@/components/ui/progress'
 import { Slider } from '@/components/ui/slider'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -25,11 +27,13 @@ import {
   FileText, Brain, Wand2, CheckCircle2, BookOpen, 
   Lightbulb, AlertCircle, Target, RefreshCw, 
   Sparkles, Edit2, Trash2, Plus, ArrowRight,
-  Info, Shield, Eye, Check, X
+  Info, Shield, Eye, Check, X, Upload, File,
+  FileType, Crown, Lock, CheckCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PilotBanner } from '@/components/feature-gate'
 import { MVP_MESSAGES } from '@/lib/feature-flags'
+import Link from 'next/link'
 
 // Types for the Path B flow
 interface ExtractedConcept {
@@ -67,15 +71,59 @@ interface AssessmentResult {
   questions: GeneratedQuestion[]
 }
 
+interface UploadedFile {
+  file: File
+  name: string
+  size: number
+  type: string
+  status: 'pending' | 'uploading' | 'extracting' | 'done' | 'error'
+  progress: number
+  extractedText?: string
+  error?: string
+}
+
+// File type helpers
+const FILE_TYPE_ICONS: Record<string, typeof FileText> = {
+  'application/pdf': FileText,
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': FileType,
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': FileText,
+}
+
+const FILE_TYPE_LABELS: Record<string, string> = {
+  'application/pdf': 'PDF',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PPTX',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+}
+
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export default function ContentStructuringPage() {
   const { isAvailable: llmAvailable, isChecking: llmChecking, refresh: refreshLLM } = useLLMService()
+  const { hasUploadAccess, maxSizeBytes, isLoading: uploadAccessLoading } = useUploadAccess()
   
   // Workflow state
   const [currentStep, setCurrentStep] = useState<'input' | 'review' | 'generate'>('input')
+  const [inputMode, setInputMode] = useState<'text' | 'file'>('text')
   
   // Content input state
   const [content, setContent] = useState('')
   const [contentTitle, setContentTitle] = useState('')
+  
+  // File upload state
+  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   
   // Analysis result state
   const [analysisResult, setAnalysisResult] = useState<ContentAnalysis | null>(null)
@@ -85,6 +133,69 @@ export default function ContentStructuringPage() {
   // Assessment state
   const [questionCount, setQuestionCount] = useState(5)
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null)
+
+  // File upload mutation
+  const uploadFileMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const res = await api.post('/api/v1/uploads/extract-text', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          const progress = progressEvent.total 
+            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            : 0
+          setUploadedFile(prev => prev ? { ...prev, progress, status: 'uploading' } : null)
+        },
+      })
+      return res.data
+    },
+    onSuccess: (data) => {
+      setUploadedFile(prev => prev ? {
+        ...prev,
+        status: 'done',
+        progress: 100,
+        extractedText: data.extracted_text,
+      } : null)
+      setContent(data.extracted_text)
+      toast.success(`Extracted ${data.word_count.toLocaleString()} words from ${data.filename}`)
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Failed to upload file'
+      setUploadedFile(prev => prev ? { ...prev, status: 'error', error: message } : null)
+      toast.error(message)
+    },
+  })
+
+  // Handle file selection
+  const handleFileSelect = useCallback((file: File) => {
+    // Validate file type
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      toast.error('Unsupported file type. Please upload PDF, PPTX, or DOCX.')
+      return
+    }
+    
+    // Validate file size
+    const maxSize = maxSizeBytes || MAX_FILE_SIZE
+    if (file.size > maxSize) {
+      toast.error(`File too large. Maximum size is ${formatFileSize(maxSize)}.`)
+      return
+    }
+
+    // Set initial file state
+    setUploadedFile({
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      status: 'pending',
+      progress: 0,
+    })
+
+    // Start upload
+    uploadFileMutation.mutate(file)
+  }, [maxSizeBytes, uploadFileMutation])
 
   // Analyze content mutation
   const analyzeContentMutation = useMutation({
@@ -264,19 +375,198 @@ export default function ContentStructuringPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Lesson Content *</Label>
-              <Textarea
-                placeholder="Paste your lesson content here...&#10;&#10;This can be:&#10;• Text from slides&#10;• Lecture notes&#10;• Video transcript&#10;• Chapter from a textbook"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={12}
-                className="font-mono text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                {content.length} characters • ~{Math.ceil(content.split(/\s+/).filter(Boolean).length / 200)} min read
-              </p>
-            </div>
+            {/* Input Mode Tabs */}
+            <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as 'text' | 'file')}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="text" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Text Input
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="file" 
+                  className="gap-2"
+                  disabled={!hasUploadAccess && !uploadAccessLoading}
+                >
+                  <Upload className="h-4 w-4" />
+                  File Upload
+                  {!hasUploadAccess && !uploadAccessLoading && (
+                    <Crown className="h-3 w-3 text-amber-500" />
+                  )}
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Text Input Tab */}
+              <TabsContent value="text" className="space-y-2 mt-4">
+                <Label>Lesson Content *</Label>
+                <Textarea
+                  placeholder="Paste your lesson content here...&#10;&#10;This can be:&#10;• Text from slides&#10;• Lecture notes&#10;• Video transcript&#10;• Chapter from a textbook"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  rows={12}
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {content.length} characters • ~{Math.ceil(content.split(/\s+/).filter(Boolean).length / 200)} min read
+                </p>
+              </TabsContent>
+
+              {/* File Upload Tab */}
+              <TabsContent value="file" className="space-y-4 mt-4">
+                {!hasUploadAccess && !uploadAccessLoading ? (
+                  /* Upgrade CTA for free users */
+                  <div className="border-2 border-dashed border-amber-300 dark:border-amber-700 rounded-lg p-8 text-center bg-amber-50/50 dark:bg-amber-950/20">
+                    <Crown className="h-12 w-12 mx-auto text-amber-500 mb-4" />
+                    <h3 className="font-semibold text-lg mb-2">Pro Feature</h3>
+                    <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                      {UPGRADE_MESSAGES.fileUploadCTA}
+                    </p>
+                    <Link href="/pricing">
+                      <Button className="gap-2">
+                        <Crown className="h-4 w-4" />
+                        Upgrade to Pro
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  /* File upload dropzone for Pro+ users */
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+                      isDragging 
+                        ? 'border-primary bg-primary/5' 
+                        : uploadedFile?.status === 'error'
+                        ? 'border-destructive bg-destructive/5'
+                        : uploadedFile?.status === 'done'
+                        ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
+                        : 'border-muted-foreground/25 hover:border-primary/50'
+                    }`}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setIsDragging(true)
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      setIsDragging(false)
+                      const file = e.dataTransfer.files[0]
+                      if (file) handleFileSelect(file)
+                    }}
+                  >
+                    {!uploadedFile ? (
+                      /* Empty state - no file selected */
+                      <>
+                        <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="font-medium mb-1">
+                          {isDragging ? 'Drop your file here' : 'Drag and drop your file'}
+                        </p>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          or click to browse
+                        </p>
+                        <input
+                          type="file"
+                          id="file-upload"
+                          className="hidden"
+                          accept=".pdf,.pptx,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) handleFileSelect(file)
+                          }}
+                        />
+                        <label htmlFor="file-upload">
+                          <Button variant="outline" className="cursor-pointer" asChild>
+                            <span>
+                              <File className="h-4 w-4 mr-2" />
+                              Choose File
+                            </span>
+                          </Button>
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-4">
+                          Supported: PDF, PPTX, DOCX • Max {formatFileSize(maxSizeBytes || MAX_FILE_SIZE)}
+                        </p>
+                      </>
+                    ) : (
+                      /* File selected/uploading/done state */
+                      <div className="space-y-4">
+                        {(() => {
+                          const FileIcon = FILE_TYPE_ICONS[uploadedFile.type] || FileText
+                          return (
+                            <div className="flex items-center justify-center gap-3">
+                              <FileIcon className={`h-10 w-10 ${
+                                uploadedFile.status === 'done' 
+                                  ? 'text-green-500' 
+                                  : uploadedFile.status === 'error'
+                                  ? 'text-destructive'
+                                  : 'text-primary'
+                              }`} />
+                              <div className="text-left">
+                                <p className="font-medium">{uploadedFile.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatFileSize(uploadedFile.size)} • {FILE_TYPE_LABELS[uploadedFile.type] || 'File'}
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        })()}
+
+                        {/* Progress bar */}
+                        {(uploadedFile.status === 'uploading' || uploadedFile.status === 'extracting') && (
+                          <div className="space-y-2">
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-primary transition-all duration-300"
+                                style={{ width: `${uploadedFile.progress}%` }}
+                              />
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {uploadedFile.status === 'uploading' 
+                                ? `Uploading... ${uploadedFile.progress}%`
+                                : 'Extracting text...'}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Success state */}
+                        {uploadedFile.status === 'done' && (
+                          <div className="space-y-2">
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Text extracted successfully
+                            </Badge>
+                            <p className="text-sm text-muted-foreground">
+                              {content.length} characters • ~{Math.ceil(content.split(/\s+/).filter(Boolean).length / 200)} min read
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Error state */}
+                        {uploadedFile.status === 'error' && (
+                          <Alert variant="destructive" className="text-left">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{uploadedFile.error}</AlertDescription>
+                          </Alert>
+                        )}
+
+                        {/* Action buttons */}
+                        <div className="flex justify-center gap-2">
+                          {uploadedFile.status === 'done' || uploadedFile.status === 'error' ? (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setUploadedFile(null)
+                                if (uploadedFile.status === 'error') setContent('')
+                              }}
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              Remove
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
           <CardFooter className="flex justify-between">
             <p className="text-sm text-muted-foreground">

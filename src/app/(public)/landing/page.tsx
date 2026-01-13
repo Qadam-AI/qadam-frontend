@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { useTranslations } from '@/lib/i18n';
 import { FEATURES } from '@/lib/feature-flags';
 import { 
@@ -448,7 +447,6 @@ export default function LandingPage() {
             </div>
             
             <div className="flex items-center gap-2">
-              <LanguageSwitcher />
               <Link href="/login"><Button variant="ghost" size="sm">{tNav('login')}</Button></Link>
               <Link href="/login"><Button size="sm" className="hidden sm:flex gap-1">{t('hero.cta')}<ArrowRight className="w-4 h-4" /></Button></Link>
             </div>

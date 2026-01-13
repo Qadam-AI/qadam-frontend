@@ -15,7 +15,6 @@ import { Moon, Sun, Menu } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useUIStore } from '@/stores/ui-store'
-import { LanguageSwitcher } from '@/components/language-switcher'
 import { XPBadge } from '@/components/XPBadge'
 
 export function Navbar() {
@@ -49,8 +48,6 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           {isAuthenticated && <XPBadge variant="compact" />}
-          
-          <LanguageSwitcher />
           
           <Button
             variant="ghost"
