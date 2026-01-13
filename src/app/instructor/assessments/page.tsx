@@ -95,12 +95,13 @@ export default function InstructorAssessments() {
 
   const generateAssessment = useMutation({
     mutationFn: async () => {
-      const res = await api.post('/llm/assessment/generate', {
+      const res = await api.post('/llm/assess', {
         topic,
         content,
         question_count: questionCount,
         difficulty: difficulty[0],
-        course_id: selectedCourse || undefined,
+      }, {
+        params: { course_id: selectedCourse || undefined },
       })
       return res.data
     },
