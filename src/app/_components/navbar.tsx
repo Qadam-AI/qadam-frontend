@@ -47,7 +47,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          {isAuthenticated && <XPBadge variant="compact" />}
+          {isAuthenticated && user?.role !== 'instructor' && <XPBadge variant="compact" />}
           
           <Button
             variant="ghost"
