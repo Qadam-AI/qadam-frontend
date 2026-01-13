@@ -117,6 +117,9 @@ export default function ContentStructuringPage() {
   const [currentStep, setCurrentStep] = useState<'input' | 'review' | 'generate'>('input')
   const [inputMode, setInputMode] = useState<'text' | 'file'>('text')
   
+  // Course selection state
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  
   // Content input state
   const [content, setContent] = useState('')
   const [contentTitle, setContentTitle] = useState('')
@@ -133,6 +136,15 @@ export default function ContentStructuringPage() {
   // Assessment state
   const [questionCount, setQuestionCount] = useState(5)
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null)
+
+  // Fetch instructor's courses
+  const { data: courses = [], isLoading: coursesLoading } = useQuery({
+    queryKey: ['instructor-courses'],
+    queryFn: async () => {
+      const res = await api.get<{ id: string; title: string }[]>('/instructor/courses')
+      return res.data
+    },
+  })
 
   // File upload mutation
   const uploadFileMutation = useMutation({
@@ -232,8 +244,11 @@ export default function ContentStructuringPage() {
   // Generate assessment mutation
   const generateAssessmentMutation = useMutation({
     mutationFn: async () => {
+      if (!selectedCourseId) {
+        throw new Error('Please select a course first')
+      }
       const approvedConcepts = concepts.filter(c => c.selected)
-      const res = await api.post<AssessmentResult>('/instructor/generate-assessment', {
+      const res = await api.post<AssessmentResult>(`/instructor/courses/${selectedCourseId}/generate-assessment`, {
         topic: approvedConcepts.map(c => c.name).join(', '),
         content: content,
         difficulty: 5,
@@ -247,8 +262,8 @@ export default function ContentStructuringPage() {
       toast.success('Assessment generated from your approved concepts!')
       setAssessmentResult(result)
     },
-    onError: () => {
-      toast.error('Failed to generate assessment. Please try again.')
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to generate assessment. Please try again.')
     },
   })
 
@@ -296,6 +311,38 @@ export default function ContentStructuringPage() {
           {MVP_MESSAGES.description}
         </p>
       </div>
+
+      {/* Course Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Select Course
+          </CardTitle>
+          <CardDescription>
+            Choose which course this assessment will belong to
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course"} />
+            </SelectTrigger>
+            <SelectContent>
+              {courses.map((course) => (
+                <SelectItem key={course.id} value={course.id}>
+                  {course.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {courses.length === 0 && !coursesLoading && (
+            <p className="text-sm text-muted-foreground mt-2">
+              No courses found. <Link href="/instructor/courses" className="text-primary hover:underline">Create a course first</Link>.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* LLM Service Status */}
       {!llmAvailable && !llmChecking && (
@@ -847,7 +894,7 @@ export default function ContentStructuringPage() {
               </div>
               <Button 
                 onClick={() => generateAssessmentMutation.mutate()}
-                disabled={generateAssessmentMutation.isPending || !llmAvailable}
+                disabled={generateAssessmentMutation.isPending || !llmAvailable || !selectedCourseId}
                 className="gap-2"
               >
                 {generateAssessmentMutation.isPending ? (
