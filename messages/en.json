@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "Edusistent",
-    "tagline": "Learn anything, master everything",
+    "tagline": "Mastery-based learning for instructors and students",
     "loading": "Loading...",
     "error": "Something went wrong",
     "retry": "Try again",
@@ -38,113 +38,113 @@
     "logout": "Logout",
     "login": "Login",
     "signUp": "Sign Up",
-    "tagline": "Personalized practice to build real mastery."
+    "tagline": "Track what students actually understand, not just completion."
   },
   "landing": {
     "hero": {
-      "badge": "Next-Gen AI Education Platform",
-      "title": "Learn Anything,",
-      "titleHighlight": "Master Everything",
-      "subtitle": "The world's first truly adaptive learning platform. Our proprietary AI creates personalized learning paths that evolve with each student in real-time.",
-      "cta": "Start Free Trial",
+      "badge": "Mastery-Based Course Management",
+      "title": "Track Real Understanding,",
+      "titleHighlight": "Not Just Completion",
+      "subtitle": "Edusistent helps instructors create courses where students prove mastery through adaptive practice—ensuring they truly understand concepts before moving on.",
+      "cta": "Start Teaching",
       "secondaryCta": "Book Demo",
-      "trustedBy": "Trusted by leading institutions"
+      "trustedBy": "Trusted by educators worldwide"
     },
     "problem": {
-      "title": "The $8 Trillion Education Problem",
-      "subtitle": "Traditional education is broken. One-size-fits-all approaches fail 85% of students.",
-      "stat1": { "value": "85%", "label": "of students feel disengaged with current learning methods" },
-      "stat2": { "value": "67%", "label": "of enterprises report skill gaps in their workforce" },
-      "stat3": { "value": "3x", "label": "higher dropout rates with non-personalized content" }
+      "title": "The Completion Problem",
+      "subtitle": "Watching videos doesn't equal learning. Students pass courses without mastering concepts.",
+      "stat1": { "value": "85%", "label": "of students forget material within weeks of 'completing' a course" },
+      "stat2": { "value": "67%", "label": "of instructors lack tools to measure real understanding" },
+      "stat3": { "value": "3x", "label": "better retention with mastery-based approaches" }
     },
     "solution": {
       "title": "Introducing Edusistent",
-      "subtitle": "AI That Truly Understands Learning",
-      "description": "Unlike generic AI tutors, Edusistent uses proprietary cognitive modeling to understand exactly where each learner struggles and why. Our system adapts not just difficulty—but teaching style, content format, and pacing."
+      "subtitle": "Mastery-Based Course Management",
+      "description": "Edusistent automatically extracts key concepts from your lessons and generates adaptive practice questions. Students must demonstrate understanding—not just click through—to progress."
     },
     "features": {
-      "title": "Why Industry Leaders Choose Edusistent",
-      "subtitle": "Enterprise-grade AI learning infrastructure",
+      "title": "Everything You Need to Teach Effectively",
+      "subtitle": "Built for instructors who care about real learning outcomes",
       "adaptive": {
-        "title": "Cognitive AI Engine",
-        "description": "Our proprietary neural architecture models individual learning patterns with 94% accuracy—far beyond simple difficulty adjustment."
+        "title": "Auto Concept Extraction",
+        "description": "Upload your lesson content and our system automatically identifies the key concepts students need to master."
       },
       "video": {
-        "title": "Any Content, Any Format",
-        "description": "Works with video, text, code, simulations. Automatically analyzes and structures content for optimal learning."
+        "title": "Any Content Format",
+        "description": "Works with video, text, slides, or code. Upload your existing materials—we handle the rest."
       },
       "feedback": {
-        "title": "Real-Time Intelligence",
-        "description": "Millisecond response times with context-aware feedback. Students never wait, never get stuck."
+        "title": "Instant Student Feedback",
+        "description": "Students get immediate, contextual feedback on their practice attempts. No manual grading required."
       },
       "progress": {
-        "title": "Predictive Analytics",
-        "description": "Know exactly when students will master concepts. Identify at-risk learners before they fall behind."
+        "title": "Mastery Dashboard",
+        "description": "See exactly which concepts each student has mastered and where they're struggling. Data-driven teaching."
       },
       "enterprise": {
         "title": "Enterprise Ready",
-        "description": "SOC 2 compliant, SSO integration, custom branding. Deploy on-premise or cloud. Full API access."
+        "description": "SSO integration, custom branding, API access. Built for institutions and training organizations."
       },
       "multilingual": {
-        "title": "Global Scale",
-        "description": "Native support for 50+ languages. Cultural adaptation ensures relevance across markets."
+        "title": "Multi-Language Support",
+        "description": "Teach in English, Russian, or Uzbek. More languages coming soon."
       }
     },
     "useCases": {
-      "title": "Built for Scale",
-      "subtitle": "From individual learners to Fortune 500 enterprises",
+      "title": "Built for Educators",
+      "subtitle": "From individual instructors to training organizations",
       "b2c": {
-        "title": "For Learners",
-        "description": "Master any skill with AI that adapts to your unique learning style",
-        "features": ["Personalized learning paths", "24/7 AI tutor assistance", "Progress tracking & certificates"],
-        "badge": "🧙‍♂️ Learner"
+        "title": "For Instructors",
+        "description": "Create courses that actually work—with built-in mastery verification",
+        "features": ["Auto-generated practice questions", "Real-time student progress", "Zero manual grading"],
+        "badge": "👩‍🏫 Instructor"
       },
       "b2b": {
-        "title": "For Enterprises",
-        "description": "Upskill your workforce 3x faster with measurable outcomes",
-        "features": ["Custom course creation", "Team analytics dashboard", "LMS integration"],
-        "badge": "🏰 Enterprise"
+        "title": "For Training Teams",
+        "description": "Train your workforce with measurable skill outcomes",
+        "features": ["Custom course creation", "Team mastery dashboard", "Compliance tracking"],
+        "badge": "🏢 Enterprise"
       },
       "b2b2c": {
-        "title": "For EdTech & Universities",
-        "description": "White-label our AI to power your learning platform",
-        "features": ["Full API access", "Custom AI training", "Revenue sharing models"],
-        "badge": "📚 Institution"
+        "title": "For Universities",
+        "description": "Scale personalized education across departments",
+        "features": ["Multi-course management", "Student analytics", "LMS integration"],
+        "badge": "🎓 Institution"
       }
     },
     "metrics": {
-      "title": "What We're Building",
-      "subtitle": "Target metrics for our pilot programs (prototype stage)",
-      "completion": { "value": "94%", "label": "Target Completion Rate", "compare": "vs 15% industry average" },
-      "speed": { "value": "3x", "label": "Faster Learning Goal", "compare": "compared to traditional methods" },
-      "retention": { "value": "85%+", "label": "Retention Target", "compare": "knowledge after 6 months" },
-      "nps": { "value": "70+", "label": "Target NPS", "compare": "user satisfaction goal" },
-      "note": "* Target goals based on industry research and similar platform benchmarks"
+      "title": "Mastery-Based Results",
+      "subtitle": "What happens when students prove understanding",
+      "completion": { "value": "94%", "label": "Concept Mastery Rate", "compare": "vs 30% for video-only" },
+      "speed": { "value": "3x", "label": "Better Retention", "compare": "compared to passive learning" },
+      "retention": { "value": "85%+", "label": "Skill Retention", "compare": "after 6 months" },
+      "nps": { "value": "70+", "label": "Instructor NPS", "compare": "satisfaction score" },
+      "note": "* Based on mastery-based learning research and pilot program goals"
     },
     "howItWorks": {
       "title": "How It Works",
-      "subtitle": "Intelligent learning in 4 simple steps",
+      "subtitle": "Create mastery-based courses in 4 steps",
       "step1": {
-        "title": "Analyze",
-        "description": "AI assesses knowledge, learning style, and optimal pathways in the first 5 minutes."
+        "title": "Upload Content",
+        "description": "Add your video lectures, slides, or text content. Any format works."
       },
       "step2": {
-        "title": "Personalize",
-        "description": "Content dynamically adapts—difficulty, format, pacing, examples—all in real-time."
+        "title": "Auto-Extract Concepts",
+        "description": "Our system identifies the key concepts students need to understand from your content."
       },
       "step3": {
-        "title": "Engage",
-        "description": "Interactive practice with instant feedback. AI tutoring when you need it most."
+        "title": "Generate Practice",
+        "description": "Adaptive questions are generated to test understanding, not just memorization."
       },
       "step4": {
-        "title": "Master",
-        "description": "Spaced repetition and adaptive review ensure skills stick for life."
+        "title": "Track Mastery",
+        "description": "See which students have mastered which concepts. Intervene where needed."
       }
     },
     "stats": {
-      "students": "Learners Served",
-      "lessons": "Learning Modules",
-      "exercises": "AI Interactions",
+      "students": "Students Enrolled",
+      "lessons": "Lessons Created",
+      "exercises": "Practice Attempts",
       "satisfaction": "Satisfaction Rate"
     },
     "testimonials": {
@@ -159,12 +159,12 @@
       }
     },
     "featureGrid": {
-      "aiTutor": { "title": "AI Tutor", "desc": "Personal learning assistant" },
+      "aiTutor": { "title": "Concept Extraction", "desc": "Auto-identify key concepts" },
       "videoLessons": { "title": "Video Lessons", "desc": "Rich multimedia content" },
-      "practiceMode": { "title": "Practice Mode", "desc": "Interactive challenges" },
-      "communities": { "title": "Communities", "desc": "Learn with peers" },
-      "achievements": { "title": "Achievements", "desc": "Gamified progress" },
-      "analytics": { "title": "Analytics", "desc": "Track your growth" }
+      "practiceMode": { "title": "Adaptive Practice", "desc": "Mastery-based questions" },
+      "communities": { "title": "Instant Feedback", "desc": "Auto-graded responses" },
+      "achievements": { "title": "Mastery Tracking", "desc": "Concept-level progress" },
+      "analytics": { "title": "Analytics", "desc": "Student insights" }
     },
     "nav": {
       "features": "Features",

@@ -8,8 +8,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { 
   Check, X, Zap, Crown, Rocket, Sparkles, Users,
@@ -49,16 +47,16 @@ interface Subscription {
 }
 
 const PLAN_ICONS: Record<string, React.ReactNode> = {
-  free: <Star className="h-8 w-8 text-gray-500" />,
+  free: <Star className="h-8 w-8 text-green-500" />,
   pro: <Zap className="h-8 w-8 text-blue-500" />,
-  premium: <Crown className="h-8 w-8 text-yellow-500" />,
+  team: <Users className="h-8 w-8 text-orange-500" />,
   enterprise: <Rocket className="h-8 w-8 text-purple-500" />,
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  free: 'from-gray-500 to-gray-600',
+  free: 'from-green-500 to-emerald-600',
   pro: 'from-blue-500 to-cyan-600',
-  premium: 'from-yellow-500 to-orange-600',
+  team: 'from-orange-500 to-amber-600',
   enterprise: 'from-purple-500 to-pink-600',
 }
 
@@ -78,7 +76,6 @@ const formatPrice = (cents: number, currency: string = 'USD') => {
 
 export default function PricingPage() {
   const { user } = useAuth()
-  const [isYearly, setIsYearly] = useState(false)
 
   // Fetch plans
   const { data: plans, isLoading: plansLoading } = useQuery({
@@ -102,48 +99,58 @@ export default function PricingPage() {
   const currentPlanId = subscription?.plan_id
 
   const getFeaturesList = (plan: Plan) => {
-    const features = [
-      { 
-        name: `${plan.max_courses === 0 ? 'Unlimited' : plan.max_courses} Courses`, 
-        included: true,
-        icon: <BookOpen className="h-4 w-4" />
-      },
-      { 
-        name: `${plan.max_lessons_per_course} Lessons per Course`, 
-        included: true,
-        icon: <ChevronRight className="h-4 w-4" />
-      },
-      { 
-        name: `${formatBytes(plan.max_storage_bytes)} Storage`, 
-        included: true,
-        icon: <HardDrive className="h-4 w-4" />
-      },
-      { 
-        name: `${plan.max_tasks_per_month} AI Tasks/month`, 
-        included: plan.max_tasks_per_month > 0,
-        icon: <Brain className="h-4 w-4" />
-      },
-      { 
-        name: `${plan.max_students_per_course === 0 ? 'Unlimited' : plan.max_students_per_course} Students per Course`, 
-        included: plan.max_students_per_course > 0 || plan.name !== 'free',
-        icon: <Users className="h-4 w-4" />
-      },
-    ]
-
-    // Add feature flags
-    if (plan.features) {
-      if (plan.features.priority_support) {
-        features.push({ name: 'Priority Support', included: true, icon: <Star className="h-4 w-4" /> })
-      }
-      if (plan.features.advanced_analytics) {
-        features.push({ name: 'Advanced Analytics', included: true, icon: <Zap className="h-4 w-4" /> })
-      }
-      if (plan.features.custom_branding) {
-        features.push({ name: 'Custom Branding', included: true, icon: <Sparkles className="h-4 w-4" /> })
-      }
-      if (plan.features.api_access) {
-        features.push({ name: 'API Access', included: true, icon: <Rocket className="h-4 w-4" /> })
-      }
+    const features = []
+    
+    // Core limits based on plan
+    if (plan.name === 'free') {
+      features.push(
+        { name: 'Up to 10 students total', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: '1 active course', included: true, icon: <BookOpen className="h-4 w-4" /> },
+        { name: 'Manual concept creation', included: true, icon: <ChevronRight className="h-4 w-4" /> },
+        { name: 'AI questions (template-based)', included: true, icon: <Brain className="h-4 w-4" /> },
+        { name: 'Basic mastery tracking', included: true, icon: <Star className="h-4 w-4" /> },
+        { name: 'Community support', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Upload course materials', included: false, icon: <HardDrive className="h-4 w-4" /> },
+        { name: 'Auto concept extraction', included: false, icon: <Sparkles className="h-4 w-4" /> },
+      )
+    } else if (plan.name === 'pro') {
+      features.push(
+        { name: 'Up to 30 students per course', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Up to 3 active courses', included: true, icon: <BookOpen className="h-4 w-4" /> },
+        { name: 'Up to 90 students total', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Upload PDF, slides, video', included: true, icon: <HardDrive className="h-4 w-4" /> },
+        { name: 'Auto concept extraction', included: true, icon: <Sparkles className="h-4 w-4" /> },
+        { name: 'AI questions aligned to content', included: true, icon: <Brain className="h-4 w-4" /> },
+        { name: 'Adaptive difficulty', included: true, icon: <Zap className="h-4 w-4" /> },
+        { name: 'Advanced mastery tracking', included: true, icon: <Star className="h-4 w-4" /> },
+        { name: 'Progressive hint system', included: true, icon: <ChevronRight className="h-4 w-4" /> },
+        { name: 'Priority support', included: true, icon: <Crown className="h-4 w-4" /> },
+        { name: '+10 students: $7/month add-on', included: true, icon: <Users className="h-4 w-4" /> },
+      )
+    } else if (plan.name === 'team') {
+      features.push(
+        { name: 'Up to 300 students total', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Up to 10 active courses', included: true, icon: <BookOpen className="h-4 w-4" /> },
+        { name: 'Up to 10 instructors', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Shared content library', included: true, icon: <HardDrive className="h-4 w-4" /> },
+        { name: 'Instructor collaboration', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Cohort-level analytics', included: true, icon: <Zap className="h-4 w-4" /> },
+        { name: 'Centralized student management', included: true, icon: <Star className="h-4 w-4" /> },
+        { name: 'Higher AI usage quota', included: true, icon: <Brain className="h-4 w-4" /> },
+        { name: 'Email + onboarding support', included: true, icon: <Crown className="h-4 w-4" /> },
+      )
+    } else if (plan.name === 'enterprise') {
+      features.push(
+        { name: 'Unlimited students', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Unlimited courses', included: true, icon: <BookOpen className="h-4 w-4" /> },
+        { name: 'Unlimited instructors', included: true, icon: <Users className="h-4 w-4" /> },
+        { name: 'Faculty / department structure', included: true, icon: <Rocket className="h-4 w-4" /> },
+        { name: 'Advanced admin dashboards', included: true, icon: <Zap className="h-4 w-4" /> },
+        { name: 'Custom AI policies', included: true, icon: <Brain className="h-4 w-4" /> },
+        { name: 'SSO / institutional auth', included: true, icon: <Star className="h-4 w-4" /> },
+        { name: 'Private / on-prem deployment', included: true, icon: <HardDrive className="h-4 w-4" /> },
+        { name: 'SLA & dedicated support', included: true, icon: <Crown className="h-4 w-4" /> },
+      )
     }
 
     return features
@@ -164,16 +171,6 @@ export default function PricingPage() {
         <p className="text-xl text-muted-foreground mb-8">
           Choose the plan that fits your needs. Start free and upgrade as you grow.
         </p>
-
-        {/* Billing Toggle */}
-        <div className="flex items-center justify-center gap-4">
-          <Label className={!isYearly ? 'font-semibold' : 'text-muted-foreground'}>Monthly</Label>
-          <Switch checked={isYearly} onCheckedChange={setIsYearly} />
-          <Label className={isYearly ? 'font-semibold' : 'text-muted-foreground'}>
-            Yearly
-            <Badge variant="default" className="ml-2 bg-green-500">Save 20%</Badge>
-          </Label>
-        </div>
       </motion.div>
 
       {/* Plans Grid */}
@@ -187,8 +184,7 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans?.map((plan, index) => {
             const isCurrentPlan = currentPlanId === plan.id
-            const price = isYearly ? plan.price_yearly : plan.price_monthly
-            const monthlyEquivalent = isYearly ? plan.price_yearly / 12 : plan.price_monthly
+            const price = plan.price_monthly
             const isPopular = plan.name === 'pro'
 
             return (
@@ -221,22 +217,23 @@ export default function PricingPage() {
                   <CardContent className="flex-1">
                     {/* Price */}
                     <div className="text-center mb-6">
-                      {price === 0 ? (
-                        <div className="text-4xl font-bold">Free</div>
+                      {plan.name === 'enterprise' ? (
+                        <div>
+                          <div className="text-3xl font-bold">Custom</div>
+                          <p className="text-sm text-muted-foreground">Annual contracts only</p>
+                        </div>
+                      ) : price === 0 ? (
+                        <div>
+                          <div className="text-4xl font-bold">$0</div>
+                          <p className="text-sm text-muted-foreground">Free forever</p>
+                        </div>
                       ) : (
-                        <>
+                        <div>
                           <div className="text-4xl font-bold">
-                            {formatPrice(monthlyEquivalent, plan.currency)}
+                            {formatPrice(price, plan.currency)}
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            per month{isYearly && ', billed yearly'}
-                          </p>
-                          {isYearly && (
-                            <p className="text-sm text-green-600 font-medium mt-1">
-                              Save {formatPrice(plan.price_monthly * 12 - plan.price_yearly, plan.currency)}/year
-                            </p>
-                          )}
-                        </>
+                          <p className="text-sm text-muted-foreground">per month</p>
+                        </div>
                       )}
                     </div>
 
@@ -261,16 +258,23 @@ export default function PricingPage() {
                         <Check className="h-4 w-4 mr-2" />
                         Current Plan
                       </Button>
-                    ) : plan.price_monthly === 0 ? (
+                    ) : plan.name === 'free' ? (
                       <Button className="w-full" variant="outline" asChild>
-                        <Link href="/register">Get Started</Link>
+                        <Link href="/register">Get Started Free</Link>
+                      </Button>
+                    ) : plan.name === 'enterprise' ? (
+                      <Button 
+                        className="w-full bg-purple-500 hover:bg-purple-600"
+                        onClick={() => toast.info('Contact us at sales@edusistent.com for custom pricing')}
+                      >
+                        Contact Sales
                       </Button>
                     ) : (
                       <Button 
                         className={`w-full ${isPopular ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
-                        onClick={() => toast.info('Payment integration coming soon!')}
+                        onClick={() => toast.info('Upgrade plan - Contact us to enable your subscription')}
                       >
-                        {currentPlanId ? 'Upgrade' : 'Subscribe'}
+                        {currentPlanId ? 'Upgrade Plan' : 'Get Started'}
                       </Button>
                     )}
                   </CardFooter>
@@ -292,44 +296,55 @@ export default function PricingPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Can I switch plans anytime?</CardTitle>
+              <CardTitle className="text-lg">Can I add more students to my Pro plan?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Yes! You can upgrade or downgrade your plan at any time. When upgrading, you&apos;ll be charged the prorated difference. When downgrading, the new rate applies at your next billing cycle.
+                Yes! Pro plan includes up to 90 students total across 3 courses. You can add capacity in blocks of 10 students for $7/month each. This flexibility lets you grow without committing to a higher tier.
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">What happens to my data if I cancel?</CardTitle>
+              <CardTitle className="text-lg">What happens if I exceed my AI usage quota?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Your courses and content remain accessible in read-only mode. You can export your data anytime. After 30 days of cancellation, you can reactivate your account with all data intact.
+                On Pro and Team plans, you&apos;ll receive a notification when approaching your quota. You can purchase additional AI capacity on a pay-as-you-go basis, or wait until the next billing cycle for your quota to reset.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Do you offer educational discounts?</CardTitle>
+              <CardTitle className="text-lg">What&apos;s included in the Starter (Free) plan?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Yes! We offer special discounts for educators, students, and non-profit organizations. Contact our support team with proof of eligibility to receive your discount code.
+                The Starter plan lets you try the full workflow with up to 10 students and 1 course. You can create concepts manually, generate basic AI questions, and track student mastery. It&apos;s designed to let you evaluate the platform before scaling.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">What payment methods do you accept?</CardTitle>
+              <CardTitle className="text-lg">How does Team / Academy differ from Pro?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers for annual plans. All payments are processed securely through Stripe.
+                Team plan is designed for organizations with multiple instructors. It includes shared content libraries, instructor collaboration tools, cohort-level analytics, and centralized student management. Perfect for bootcamps, training centers, and private schools.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">What does Enterprise include?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Enterprise is for universities and large institutions requiring unlimited capacity, faculty/department structures, SSO integration, custom AI policies, and optional private deployment. Contact our sales team for custom pricing based on your institution&apos;s needs.
               </p>
             </CardContent>
           </Card>

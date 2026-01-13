@@ -233,14 +233,14 @@ export default function JoinLinksPage() {
                   <div className="space-y-2">
                     <Label>Expires In (days)</Label>
                     <Select
-                      value={form.expires_in_days}
-                      onValueChange={(v) => setForm(prev => ({ ...prev, expires_in_days: v }))}
+                      value={form.expires_in_days || 'never'}
+                      onValueChange={(v) => setForm(prev => ({ ...prev, expires_in_days: v === 'never' ? '' : v }))}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Never expires" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Never expires</SelectItem>
+                        <SelectItem value="never">Never expires</SelectItem>
                         <SelectItem value="1">1 day</SelectItem>
                         <SelectItem value="7">7 days</SelectItem>
                         <SelectItem value="30">30 days</SelectItem>

@@ -15,7 +15,7 @@ import { useTranslations } from '@/lib/i18n'
 import { Twitter, Linkedin, Github } from 'lucide-react'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [emailOrUsername, setEmailOrUsername] = useState('')
   const [password, setPassword] = useState('')
   const { login, isLoggingIn, isAuthenticated } = useAuth()
   const router = useRouter()
@@ -24,15 +24,26 @@ export default function LoginPage() {
   const tAuth = useTranslations('auth')
 
   // Redirect if already authenticated
+  const { user } = useAuth()
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/')
+    if (isAuthenticated && user) {
+      if (user.role === 'instructor' || user.role === 'admin') {
+        router.push('/instructor')
+      } else {
+        router.push('/')
+      }
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, user, router])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    login({ email, password })
+    // Determine if input is email or username
+    const isEmail = emailOrUsername.includes('@')
+    if (isEmail) {
+      login({ email: emailOrUsername, password })
+    } else {
+      login({ username: emailOrUsername, password })
+    }
   }
 
   if (isAuthenticated) {
@@ -82,13 +93,13 @@ export default function LoginPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">{tAuth('login.email')}</Label>
+                  <Label htmlFor="emailOrUsername">Email or Username</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="learner@qadam.dev"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="emailOrUsername"
+                    type="text"
+                    placeholder="email@example.com or username"
+                    value={emailOrUsername}
+                    onChange={(e) => setEmailOrUsername(e.target.value)}
                     required
                     autoFocus
                   />

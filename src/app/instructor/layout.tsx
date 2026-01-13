@@ -3,6 +3,8 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import api from '@/lib/api'
 import { Navbar } from '../_components/navbar'
 import { Footer } from '../_components/footer'
 import Link from 'next/link'
@@ -13,47 +15,67 @@ import {
   Settings,
   GraduationCap,
   ChevronRight,
-  Mail,
   Link2,
   FileText,
-  Brain,
-  Home
+  Target,
+  Sparkles,
+  Crown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 
+// Core instructor navigation - always visible (Path B flow)
 const instructorNavItems = [
   { href: '/instructor', icon: BarChart3, label: 'Dashboard', exact: true },
   { href: '/instructor/courses', icon: BookOpen, label: 'My Courses' },
+  { href: '/instructor/ai-tools', icon: Sparkles, label: 'Content Structuring' },
+  { href: '/instructor/mastery', icon: Target, label: 'Mastery Overview' },
   { href: '/instructor/students', icon: Users, label: 'Students' },
 ]
 
+// Tools with feature flags
 const toolsNavItems = [
-  { href: '/instructor/invitations', icon: Mail, label: 'Invitations' },
-  { href: '/instructor/join-links', icon: Link2, label: 'Join Links' },
-  { href: '/instructor/assessments', icon: FileText, label: 'AI Assessments' },
-  { href: '/instructor/transcriptions', icon: Brain, label: 'Transcriptions' },
-]
+  { href: '/instructor/assessments', icon: FileText, label: 'Assessments', enabled: true },
+].filter(item => item.enabled)
 
 const settingsNavItems = [
   { href: '/instructor/settings', icon: Settings, label: 'Settings' },
-  { href: '/', icon: Home, label: 'Back to Learner' },
 ]
 
 function InstructorSidebar() {
   const pathname = usePathname()
+  
+  // Fetch current subscription
+  const { data: subscription } = useQuery({
+    queryKey: ['my-subscription'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/api/v1/subscriptions/my')
+        return res.data
+      } catch {
+        return null
+      }
+    },
+  })
   
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href
     return pathname === href || pathname.startsWith(href + '/')
   }
   
+  const getPlanColor = (planName: string) => {
+    switch (planName) {
+      case 'free': return 'bg-green-500/10 text-green-600 border-green-500/20'
+      case 'pro': return 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+      case 'team': return 'bg-orange-500/10 text-orange-600 border-orange-500/20'
+      case 'enterprise': return 'bg-purple-500/10 text-purple-600 border-purple-500/20'
+      default: return 'bg-muted text-muted-foreground'
+    }
+  }
+  
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r bg-background hidden lg:block overflow-y-auto">
-      <div className="p-4">
-        <div className="flex items-center gap-2 mb-6 px-2">
-          <GraduationCap className="h-6 w-6 text-primary" />
-          <span className="font-semibold text-lg">Instructor Panel</span>
-        </div>
+      <div className="p-6 flex flex-col h-full">
         
         {/* Main Navigation */}
         <nav className="space-y-1">
@@ -115,6 +137,29 @@ function InstructorSidebar() {
               </Link>
             ))}
           </nav>
+        </div>
+        
+        {/* Current Plan - at bottom */}
+        <div className="mt-auto pt-4 border-t">
+          <Link href="/pricing" className="block">
+            <div className={cn(
+              "px-3 py-2 rounded-lg border transition-colors hover:bg-muted/50",
+              subscription?.plan ? getPlanColor(subscription.plan.name) : 'bg-muted'
+            )}>
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4" />
+                <span className="text-xs font-semibold uppercase tracking-wider">Current Plan</span>
+              </div>
+              <div className="mt-1 font-medium">
+                {subscription?.plan?.display_name || 'Starter'}
+              </div>
+              {subscription?.plan?.name !== 'enterprise' && (
+                <div className="text-xs mt-1 opacity-70">
+                  Click to upgrade
+                </div>
+              )}
+            </div>
+          </Link>
         </div>
       </div>
     </aside>

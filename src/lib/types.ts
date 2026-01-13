@@ -3,12 +3,14 @@
 export type User = {
   id: string
   email: string
+  username?: string | null
   name: string | null
   role: string
 }
 
 export type LoginRequest = {
-  email: string
+  email?: string
+  username?: string
   password: string
 }
 

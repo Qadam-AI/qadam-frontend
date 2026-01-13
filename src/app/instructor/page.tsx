@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { PilotBanner } from '@/components/feature-gate'
 
 interface DashboardStats {
   total_courses: number
@@ -135,14 +136,17 @@ export default function InstructorDashboard() {
       initial="hidden"
       animate="visible"
     >
+      {/* Pilot Banner */}
+      <PilotBanner />
+
       {/* Welcome Header - Clean style */}
-      <motion.div variants={itemVariants} className="flex justify-between items-start">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">
             Welcome back, {user?.name?.split(' ')[0] || 'Instructor'}!
           </h1>
           <p className="text-muted-foreground mt-2">
-            Create engaging courses, invite students, and track their learning journey all in one place.
+            Create courses, add lesson content, extract concepts, and track student mastery.
           </p>
         </div>
         <div className="flex gap-3">
@@ -522,6 +526,20 @@ export default function InstructorDashboard() {
           </Card>
           
           <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
+            <Link href="/instructor/ai-tools">
+              <CardContent className="pt-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white group-hover:scale-110 transition-transform">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Structure Content</p>
+                  <p className="text-sm text-muted-foreground">Extract concepts</p>
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+          
+          <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
             <Link href="/instructor/courses">
               <CardContent className="pt-6 flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white group-hover:scale-110 transition-transform">
@@ -536,28 +554,14 @@ export default function InstructorDashboard() {
           </Card>
           
           <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
-            <Link href="/instructor/courses">
-              <CardContent className="pt-6 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white group-hover:scale-110 transition-transform">
-                  <Video className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium">Add Lesson</p>
-                  <p className="text-sm text-muted-foreground">Upload content</p>
-                </div>
-              </CardContent>
-            </Link>
-          </Card>
-          
-          <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
-            <Link href="/instructor/courses">
+            <Link href="/instructor/mastery">
               <CardContent className="pt-6 flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white group-hover:scale-110 transition-transform">
                   <BarChart3 className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-medium">View Analytics</p>
-                  <p className="text-sm text-muted-foreground">Track progress</p>
+                  <p className="font-medium">View Mastery</p>
+                  <p className="text-sm text-muted-foreground">Track student progress</p>
                 </div>
               </CardContent>
             </Link>

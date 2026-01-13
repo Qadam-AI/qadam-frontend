@@ -20,7 +20,11 @@ export function useAuth() {
     onSuccess: (data) => {
       setAuth(data.user, data.token)
       toast.success('Welcome back!')
-      router.push('/')
+      if (data.user.role === 'instructor' || data.user.role === 'admin') {
+        router.push('/instructor')
+      } else {
+        router.push('/')
+      }
     },
     onError: () => {
       toast.error('Invalid credentials')

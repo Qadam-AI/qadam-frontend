@@ -22,6 +22,8 @@ import { AuthGuard } from './_components/auth-guard'
 import LandingPage from './(public)/landing/page'
 import { useTranslations } from '@/lib/i18n'
 
+import { useEffect } from 'react'
+
 interface LessonProgressStats {
   totalLessons: number
   completedLessons: number
@@ -51,6 +53,13 @@ function DashboardContent() {
   const t = useTranslations('dashboard')
   const tCommon = useTranslations('common')
   const { data: masteryData, isLoading, error, refetch } = useMastery(user?.id)
+
+  // If instructor, redirect to instructor dashboard (safety check, should be handled by login/useAuth)
+  useEffect(() => {
+    if (user?.role === 'instructor' || user?.role === 'admin') {
+      router.push('/instructor')
+    }
+  }, [user, router])
 
   // Fetch streak
   const { data: streak } = useQuery<UserStreak>({
@@ -469,11 +478,19 @@ function DashboardContent() {
 }
 
 export default function Home() {
-  const { token } = useAuthStore()
+  const { token, user } = useAuthStore()
+  const router = useRouter()
 
   // If not authenticated, show landing page
   if (!token) {
     return <LandingPage />
+  }
+
+  // Double check redirection for instructors landing on root
+  if (user?.role === 'instructor' || user?.role === 'admin') {
+    if (typeof window !== 'undefined') {
+      router.push('/instructor')
+    }
   }
 
   // If authenticated, show dashboard

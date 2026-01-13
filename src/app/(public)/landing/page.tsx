@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useTranslations } from '@/lib/i18n';
+import { FEATURES } from '@/lib/feature-flags';
 import { 
   Play, 
   Sparkles, 
@@ -489,10 +490,12 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Game-Style Learning Map */}
+          {/* Game-Style Learning Map - hidden in demo mode */}
+          {FEATURES.gamification && (
           <div className="max-w-5xl mx-auto">
             <GameLearningMap t={t} />
           </div>
+          )}
         </div>
       </section>
 
@@ -793,10 +796,10 @@ export default function LandingPage() {
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 max-w-5xl mx-auto">
             {[
-              { value: t('metrics.completion.value'), label: t('metrics.completion.label'), compare: t('metrics.completion.compare'), color: 'from-green-500 to-emerald-500' },
-              { value: t('metrics.speed.value'), label: t('metrics.speed.label'), compare: t('metrics.speed.compare'), color: 'from-blue-500 to-cyan-500' },
-              { value: t('metrics.retention.value'), label: t('metrics.retention.label'), compare: t('metrics.retention.compare'), color: 'from-violet-500 to-purple-500' },
-              { value: t('metrics.nps.value'), label: t('metrics.nps.label'), compare: t('metrics.nps.compare'), color: 'from-yellow-500 to-amber-500' },
+              { value: t('metrics.completion.value'), label: t('metrics.completion.label'), compare: t('metrics.completion.compare'), color: 'from-green-500 to-emerald-500', icon: '🎯' },
+              { value: t('metrics.speed.value'), label: t('metrics.speed.label'), compare: t('metrics.speed.compare'), color: 'from-blue-500 to-cyan-500', icon: '⚡' },
+              { value: t('metrics.retention.value'), label: t('metrics.retention.label'), compare: t('metrics.retention.compare'), color: 'from-violet-500 to-purple-500', icon: '🧠' },
+              { value: t('metrics.nps.value'), label: t('metrics.nps.label'), compare: t('metrics.nps.compare'), color: 'from-yellow-500 to-amber-500', icon: '⭐' },
             ].map((metric, index) => (
               <div
                 key={metric.label}
@@ -837,10 +840,10 @@ export default function LandingPage() {
 
             <div className="space-y-12">
               {[
-                { number: 1, icon: Target, title: t('howItWorks.step1.title'), description: t('howItWorks.step1.description'), color: 'from-cyan-500 to-blue-500' },
-                { number: 2, icon: Sparkles, title: t('howItWorks.step2.title'), description: t('howItWorks.step2.description'), color: 'from-violet-500 to-purple-500' },
-                { number: 3, icon: MessageSquare, title: t('howItWorks.step3.title'), description: t('howItWorks.step3.description'), color: 'from-orange-500 to-amber-500' },
-                { number: 4, icon: Trophy, title: t('howItWorks.step4.title'), description: t('howItWorks.step4.description'), color: 'from-yellow-500 to-orange-500' },
+                { number: 1, icon: Target, title: t('howItWorks.step1.title'), description: t('howItWorks.step1.description'), color: 'from-cyan-500 to-blue-500', emoji: '📤' },
+                { number: 2, icon: Sparkles, title: t('howItWorks.step2.title'), description: t('howItWorks.step2.description'), color: 'from-violet-500 to-purple-500', emoji: '🧠' },
+                { number: 3, icon: MessageSquare, title: t('howItWorks.step3.title'), description: t('howItWorks.step3.description'), color: 'from-orange-500 to-amber-500', emoji: '📝' },
+                { number: 4, icon: Trophy, title: t('howItWorks.step4.title'), description: t('howItWorks.step4.description'), color: 'from-yellow-500 to-orange-500', emoji: '📊' },
               ].map((step, index) => {
                 const Icon = step.icon;
                 const isEven = index % 2 === 0;
@@ -858,10 +861,12 @@ export default function LandingPage() {
                           <h3 className="text-base md:text-xl font-bold">{step.title}</h3>
                         </div>
                         <p className="text-sm md:text-base text-muted-foreground">{step.description}</p>
+                        {FEATURES.gamification && (
                         <div className={`flex items-center gap-2 mt-3 md:mt-4 ${isEven ? 'lg:justify-end' : ''}`}>
                           <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-500" />
                           <span className="text-xs md:text-sm text-yellow-600 dark:text-yellow-400 font-bold">+{(step.number) * 100} XP</span>
                         </div>
+                        )}
                       </div>
                     </div>
 

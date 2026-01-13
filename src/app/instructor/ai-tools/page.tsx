@@ -1,19 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { useAuth } from '@/hooks/useAuth'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useLLMService, LLM_MESSAGES } from '@/hooks/useLLMService'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Slider } from '@/components/ui/slider'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
   SelectContent,
@@ -22,29 +22,34 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { 
-  Sparkles, Video, FileText, Brain, Wand2, Play,
-  CheckCircle2, Clock, BookOpen, Lightbulb, Copy,
-  Download, RefreshCw, Plus, Target, Zap
+  FileText, Brain, Wand2, CheckCircle2, BookOpen, 
+  Lightbulb, AlertCircle, Target, RefreshCw, 
+  Sparkles, Edit2, Trash2, Plus, ArrowRight,
+  Info, Shield, Eye, Check, X
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { PilotBanner } from '@/components/feature-gate'
+import { MVP_MESSAGES } from '@/lib/feature-flags'
 
-interface TranscriptionResult {
-  text: string
-  language?: string
-  duration_seconds?: number
-  segments: { start: number; end: number; text: string }[]
-  word_count?: number
-  status: string
+// Types for the Path B flow
+interface ExtractedConcept {
+  id: string
+  name: string
+  description: string
+  prerequisites: string[]
+  difficulty: number
+  selected: boolean  // For instructor review
+  edited: boolean    // Track if instructor modified it
 }
 
 interface ContentAnalysis {
   summary?: string
-  concepts: string[]
+  concepts: ExtractedConcept[]
   key_points: string[]
   difficulty_estimate?: number
   word_count?: number
   reading_time_minutes?: number
-  status: string
+  lesson_mapping?: { concept: string; relevance: number }[]
 }
 
 interface GeneratedQuestion {
@@ -54,387 +59,464 @@ interface GeneratedQuestion {
   options?: string[]
   answer?: string
   explanation?: string
-  difficulty?: number
+  concept_id?: string
 }
 
 interface AssessmentResult {
   assessment_id: string
-  topic: string
-  difficulty: number
   questions: GeneratedQuestion[]
 }
 
-interface ProcessVideoResult {
-  lesson_id: string
-  video_url: string
-  transcription?: TranscriptionResult
-  analysis?: ContentAnalysis
-  questions?: GeneratedQuestion[]
-  steps: Record<string, boolean>
-}
-
-export default function InstructorAIToolsPage() {
-  const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState('transcribe')
+export default function ContentStructuringPage() {
+  const { isAvailable: llmAvailable, isChecking: llmChecking, refresh: refreshLLM } = useLLMService()
   
-  // Transcription state
-  const [videoUrl, setVideoUrl] = useState('')
-  const [transcriptionLanguage, setTranscriptionLanguage] = useState('auto')
-  const [transcriptionResult, setTranscriptionResult] = useState<ProcessVideoResult | null>(null)
+  // Workflow state
+  const [currentStep, setCurrentStep] = useState<'input' | 'review' | 'generate'>('input')
+  
+  // Content input state
+  const [content, setContent] = useState('')
+  const [contentTitle, setContentTitle] = useState('')
+  
+  // Analysis result state
+  const [analysisResult, setAnalysisResult] = useState<ContentAnalysis | null>(null)
+  const [concepts, setConcepts] = useState<ExtractedConcept[]>([])
+  const [editingConcept, setEditingConcept] = useState<string | null>(null)
   
   // Assessment state
-  const [assessmentForm, setAssessmentForm] = useState({
-    topic: '',
-    content: '',
-    difficulty: 5,
-    question_count: 5,
-    question_types: ['multiple_choice', 'code'],
-  })
+  const [questionCount, setQuestionCount] = useState(5)
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null)
-  
-  // Content analysis state
-  const [analysisContent, setAnalysisContent] = useState('')
-  const [analysisTitle, setAnalysisTitle] = useState('')
-  const [analysisResult, setAnalysisResult] = useState<ContentAnalysis | null>(null)
-
-  // Fetch lessons for the dropdown
-  const { data: courses } = useQuery({
-    queryKey: ['instructor-courses'],
-    queryFn: async () => {
-      const res = await api.get<{ id: string; title: string }[]>('/api/v1/instructor/courses')
-      return res.data
-    },
-  })
-
-  // Process video mutation
-  const processVideoMutation = useMutation({
-    mutationFn: async () => {
-      // Use a placeholder lesson ID for demo
-      const lessonId = '00000000-0000-0000-0000-000000000001'
-      const res = await api.post<ProcessVideoResult>(`/api/v1/instructor/lessons/${lessonId}/process-video`, {
-        video_url: videoUrl,
-        language: transcriptionLanguage,
-        generate_questions: true,
-        question_count: 5,
-      })
-      return res.data
-    },
-    onSuccess: (result) => {
-      toast.success('Video processed successfully!')
-      setTranscriptionResult(result)
-    },
-    onError: () => {
-      toast.error('Failed to process video')
-    },
-  })
-
-  // Generate assessment mutation
-  const generateAssessmentMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.post<AssessmentResult>('/api/v1/instructor/generate-assessment', {
-        topic: assessmentForm.topic,
-        content: assessmentForm.content,
-        difficulty: assessmentForm.difficulty,
-        question_count: assessmentForm.question_count,
-        question_types: assessmentForm.question_types,
-      })
-      return res.data
-    },
-    onSuccess: (result) => {
-      toast.success('Assessment generated!')
-      setAssessmentResult(result)
-    },
-    onError: () => {
-      toast.error('Failed to generate assessment')
-    },
-  })
 
   // Analyze content mutation
   const analyzeContentMutation = useMutation({
     mutationFn: async () => {
       const res = await api.post<ContentAnalysis>(`/api/v1/instructor/analyze-content`, null, {
         params: {
-          content: analysisContent,
-          title: analysisTitle || 'Content',
+          content: content,
+          title: contentTitle || 'Lesson Content',
         },
       })
       return res.data
     },
     onSuccess: (result) => {
-      toast.success('Content analyzed!')
+      toast.success('Content analyzed! Review the suggested concepts below.')
       setAnalysisResult(result)
+      // Transform concepts to include review state
+      const extractedConcepts: ExtractedConcept[] = result.concepts.map((name, i) => ({
+        id: `concept-${i}`,
+        name: typeof name === 'string' ? name : (name as any).name || 'Unnamed',
+        description: typeof name === 'string' ? '' : (name as any).description || '',
+        prerequisites: [],
+        difficulty: result.difficulty_estimate || 5,
+        selected: true,  // Selected by default
+        edited: false,
+      }))
+      setConcepts(extractedConcepts)
+      setCurrentStep('review')
     },
     onError: () => {
-      toast.error('Failed to analyze content')
+      toast.error('Failed to analyze content. Please try again.')
     },
   })
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success('Copied to clipboard!')
+  // Generate assessment mutation
+  const generateAssessmentMutation = useMutation({
+    mutationFn: async () => {
+      const approvedConcepts = concepts.filter(c => c.selected)
+      const res = await api.post<AssessmentResult>('/api/v1/instructor/generate-assessment', {
+        topic: approvedConcepts.map(c => c.name).join(', '),
+        content: content,
+        difficulty: 5,
+        question_count: questionCount,
+        question_types: ['multiple_choice', 'short_answer'],
+        concepts: approvedConcepts.map(c => c.name),
+      })
+      return res.data
+    },
+    onSuccess: (result) => {
+      toast.success('Assessment generated from your approved concepts!')
+      setAssessmentResult(result)
+    },
+    onError: () => {
+      toast.error('Failed to generate assessment. Please try again.')
+    },
+  })
+
+  // Concept management
+  const toggleConcept = (id: string) => {
+    setConcepts(prev => prev.map(c => 
+      c.id === id ? { ...c, selected: !c.selected } : c
+    ))
   }
 
+  const updateConcept = (id: string, updates: Partial<ExtractedConcept>) => {
+    setConcepts(prev => prev.map(c => 
+      c.id === id ? { ...c, ...updates, edited: true } : c
+    ))
+  }
+
+  const deleteConcept = (id: string) => {
+    setConcepts(prev => prev.filter(c => c.id !== id))
+  }
+
+  const addConcept = () => {
+    const newConcept: ExtractedConcept = {
+      id: `concept-${Date.now()}`,
+      name: 'New Concept',
+      description: '',
+      prerequisites: [],
+      difficulty: 5,
+      selected: true,
+      edited: true,
+    }
+    setConcepts(prev => [...prev, newConcept])
+  }
+
+  const approvedCount = concepts.filter(c => c.selected).length
+
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      {/* Header - Clean style */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h1 className="text-4xl font-bold tracking-tight">AI-Powered Course Creation</h1>
-        <p className="text-muted-foreground mt-2">
-          Transcribe videos, analyze content, and generate assessments with AI.
+    <div className="space-y-6 max-w-5xl">
+      {/* Pilot Banner */}
+      <PilotBanner />
+      
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Content Structuring</h1>
+        <p className="text-muted-foreground mt-1">
+          {MVP_MESSAGES.description}
         </p>
-      </motion.div>
+      </div>
 
-      {/* Tools Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="transcribe" className="gap-2">
-            <Video className="h-4 w-4" />
-            Video Transcription
-          </TabsTrigger>
-          <TabsTrigger value="assessment" className="gap-2">
-            <Brain className="h-4 w-4" />
-            Assessment Generator
-          </TabsTrigger>
-          <TabsTrigger value="analyze" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Content Analysis
-          </TabsTrigger>
-        </TabsList>
+      {/* LLM Service Status */}
+      {!llmAvailable && !llmChecking && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Analysis Service Unavailable</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>{LLM_MESSAGES.unavailable}</span>
+            <Button variant="outline" size="sm" onClick={() => refreshLLM()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
-        {/* Video Transcription Tab */}
-        <TabsContent value="transcribe" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
+      {/* Workflow Steps Indicator */}
+      <div className="flex items-center gap-2 p-4 bg-muted/30 rounded-lg">
+        <StepIndicator 
+          step={1} 
+          label="Add Content" 
+          active={currentStep === 'input'}
+          completed={currentStep !== 'input'}
+        />
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+        <StepIndicator 
+          step={2} 
+          label="Review Concepts" 
+          active={currentStep === 'review'}
+          completed={currentStep === 'generate'}
+        />
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+        <StepIndicator 
+          step={3} 
+          label="Generate Assessment" 
+          active={currentStep === 'generate'}
+          completed={!!assessmentResult}
+        />
+      </div>
+
+      {/* Step 1: Content Input */}
+      {currentStep === 'input' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
                 <CardTitle className="flex items-center gap-2">
-                  <Video className="h-5 w-5 text-purple-500" />
-                  Transcribe Video
+                  <FileText className="h-5 w-5 text-blue-500" />
+                  Step 1: Add Your Content
                 </CardTitle>
                 <CardDescription>
-                  Extract text from video lessons automatically
+                  Paste lesson text, notes, or transcript. AI will suggest concepts for your review.
                 </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Video URL</Label>
-                  <Input
-                    placeholder="https://youtube.com/watch?v=..."
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Supports YouTube, Vimeo, and direct video URLs
-                  </p>
-                </div>
+              </div>
+              <Badge variant="outline" className="gap-1">
+                <Shield className="h-3 w-3" />
+                {MVP_MESSAGES.instructorControl}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Why this step exists */}
+            <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-700 dark:text-blue-300 text-sm">
+                <strong>Why this step:</strong> We analyze your content to extract potential concepts. 
+                Nothing is published until you review and approve.
+              </AlertDescription>
+            </Alert>
 
-                <div className="space-y-2">
-                  <Label>Language</Label>
-                  <Select value={transcriptionLanguage} onValueChange={setTranscriptionLanguage}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="auto">Auto-detect</SelectItem>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="ru">Russian</SelectItem>
-                      <SelectItem value="uz">Uzbek</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="space-y-2">
+              <Label>Content Title (optional)</Label>
+              <Input
+                placeholder="e.g., Introduction to Python Variables"
+                value={contentTitle}
+                onChange={(e) => setContentTitle(e.target.value)}
+              />
+            </div>
 
-                <Button 
-                  onClick={() => processVideoMutation.mutate()}
-                  className="w-full gap-2"
-                  disabled={processVideoMutation.isPending || !videoUrl}
-                >
-                  {processVideoMutation.isPending ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      Process Video
-                    </>
-                  )}
-                </Button>
+            <div className="space-y-2">
+              <Label>Lesson Content *</Label>
+              <Textarea
+                placeholder="Paste your lesson content here...&#10;&#10;This can be:&#10;• Text from slides&#10;• Lecture notes&#10;• Video transcript&#10;• Chapter from a textbook"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={12}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                {content.length} characters • ~{Math.ceil(content.split(/\s+/).filter(Boolean).length / 200)} min read
+              </p>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <p className="text-sm text-muted-foreground">
+              {MVP_MESSAGES.manualTrigger}
+            </p>
+            <Button 
+              onClick={() => analyzeContentMutation.mutate()}
+              className="gap-2"
+              disabled={analyzeContentMutation.isPending || !content.trim() || !llmAvailable}
+            >
+              {analyzeContentMutation.isPending ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Brain className="h-4 w-4" />
+                  Analyze Content
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
+
+      {/* Step 2: Concept Review */}
+      {currentStep === 'review' && (
+        <div className="space-y-6">
+          {/* Summary Card */}
+          {analysisResult?.summary && (
+            <Card className="bg-muted/30">
+              <CardContent className="pt-6">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                  Content Summary
+                </h4>
+                <p className="text-sm text-muted-foreground">{analysisResult.summary}</p>
               </CardContent>
             </Card>
+          )}
 
-            {/* Transcription Result */}
-            <div>
-              {processVideoMutation.isPending ? (
-                <Card>
-                  <CardContent className="py-16">
-                    <div className="text-center">
-                      <div className="animate-pulse">
-                        <Video className="h-16 w-16 mx-auto text-purple-500 mb-4" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">Processing Video...</h3>
-                      <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                        <p>1. Downloading video...</p>
-                        <p>2. Extracting audio...</p>
-                        <p>3. Transcribing...</p>
-                        <p>4. Analyzing content...</p>
-                      </div>
-                      <Progress value={45} className="w-48 mx-auto" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : transcriptionResult ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
-                >
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">Transcription</CardTitle>
-                        <Button variant="outline" size="sm" onClick={() => copyToClipboard(transcriptionResult.transcription?.text || '')}>
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex gap-4 mb-4 text-sm">
-                        <Badge variant="secondary" className="gap-1">
-                          <Clock className="h-3 w-3" />
-                          {Math.round((transcriptionResult.transcription?.duration_seconds || 0) / 60)}m
-                        </Badge>
-                        <Badge variant="secondary">
-                          {transcriptionResult.transcription?.word_count} words
-                        </Badge>
-                      </div>
-                      <div className="max-h-60 overflow-y-auto p-3 rounded bg-muted text-sm">
-                        {transcriptionResult.transcription?.text}
-                      </div>
-                    </CardContent>
-                  </Card>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-purple-500" />
+                    Step 2: Review Suggested Concepts
+                  </CardTitle>
+                  <CardDescription>
+                    These concepts were extracted from your content. Review, edit, or remove before approving.
+                  </CardDescription>
+                </div>
+                <Badge className="gap-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                  <Eye className="h-3 w-3" />
+                  {MVP_MESSAGES.aiSuggests}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Why this step exists */}
+              <Alert className="bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800">
+                <Info className="h-4 w-4 text-purple-600" />
+                <AlertDescription className="text-purple-700 dark:text-purple-300 text-sm">
+                  <strong>Why this step:</strong> AI suggestions are not always accurate. 
+                  You are the expert — rename, merge, or delete concepts as needed.
+                </AlertDescription>
+              </Alert>
 
-                  {transcriptionResult.analysis && (
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Analysis</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div>
-                          <p className="text-sm font-medium mb-2">Key Concepts</p>
-                          <div className="flex flex-wrap gap-2">
-                            {transcriptionResult.analysis.concepts.map((concept, i) => (
-                              <Badge key={i} variant="outline">{concept}</Badge>
-                            ))}
+              {/* Concepts List */}
+              <div className="space-y-3">
+                {concepts.map((concept) => (
+                  <div 
+                    key={concept.id}
+                    className={`p-4 rounded-lg border transition-all ${
+                      concept.selected 
+                        ? 'border-primary/50 bg-primary/5' 
+                        : 'border-muted bg-muted/30 opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Checkbox 
+                        checked={concept.selected}
+                        onCheckedChange={() => toggleConcept(concept.id)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 min-w-0">
+                        {editingConcept === concept.id ? (
+                          <div className="space-y-2">
+                            <Input
+                              value={concept.name}
+                              onChange={(e) => updateConcept(concept.id, { name: e.target.value })}
+                              className="font-medium"
+                              autoFocus
+                            />
+                            <Textarea
+                              value={concept.description}
+                              onChange={(e) => updateConcept(concept.id, { description: e.target.value })}
+                              placeholder="Add a description..."
+                              rows={2}
+                              className="text-sm"
+                            />
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                onClick={() => setEditingConcept(null)}
+                              >
+                                <Check className="h-3 w-3 mr-1" />
+                                Done
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium mb-2">Key Points</p>
-                          <ul className="space-y-1">
-                            {transcriptionResult.analysis.key_points.map((point, i) => (
-                              <li key={i} className="text-sm flex items-start gap-2">
-                                <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                {point}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {transcriptionResult.questions && transcriptionResult.questions.length > 0 && (
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Generated Questions</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {transcriptionResult.questions.map((q, i) => (
-                          <div key={q.id} className="p-3 rounded bg-muted">
-                            <p className="font-medium mb-2">{i + 1}. {q.question}</p>
-                            {q.options && (
-                              <div className="space-y-1 ml-4">
-                                {q.options.map((opt, j) => (
-                                  <p key={j} className="text-sm text-muted-foreground">
-                                    {String.fromCharCode(65 + j)}. {opt}
-                                  </p>
-                                ))}
-                              </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium">{concept.name}</h4>
+                              {concept.edited && (
+                                <Badge variant="outline" className="text-xs">Modified</Badge>
+                              )}
+                            </div>
+                            {concept.description && (
+                              <p className="text-sm text-muted-foreground mt-1">{concept.description}</p>
                             )}
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  )}
-                </motion.div>
-              ) : (
-                <Card>
-                  <CardContent className="py-16 text-center">
-                    <Video className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="text-lg font-semibold mb-2">No Transcription Yet</h3>
-                    <p className="text-muted-foreground">
-                      Enter a video URL and click Process to get started
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </TabsContent>
+                          </>
+                        )}
+                      </div>
+                      {editingConcept !== concept.id && (
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setEditingConcept(concept.id)}
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => deleteConcept(concept.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
 
-        {/* Assessment Generator Tab */}
-        <TabsContent value="assessment" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-blue-500" />
-                  Generate Assessment
-                </CardTitle>
-                <CardDescription>
-                  Create AI-powered quizzes and coding challenges
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Topic</Label>
-                  <Input
-                    placeholder="e.g., Python Lists and Dictionaries"
-                    value={assessmentForm.topic}
-                    onChange={(e) => setAssessmentForm(prev => ({ ...prev, topic: e.target.value }))}
-                  />
+                {/* Add Concept Button */}
+                <Button 
+                  variant="outline" 
+                  className="w-full border-dashed gap-2"
+                  onClick={addConcept}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Custom Concept
+                </Button>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setCurrentStep('input')}
+                >
+                  Back to Content
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {approvedCount} of {concepts.length} concepts selected
+                </span>
+              </div>
+              <Button 
+                onClick={() => setCurrentStep('generate')}
+                disabled={approvedCount === 0}
+                className="gap-2"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Approve & Continue
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
+
+      {/* Step 3: Generate Assessment */}
+      {currentStep === 'generate' && (
+        <div className="space-y-6">
+          {/* Approved Concepts Summary */}
+          <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800">
+            <CardContent className="pt-6">
+              <h4 className="font-medium mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
+                <CheckCircle2 className="h-4 w-4" />
+                Approved Concepts ({approvedCount})
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {concepts.filter(c => c.selected).map((c) => (
+                  <Badge key={c.id} variant="secondary" className="gap-1">
+                    <BookOpen className="h-3 w-3" />
+                    {c.name}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Wand2 className="h-5 w-5 text-green-500" />
+                    Step 3: Generate Assessment
+                  </CardTitle>
+                  <CardDescription>
+                    Create practice questions from your approved concepts. Students will practice these to build mastery.
+                  </CardDescription>
                 </div>
+                <Badge variant="outline" className="gap-1">
+                  <Shield className="h-3 w-3" />
+                  {MVP_MESSAGES.instructorControl}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Why this step exists */}
+              <Alert className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800">
+                <Info className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-700 dark:text-green-300 text-sm">
+                  <strong>Why this step:</strong> Questions are generated based on the concepts you approved. 
+                  This ensures assessments align with your intended learning objectives.
+                </AlertDescription>
+              </Alert>
 
-                <div className="space-y-2">
-                  <Label>Content / Context</Label>
-                  <Textarea
-                    placeholder="Paste lesson content or describe what students should know..."
-                    value={assessmentForm.content}
-                    onChange={(e) => setAssessmentForm(prev => ({ ...prev, content: e.target.value }))}
-                    rows={6}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Difficulty Level: {assessmentForm.difficulty}/10</Label>
-                  <Slider
-                    value={[assessmentForm.difficulty]}
-                    onValueChange={([v]) => setAssessmentForm(prev => ({ ...prev, difficulty: v }))}
-                    min={1}
-                    max={10}
-                    step={1}
-                  />
-                </div>
-
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Number of Questions</Label>
-                  <Select
-                    value={String(assessmentForm.question_count)}
-                    onValueChange={(v) => setAssessmentForm(prev => ({ ...prev, question_count: parseInt(v) }))}
-                  >
+                  <Select value={String(questionCount)} onValueChange={(v) => setQuestionCount(parseInt(v))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -443,293 +525,115 @@ export default function InstructorAIToolsPage() {
                       <SelectItem value="5">5 questions</SelectItem>
                       <SelectItem value="10">10 questions</SelectItem>
                       <SelectItem value="15">15 questions</SelectItem>
-                      <SelectItem value="20">20 questions</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Question Types</Label>
+                  <div className="text-sm text-muted-foreground pt-2">
+                    Multiple choice, short answer
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button 
+                variant="ghost" 
+                onClick={() => setCurrentStep('review')}
+              >
+                Back to Review
+              </Button>
+              <Button 
+                onClick={() => generateAssessmentMutation.mutate()}
+                disabled={generateAssessmentMutation.isPending || !llmAvailable}
+                className="gap-2"
+              >
+                {generateAssessmentMutation.isPending ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Generate Assessment
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
 
-                <Button 
-                  onClick={() => generateAssessmentMutation.mutate()}
-                  className="w-full gap-2"
-                  disabled={generateAssessmentMutation.isPending || !assessmentForm.topic || !assessmentForm.content}
-                >
-                  {generateAssessmentMutation.isPending ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      Generate Assessment
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Assessment Result */}
-            <div>
-              {generateAssessmentMutation.isPending ? (
-                <Card>
-                  <CardContent className="py-16">
-                    <div className="text-center">
-                      <div className="animate-pulse">
-                        <Brain className="h-16 w-16 mx-auto text-blue-500 mb-4" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">Creating Assessment...</h3>
-                      <p className="text-muted-foreground mb-4">Generating diverse question types</p>
-                      <Progress value={60} className="w-48 mx-auto" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : assessmentResult ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
-                >
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>{assessmentResult.topic}</CardTitle>
-                          <CardDescription>
-                            {assessmentResult.questions.length} questions • Difficulty: {assessmentResult.difficulty}/10
-                          </CardDescription>
-                        </div>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Download className="h-4 w-4" />
-                          Export
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {assessmentResult.questions.map((q, i) => (
-                        <motion.div
-                          key={q.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.1 }}
-                          className="p-4 rounded-lg border"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <Badge variant="outline">{q.type}</Badge>
-                            <Button variant="ghost" size="sm">
-                              <RefreshCw className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <p className="font-medium mb-3">{i + 1}. {q.question}</p>
-                          {q.options && (
-                            <div className="space-y-2 ml-4 mb-3">
-                              {q.options.map((opt, j) => (
-                                <div key={j} className="flex items-center gap-2">
-                                  <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">
-                                    {String.fromCharCode(65 + j)}
-                                  </span>
-                                  <span className="text-sm">{opt}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {q.answer && (
-                            <div className="p-2 rounded bg-green-50 dark:bg-green-900/20 text-sm">
-                              <span className="font-medium text-green-700 dark:text-green-300">Answer: </span>
-                              {q.answer}
-                            </div>
-                          )}
-                          {q.explanation && (
-                            <div className="mt-2 p-2 rounded bg-blue-50 dark:bg-blue-900/20 text-sm">
-                              <span className="font-medium text-blue-700 dark:text-blue-300">💡 </span>
-                              {q.explanation}
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ) : (
-                <Card>
-                  <CardContent className="py-16 text-center">
-                    <Brain className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="text-lg font-semibold mb-2">No Assessment Yet</h3>
-                    <p className="text-muted-foreground">
-                      Enter a topic and content to generate questions
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Content Analysis Tab */}
-        <TabsContent value="analyze" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Generated Assessment Preview */}
+          {assessmentResult && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-green-500" />
-                  Analyze Content
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  Assessment Generated
                 </CardTitle>
                 <CardDescription>
-                  Extract concepts, key points, and difficulty from text
+                  {assessmentResult.questions.length} questions ready for student practice
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Title (optional)</Label>
-                  <Input
-                    placeholder="e.g., Introduction to Machine Learning"
-                    value={analysisTitle}
-                    onChange={(e) => setAnalysisTitle(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Content</Label>
-                  <Textarea
-                    placeholder="Paste your lesson content, lecture notes, or any educational text..."
-                    value={analysisContent}
-                    onChange={(e) => setAnalysisContent(e.target.value)}
-                    rows={10}
-                  />
-                </div>
-
-                <Button 
-                  onClick={() => analyzeContentMutation.mutate()}
-                  className="w-full gap-2"
-                  disabled={analyzeContentMutation.isPending || !analysisContent}
-                >
-                  {analyzeContentMutation.isPending ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      Analyze Content
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Analysis Result */}
-            <div>
-              {analyzeContentMutation.isPending ? (
-                <Card>
-                  <CardContent className="py-16">
-                    <div className="text-center">
-                      <div className="animate-pulse">
-                        <FileText className="h-16 w-16 mx-auto text-green-500 mb-4" />
+              <CardContent>
+                <div className="space-y-4">
+                  {assessmentResult.questions.map((q, i) => (
+                    <div key={q.id} className="p-4 rounded-lg bg-muted/50 border">
+                      <div className="flex items-start justify-between mb-2">
+                        <p className="font-medium">{i + 1}. {q.question}</p>
+                        <Badge variant="outline" className="ml-2 flex-shrink-0">
+                          {q.type}
+                        </Badge>
                       </div>
-                      <h3 className="text-lg font-semibold mb-2">Analyzing Content...</h3>
-                      <p className="text-muted-foreground mb-4">Extracting concepts and key insights</p>
-                      <Progress value={50} className="w-48 mx-auto" />
+                      {q.options && (
+                        <div className="space-y-1 ml-4 mt-3">
+                          {q.options.map((opt, j) => (
+                            <p key={j} className="text-sm text-muted-foreground">
+                              {String.fromCharCode(65 + j)}. {opt}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              ) : analysisResult ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
-                >
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <Card>
-                      <CardContent className="py-4 text-center">
-                        <div className="text-2xl font-bold text-purple-600">
-                          {analysisResult.word_count}
-                        </div>
-                        <p className="text-xs text-muted-foreground">Words</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="py-4 text-center">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {analysisResult.reading_time_minutes}m
-                        </div>
-                        <p className="text-xs text-muted-foreground">Read Time</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="py-4 text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                          {analysisResult.difficulty_estimate}/10
-                        </div>
-                        <p className="text-xs text-muted-foreground">Difficulty</p>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter>
+                <p className="text-sm text-muted-foreground">
+                  These questions will be available for student practice. You can edit or regenerate anytime.
+                </p>
+              </CardFooter>
+            </Card>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
-                  {/* Summary */}
-                  {analysisResult.summary && (
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Summary</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground">{analysisResult.summary}</p>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Concepts */}
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Target className="h-5 w-5 text-purple-500" />
-                        Key Concepts
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {analysisResult.concepts.map((concept, i) => (
-                          <Badge key={i} variant="secondary">{concept}</Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Key Points */}
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Lightbulb className="h-5 w-5 text-yellow-500" />
-                        Key Points
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {analysisResult.key_points.map((point, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                            <span>{point}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ) : (
-                <Card>
-                  <CardContent className="py-16 text-center">
-                    <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="text-lg font-semibold mb-2">No Analysis Yet</h3>
-                    <p className="text-muted-foreground">
-                      Paste content and click Analyze to get insights
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+// Step indicator component
+function StepIndicator({ 
+  step, 
+  label, 
+  active, 
+  completed 
+}: { 
+  step: number
+  label: string
+  active: boolean
+  completed: boolean
+}) {
+  return (
+    <div className={`flex items-center gap-2 ${active ? 'text-primary' : completed ? 'text-green-600' : 'text-muted-foreground'}`}>
+      <div className={`
+        w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium
+        ${active ? 'bg-primary text-primary-foreground' : 
+          completed ? 'bg-green-600 text-white' : 
+          'bg-muted text-muted-foreground'}
+      `}>
+        {completed ? <Check className="h-4 w-4" /> : step}
+      </div>
+      <span className="text-sm font-medium hidden sm:inline">{label}</span>
     </div>
   )
 }

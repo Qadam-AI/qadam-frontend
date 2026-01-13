@@ -32,6 +32,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useEffect } from 'react'
 import { useTranslations } from '@/lib/i18n'
 import { XPBadge } from '@/components/XPBadge'
+import { FEATURES } from '@/lib/feature-flags'
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -39,8 +40,13 @@ export function Sidebar() {
   const { user } = useAuth()
   const t = useTranslations('nav')
 
-  // Core learning items - available to all
-  const coreNavItems = [
+  // Check if user is on instructor pages
+  const isInstructorContext = pathname.startsWith('/instructor')
+  // For instructors in instructor context, hide learner items
+  const isInstructor = user?.role === 'instructor' || user?.role === 'admin'
+
+  // Core learning items - hidden for instructors when in instructor panel
+  const coreNavItems = (isInstructorContext && isInstructor) ? [] : [
     { href: '/', label: t('dashboard'), icon: Home },
     { href: '/courses', label: 'My Courses', icon: BookOpen },
     { href: '/discover', label: 'Discover', icon: Search },
@@ -48,30 +54,33 @@ export function Sidebar() {
     { href: '/attempts', label: t('attempts'), icon: History },
   ]
 
-  // Instructor items - only for instructors/admins
+  // Instructor items - link directly to instructor panel
   const instructorNavItems = [
-    { href: '/instructor/courses/new', label: 'Create Course', icon: PlusCircle },
-    { href: '/instructor/courses', label: 'Manage Courses', icon: GraduationCap },
+    { href: '/instructor', label: 'Instructor Panel', icon: GraduationCap },
   ]
 
-  // New features - available to all users
-  const featureNavItems = [
-    { href: '/learning-paths', label: 'Learning Paths', icon: Map },
-    { href: '/communities', label: 'Communities', icon: Users },
-    { href: '/collaborate', label: 'Collaboration', icon: UsersRound },
-    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
-    { href: '/review', label: 'Spaced Review', icon: RefreshCcw },
-    { href: '/bookmarks', label: 'Bookmarks', icon: Bookmark },
-    { href: '/study-guides', label: 'Study Guides', icon: FileText },
-    { href: '/code-review', label: 'Code Review', icon: Code },
-  ]
+  // Feature items - controlled by feature flags, hidden in instructor context
+  const featureNavItems = (isInstructorContext && isInstructor) ? [] : [
+    { href: '/learning-paths', label: 'Learning Paths', icon: Map, enabled: FEATURES.learningPaths },
+    { href: '/communities', label: 'Communities', icon: Users, enabled: FEATURES.communities },
+    { href: '/collaborate', label: 'Collaboration', icon: UsersRound, enabled: FEATURES.collaboration },
+    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy, enabled: FEATURES.leaderboard },
+    { href: '/review', label: 'Spaced Review', icon: RefreshCcw, enabled: FEATURES.spacedRepetition },
+    { href: '/bookmarks', label: 'Bookmarks', icon: Bookmark, enabled: FEATURES.bookmarks },
+    { href: '/study-guides', label: 'Study Guides', icon: FileText, enabled: FEATURES.studyGuides },
+    { href: '/code-review', label: 'Code Review', icon: Code, enabled: FEATURES.aiCodeReview },
+  ].filter(item => item.enabled)
 
-  // User items
-  const userNavItems = [
-    { href: '/analytics', label: 'My Analytics', icon: BarChart3 },
-    { href: '/profile', label: t('profile'), icon: User },
-    { href: '/pricing', label: 'Subscription', icon: CreditCard },
-  ]
+  // User items - empty in instructor context since instructor layout has its own sidebar
+  const userNavItems = (isInstructorContext && isInstructor) ? [] : [
+    { href: '/analytics', label: 'My Analytics', icon: BarChart3, enabled: true },
+    { href: '/profile', label: t('profile'), icon: User, enabled: FEATURES.profile },
+    { href: '/pricing', label: 'Subscription', icon: CreditCard, enabled: FEATURES.subscription },
+  ].filter(item => item.enabled)
+
+  // For instructors in the instructor panel, don't render the main sidebar at all
+  // since the instructor layout has its own dedicated sidebar
+  const hideMainSidebar = isInstructorContext && isInstructor
 
   // Close sidebar on mobile when route changes
   useEffect(() => {
@@ -79,6 +88,12 @@ export function Sidebar() {
       setSidebarOpen(false)
     }
   }, [pathname, setSidebarOpen])
+
+  // For instructors in the instructor panel, don't render the main sidebar
+  // The instructor layout has its own dedicated sidebar
+  if (hideMainSidebar) {
+    return null
+  }
 
   return (
     <>
@@ -108,8 +123,10 @@ export function Sidebar() {
           <Separator className="lg:hidden" />
           
           <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-            {/* Core Learning */}
-            <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Learning</p>
+            {/* Core Learning - only show if items exist */}
+            {coreNavItems.length > 0 && (
+              <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Learning</p>
+            )}
             {coreNavItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
@@ -130,55 +147,63 @@ export function Sidebar() {
               )
             })}
 
-            {/* Features */}
-            <Separator className="my-3" />
-            <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Features</p>
-            {featureNavItems.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-              
-              return (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={isActive ? 'secondary' : 'ghost'}
-                    className={cn(
-                      'w-full justify-start text-sm',
-                      isActive && 'bg-secondary font-medium'
-                    )}
-                    size="sm"
-                  >
-                    <Icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                </Link>
-              )
-            })}
+            {/* Features - only show section if there are enabled features */}
+            {featureNavItems.length > 0 && (
+              <>
+                <Separator className="my-3" />
+                <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Features</p>
+                {featureNavItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                  
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <Button
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        className={cn(
+                          'w-full justify-start text-sm',
+                          isActive && 'bg-secondary font-medium'
+                        )}
+                        size="sm"
+                      >
+                        <Icon className="mr-2 h-4 w-4" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  )
+                })}
+              </>
+            )}
 
-            {/* User */}
-            <Separator className="my-3" />
-            <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Account</p>
-            {userNavItems.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
-              
-              return (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={isActive ? 'secondary' : 'ghost'}
-                    className={cn(
-                      'w-full justify-start',
-                      isActive && 'bg-secondary font-medium'
-                    )}
-                  >
-                    <Icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                </Link>
-              )
-            })}
+            {/* User - only show if there are items */}
+            {userNavItems.length > 0 && (
+              <>
+                <Separator className="my-3" />
+                <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Account</p>
+                {userNavItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href
+                  
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <Button
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        className={cn(
+                          'w-full justify-start',
+                          isActive && 'bg-secondary font-medium'
+                        )}
+                      >
+                        <Icon className="mr-2 h-4 w-4" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  )
+                })}
+              </>
+            )}
             
-            {/* Instructor Panel - for instructors and admins */}
-            {(user?.role === 'instructor' || user?.role === 'admin') && (
+            {/* Instructor Panel - for instructors and admins, not on instructor pages */}
+            {isInstructor && !isInstructorContext && (
               <>
                 <Separator className="my-3" />
                 <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Teach</p>
@@ -201,23 +226,11 @@ export function Sidebar() {
                     </Link>
                   )
                 })}
-                <Link href="/instructor">
-                  <Button
-                    variant={pathname === '/instructor' ? 'secondary' : 'ghost'}
-                    className={cn(
-                      'w-full justify-start',
-                      pathname === '/instructor' && 'bg-secondary font-medium'
-                    )}
-                  >
-                    <GraduationCap className="mr-2 h-4 w-4" />
-                    {t('instructor')}
-                  </Button>
-                </Link>
               </>
             )}
             
-            {/* Admin Dashboard - for admins only */}
-            {user?.role === 'admin' && (
+            {/* Admin Dashboard - for admins only, hidden in demo mode */}
+            {user?.role === 'admin' && FEATURES.adminPanel && (
               <>
                 <Separator className="my-3" />
                 <p className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Platform</p>
@@ -237,17 +250,18 @@ export function Sidebar() {
             )}
           </nav>
 
-          {/* XP Progress */}
-          <div className="p-4 border-t">
-            <XPBadge variant="full" />
-          </div>
+          {/* XP Progress - hidden in demo mode */}
+          {FEATURES.xpBadge && (
+            <div className="p-4 border-t">
+              <XPBadge variant="full" />
+            </div>
+          )}
 
           <div className="p-4 text-xs text-muted-foreground">
-            <p>{t('tagline') || 'Personalized practice to build real mastery.'}</p>
+            <p>Mastery-based learning for real understanding.</p>
           </div>
         </div>
       </aside>
     </>
   )
 }
-

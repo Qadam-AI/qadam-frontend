@@ -120,8 +120,8 @@ export default function InstructorAssessments() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">AI Assessments</h1>
-          <p className="text-muted-foreground">Generate AI-powered quizzes and assessments</p>
+          <h1 className="text-3xl font-bold">Assessments</h1>
+          <p className="text-muted-foreground">Generate quizzes from your lesson content</p>
         </div>
         <Skeleton className="h-64 w-full" />
       </div>
@@ -134,8 +134,8 @@ export default function InstructorAssessments() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">AI Assessments</h1>
-          <p className="text-muted-foreground">Generate AI-powered quizzes and assessments</p>
+          <h1 className="text-3xl font-bold">Assessments</h1>
+          <p className="text-muted-foreground">Generate quizzes from your lesson content</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -173,12 +173,12 @@ export default function InstructorAssessments() {
               </div>
               <div>
                 <Label htmlFor="course">Link to Course (optional)</Label>
-                <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                <Select value={selectedCourse || 'none'} onValueChange={(v) => setSelectedCourse(v === 'none' ? '' : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a course" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No course</SelectItem>
+                    <SelectItem value="none">No course</SelectItem>
                     {(courses || []).map((course) => (
                       <SelectItem key={course.id} value={course.id}>
                         {course.title}
@@ -278,7 +278,7 @@ export default function InstructorAssessments() {
           <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">No assessments yet</h3>
           <p className="text-muted-foreground mb-4">
-            Generate your first AI-powered assessment to get started
+            Generate your first assessment from lesson content
           </p>
           <Button onClick={() => setIsDialogOpen(true)}>
             <Sparkles className="h-4 w-4 mr-2" />
