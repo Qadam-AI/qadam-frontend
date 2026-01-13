@@ -933,12 +933,24 @@ export default function ContentStructuringPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {assessmentResult.questions.map((q, i) => (
+                  {assessmentResult.questions.map((q, i) => {
+                    // Map question type to readable label
+                    const typeLabels: Record<string, string> = {
+                      'multiple_choice': 'Multiple Choice',
+                      'short_answer': 'Short Answer',
+                      'true_false': 'True/False',
+                      'fill_in_blank': 'Fill in Blank',
+                      'code': 'Code',
+                      'problem_solving': 'Problem Solving',
+                    }
+                    const typeLabel = typeLabels[q.type] || q.type
+                    
+                    return (
                     <div key={q.id} className="p-4 rounded-lg bg-muted/50 border">
                       <div className="flex items-start justify-between mb-2">
                         <p className="font-medium">{i + 1}. {q.question}</p>
-                        <Badge variant="outline" className="ml-2 flex-shrink-0">
-                          {q.type}
+                        <Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
+                          {typeLabel}
                         </Badge>
                       </div>
                       {q.options && (
@@ -956,7 +968,8 @@ export default function ContentStructuringPage() {
                         </div>
                       )}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </CardContent>
               <CardFooter>
