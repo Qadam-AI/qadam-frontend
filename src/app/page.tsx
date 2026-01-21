@@ -76,7 +76,7 @@ function DashboardContent() {
     queryFn: async () => {
       // Fetch courses and completed lessons in parallel
       const [coursesRes, completedRes] = await Promise.all([
-        api.get('/courses'),
+        api.get('/courses?enrolled_only=true'),
         api.get('/lessons/progress'),
       ])
       

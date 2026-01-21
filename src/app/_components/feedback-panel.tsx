@@ -29,120 +29,84 @@ export function FeedbackPanel({
 }: FeedbackPanelProps) {
   const [showDetails, setShowDetails] = useState(false)
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.2 }}
-    >
-      <Card className={passed ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20' : 'border-destructive bg-destructive/5'}>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              {passed ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                  <span className="text-emerald-600">All Tests Passed!</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-5 w-5 text-destructive" />
-                  <span className="text-destructive">Some Tests Failed</span>
-                </>
-              )}
-            </CardTitle>
-            {timeMs && (
-              <Badge variant="outline">
-                {timeMs}ms
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {feedback && (
-            <div className="text-sm">
-              <p className="font-medium mb-1">Feedback:</p>
-              <p className="text-muted-foreground">{feedback}</p>
-            </div>
-          )}
+  if (passed) {
+    return (
+      <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-6">
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="h-6 w-6 text-green-600" />
+          <h3 className="text-lg font-medium text-green-900 dark:text-green-100">Correct</h3>
+        </div>
+        {feedback && (
+          <p className="mt-2 text-green-800 dark:text-green-300 leading-relaxed text-sm">
+            {feedback}
+          </p>
+        )}
+      </div>
+    )
+  }
 
-          {!passed && failures.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Button
+  return (
+    <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <XCircle className="h-6 w-6 text-destructive" />
+        <h3 className="text-lg font-medium text-destructive">Incorrect</h3>
+      </div>
+
+      {feedback && (
+        <p className="text-foreground leading-relaxed mb-4">
+          {feedback}
+        </p>
+      )}
+
+      {failures.length > 0 && (
+        <div className="space-y-3">
+            <div className="flex items-center gap-4">
+               <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowDetails(!showDetails)}
-                  className="p-0 h-auto font-normal"
+                  className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground"
                 >
                   {showDetails ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
-                  {showDetails ? 'Hide' : 'Show'} failure details
+                  {showDetails ? 'Hide' : 'Show'} details
                 </Button>
-                
+
                 {onGetHint && (
                   <Button
-                    variant="outline"
+                    variant="link"
                     size="sm"
                     onClick={onGetHint}
                     disabled={isLoadingHint}
-                    className="gap-2"
+                    className="h-auto p-0 text-amber-600 dark:text-amber-500"
                   >
-                    <Lightbulb className="h-4 w-4" />
-                    {isLoadingHint ? 'Getting hint...' : 'Get Hint'}
+                    <Lightbulb className="h-3 w-3 mr-1" />
+                    {isLoadingHint ? 'Generating hint...' : 'Need a hint?'}
                   </Button>
                 )}
-              </div>
-
-              {scaffoldedHint && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-3 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800"
-                >
-                  <div className="flex items-start gap-2">
-                    <Lightbulb className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-amber-900 dark:text-amber-100 mb-1">Scaffolded Hint</p>
-                      <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
-                        {scaffoldedHint}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {showDetails && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="space-y-2"
-                >
-                  {failures.map((failure, i) => (
-                    <div key={i} className="text-sm p-3 rounded-lg bg-background/50 border">
-                      <p className="font-medium mb-1">❌ {failure.name}</p>
-                      {failure.expected && (
-                        <p className="text-muted-foreground">
-                          Expected: <code className="text-xs bg-muted px-1 py-0.5 rounded">{failure.expected}</code>
-                        </p>
-                      )}
-                      {failure.received && (
-                        <p className="text-muted-foreground">
-                          Received: <code className="text-xs bg-muted px-1 py-0.5 rounded">{failure.received}</code>
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                  <p className="text-xs text-muted-foreground mt-2">
-                    💡 Tip: Almost there. Try focusing on the failing test names.
-                  </p>
-                </motion.div>
-              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
+            
+            {scaffoldedHint && (
+              <div className="mt-3 p-4 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 text-sm">
+                <p className="font-medium text-amber-800 mb-1">Hint:</p>
+                {scaffoldedHint}
+              </div>
+            )}
+
+            {showDetails && (
+              <div className="bg-background rounded border p-4 text-sm font-mono mt-2">
+                 <ul className="space-y-1">
+                    {failures.map((f, i) => (
+                      <li key={i} className="text-destructive">
+                         • {f.message}
+                      </li>
+                    ))}
+                 </ul>
+              </div>
+            )}
+        </div>
+      )}
+    </div>
   )
 }
+
 

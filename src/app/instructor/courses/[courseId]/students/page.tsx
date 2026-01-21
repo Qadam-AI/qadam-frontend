@@ -19,7 +19,9 @@ import {
   Clock,
   Loader2,
   X,
-  Send
+  Send,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -186,9 +188,9 @@ export default function CourseStudentsPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Students</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage enrolled students and invitations
+            <h1 className="text-3xl font-bold tracking-tight">Class Overview</h1>
+            <p className="text-muted-foreground mt-1 text-lg">
+              Track student progress and understanding
             </p>
           </div>
         </div>
@@ -199,191 +201,195 @@ export default function CourseStudentsPage() {
       </div>
 
       {/* Analytics Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-8 md:grid-cols-3 pt-4 pb-8 border-b">
         {loadingAnalytics ? (
-          [1, 2, 3, 4].map(i => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
+          [1, 2, 3].map(i => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-16" />
+            </div>
           ))
         ) : (
           <>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{analytics?.total_students || 0}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Active</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{analytics?.active_students || 0}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{analytics?.completed_students || 0}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{Math.round(analytics?.completion_rate || 0)}%</div>
-              </CardContent>
-            </Card>
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <Users className="h-4 w-4" />
+                <span>Active Students</span>
+              </div>
+              <div className="text-4xl font-serif font-medium tracking-tight text-foreground">
+                {analytics?.active_students || 0}
+                <span className="text-lg text-muted-foreground ml-2 font-sans font-normal">
+                  / {analytics?.total_students || 0}
+                </span>
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <TrendingUp className="h-4 w-4" />
+                <span>Completion Rate</span>
+              </div>
+              <div className="text-4xl font-serif font-medium tracking-tight text-foreground">
+                {Math.round(analytics?.average_progress || 0)}%
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <AlertCircle className="h-4 w-4" />
+                <span>Needs Support</span>
+              </div>
+              <div className="text-4xl font-serif font-medium tracking-tight text-foreground">
+                 {students?.filter(s => (s.progress_percent || 0) < 30 && (new Date(s.last_activity || '').getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000)).length || 0}
+              </div>
+            </div>
           </>
         )}
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="enrolled" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="enrolled">
-            Enrolled ({students?.length || 0})
+      <Tabs defaultValue="enrolled" className="space-y-8">
+        <TabsList className="bg-transparent p-0 gap-6 h-auto border-b w-full justify-start rounded-none">
+          <TabsTrigger 
+            value="enrolled"
+            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 font-medium"
+          >
+            Enrolled Students ({students?.length || 0})
           </TabsTrigger>
-          <TabsTrigger value="invitations">
-            Invitations ({invitations?.filter(i => i.status === 'pending').length || 0})
+          <TabsTrigger 
+            value="invitations"
+            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 font-medium"
+          >
+            Pending Invitations ({invitations?.filter(i => i.status === 'pending').length || 0})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="enrolled">
-          <Card>
-            <CardContent className="pt-6">
-              {loadingStudents ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
-                </div>
-              ) : students?.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No students enrolled yet</p>
-                  <p className="text-sm">Invite students to get started</p>
-                </div>
-              ) : (
+        <TabsContent value="enrolled" className="mt-0">
+            {loadingStudents ? (
+              <div className="space-y-4 py-4">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : students?.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                <p className="text-lg font-serif">No students enrolled yet</p>
+                <p className="text-sm mt-1">Invite students to get started with this course.</p>
+              </div>
+            ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Student</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Watch Time</TableHead>
-                      <TableHead>Last Active</TableHead>
-                      <TableHead>Status</TableHead>
+                    <TableRow className="hover:bg-transparent border-b border-border">
+                      <TableHead className="font-medium text-muted-foreground pl-0 w-[300px]">Student</TableHead>
+                      <TableHead className="font-medium text-muted-foreground">Progress</TableHead>
+                      <TableHead className="font-medium text-muted-foreground">Last Active</TableHead>
+                      <TableHead className="font-medium text-muted-foreground text-right pr-0">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {students?.map((student) => (
-                      <TableRow key={student.user_id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{student.user_name || 'Unknown'}</p>
-                            <p className="text-sm text-muted-foreground">{student.user_email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-32">
-                            <div className="flex items-center justify-between text-sm mb-1">
-                              <span>{student.lessons_completed}/{student.total_lessons}</span>
-                              <span>{Math.round(student.progress_percent)}%</span>
+                    {students?.map((student) => {
+                       const isStruggling = (student.progress_percent || 0) < 30 && 
+                         (new Date(student.last_activity || '').getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000);
+                         const isCompleted = (student.progress_percent || 0) === 100;
+
+                         return (
+                        <TableRow key={student.user_id} className="hover:bg-muted/30 border-b border-border/40">
+                          <TableCell className="pl-0">
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
+                                {(student.user_name || student.user_email).substring(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-medium text-foreground">{student.user_name || 'Unknown'}</p>
+                                <p className="text-xs text-muted-foreground">{student.user_email}</p>
+                              </div>
                             </div>
-                            <Progress value={student.progress_percent} className="h-2" />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {formatDuration(student.total_watch_time_seconds)}
-                        </TableCell>
-                        <TableCell>
-                          {student.last_activity 
-                            ? formatDate(student.last_activity)
-                            : 'Never'
-                          }
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            student.status === 'completed' ? 'default' :
-                            student.status === 'active' ? 'secondary' : 'outline'
-                          }>
-                            {student.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          </TableCell>
+                          <TableCell>
+                            <div className="w-[180px] space-y-2">
+                              <Progress value={student.progress_percent} className="h-1.5 bg-muted" />
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>{student.lessons_completed} / {student.total_lessons} lessons</span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {student.last_activity 
+                              ? formatDate(student.last_activity)
+                              : 'Never'}
+                          </TableCell>
+                          <TableCell className="text-right pr-0">
+                            {isCompleted ? (
+                               <Badge variant="outline" className="text-green-600 bg-green-50 border-green-200 hover:bg-green-100">
+                                 Completed
+                               </Badge>
+                            ) : isStruggling ? (
+                               <Badge variant="outline" className="text-orange-600 bg-orange-50 border-orange-200 hover:bg-orange-100">
+                                 Needs Attention
+                               </Badge>
+                            ) : (
+                               <Badge variant="outline" className="text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100">
+                                 On Track
+                               </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )})}
+                    </TableBody>
+                  </Table>
               )}
-            </CardContent>
-          </Card>
         </TabsContent>
 
-        <TabsContent value="invitations">
-          <Card>
-            <CardContent className="pt-6">
+        <TabsContent value="invitations" className="mt-0">
               {loadingInvitations ? (
-                <div className="space-y-3">
+                <div className="space-y-4 py-4">
                   {[1, 2, 3].map(i => (
                     <Skeleton key={i} className="h-12 w-full" />
                   ))}
                 </div>
               ) : invitations?.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No invitations sent yet</p>
+                <div className="text-center py-16 text-muted-foreground">
+                  <Mail className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                  <p className="text-lg font-serif">No invitations sent yet</p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Sent</TableHead>
-                      <TableHead>Expires</TableHead>
-                      <TableHead>Status</TableHead>
+                    <TableRow className="hover:bg-transparent border-b border-border">
+                      <TableHead className="font-medium text-muted-foreground pl-0">Email</TableHead>
+                      <TableHead className="font-medium text-muted-foreground">Sent</TableHead>
+                      <TableHead className="font-medium text-muted-foreground">Expires</TableHead>
+                      <TableHead className="font-medium text-muted-foreground">Status</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {invitations?.map((invitation) => (
-                      <TableRow key={invitation.id}>
-                        <TableCell>{invitation.email}</TableCell>
-                        <TableCell>{formatDate(invitation.created_at)}</TableCell>
-                        <TableCell>
+                      <TableRow key={invitation.id} className="hover:bg-muted/30 border-b border-border/40">
+                        <TableCell className="pl-0 text-foreground font-medium">{invitation.email}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm">{formatDate(invitation.created_at)}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
                           {invitation.expires_at ? formatDate(invitation.expires_at) : '-'}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={
-                            invitation.status === 'accepted' ? 'default' :
-                            invitation.status === 'pending' ? 'secondary' : 'outline'
-                          }>
-                            {invitation.status}
-                          </Badge>
+                          <span className={`text-xs px-2 py-1 rounded-full border ${
+                            invitation.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-200' :
+                            invitation.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
+                            'bg-gray-50 text-gray-600 border-gray-200'
+                          }`}>
+                            {invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}
+                          </span>
                         </TableCell>
                         <TableCell>
                           {invitation.status === 'pending' && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-destructive"
+                              className="text-muted-foreground hover:text-destructive h-8 px-2"
                               onClick={() => cancelInviteMutation.mutate(invitation.id)}
                             >
-                              Cancel
+                              Revoke
                             </Button>
                           )}
                         </TableCell>
@@ -392,8 +398,6 @@ export default function CourseStudentsPage() {
                   </TableBody>
                 </Table>
               )}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 

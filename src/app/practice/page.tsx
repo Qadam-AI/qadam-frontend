@@ -4,33 +4,28 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useNextTask } from '@/hooks/useMastery'
 import { useTasks } from '@/hooks/useTasks'
-import { useXP } from '@/hooks/useXP'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Navbar } from '../_components/navbar'
 import { Sidebar } from '../_components/sidebar'
 import { Footer } from '../_components/footer'
-import { TaskCard } from '../_components/task-card'
-import { CodeEditor } from '../_components/code-editor'
 import { FeedbackPanel } from '../_components/feedback-panel'
-import { WhyThisTaskDrawer } from '../_components/why-this-task-drawer'
 import { TaskCardSkeleton } from '../_components/skeletons'
-import { TaskRenderer, isCodeTask, getTaskTypeLabel, getTaskTypeIcon } from '@/components/task-renderers'
+import { TaskRenderer, isCodeTask } from '@/components/task-renderers'
 import type { TaskType } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { Play, RotateCcw, Sparkles, BookOpen, GraduationCap, Rocket, Target, Trophy, ArrowRight, Zap, AlertCircle, Send } from 'lucide-react'
+import { Play, RotateCcw, Sparkles, BookOpen, ArrowRight, Send, CheckCircle2, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { AuthGuard } from '../_components/auth-guard'
-import Confetti from 'react-confetti'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { useTranslations } from '@/lib/i18n'
 import { AIAssistant } from '@/components/ai-assistant'
 import { HintButton } from '@/components/hint-button'
 import Link from 'next/link'
+
 
 interface EnrolledCourse {
   id: string
@@ -46,124 +41,40 @@ function PracticeOnboarding() {
   const t = useTranslations('practice')
   
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
-    >
-      {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-2">
-          {t('onboarding.welcome')}
+    <div className="max-w-2xl mx-auto py-12">
+      <div className="text-center mb-12">
+        <h1 className="text-3xl font-serif text-foreground mb-4">{t('title')}</h1>
+        <p className="text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto">
+          {t('onboarding.welcome') || "Active recall is the most efficient way to learn. Start practicing to reinforce your knowledge."}
         </p>
       </div>
 
-      {/* Onboarding steps */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="h-full border-2 border-dashed hover:border-primary/50 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <GraduationCap className="h-6 w-6 text-primary" />
+      <div className="grid gap-6">
+        <Link href="/courses" className="block group">
+          <div className="border rounded-lg p-6 hover:border-primary/50 transition-colors bg-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-lg mb-1">{t('onboarding.browseCourses') || "Browse Courses"}</h3>
+                <p className="text-muted-foreground">{t('onboarding.step1Desc') || "Find a course to start your learning journey."}</p>
               </div>
-              <CardTitle className="text-lg">{t('onboarding.step1Title')}</CardTitle>
-              <CardDescription>
-                {t('onboarding.step1Desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/courses">
-                <Button variant="outline" className="w-full gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  {t('onboarding.browseCourses')}
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          </div>
+        </Link>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="h-full border-2 border-dashed hover:border-primary/50 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
-                <Play className="h-6 w-6 text-amber-500" />
+        <Link href="/lessons" className="block group">
+          <div className="border rounded-lg p-6 hover:border-primary/50 transition-colors bg-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-lg mb-1">{t('onboarding.viewLessons') || "Go to Lessons"}</h3>
+                <p className="text-muted-foreground">{t('onboarding.step2Desc') || "Review material before practicing."}</p>
               </div>
-              <CardTitle className="text-lg">{t('onboarding.step2Title')}</CardTitle>
-              <CardDescription>
-                {t('onboarding.step2Desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/lessons">
-                <Button variant="outline" className="w-full gap-2">
-                  <Target className="h-4 w-4" />
-                  {t('onboarding.viewLessons')}
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="h-full border-2 border-dashed hover:border-primary/50 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-                <Trophy className="h-6 w-6 text-green-500" />
-              </div>
-              <CardTitle className="text-lg">{t('onboarding.step3Title')}</CardTitle>
-              <CardDescription>
-                {t('onboarding.step3Desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full gap-2" disabled>
-                <Zap className="h-4 w-4" />
-                {t('onboarding.comingSoon')}
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          </div>
+        </Link>
       </div>
-
-      {/* Motivation card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Card className="bg-muted/50">
-          <CardContent className="py-8 text-center">
-            <Rocket className="h-12 w-12 mx-auto mb-4 text-primary" />
-            <h3 className="text-xl font-semibold mb-2">
-              {t('onboarding.readyTitle')}
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              {t('onboarding.readyDesc')}
-            </p>
-            <Link href="/discover">
-              <Button size="lg" className="gap-2">
-                <Sparkles className="h-4 w-4" />
-                {t('onboarding.explore')}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -182,30 +93,20 @@ function CourseSelector({
   if (courses.length <= 1) return null
   
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-wrap gap-2"
-    >
-      <span className="text-sm text-muted-foreground self-center mr-2">
-        {t('selectCourse') || 'Practice from:'}
-      </span>
-      {courses.map((course) => (
-        <Button
-          key={course.course_id}
-          variant={selectedCourse === course.course_id ? "default" : "outline"}
-          size="sm"
-          onClick={() => onSelect(course.course_id)}
-          className="gap-2"
-        >
-          <BookOpen className="h-3 w-3" />
-          {course.course_title}
-          <Badge variant="secondary" className="ml-1 text-xs">
-            {course.progress_percent}%
-          </Badge>
-        </Button>
-      ))}
-    </motion.div>
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-muted-foreground mr-2">Course:</span>
+      <select 
+        className="h-9 px-3 rounded-md border border-input bg-transparent text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        value={selectedCourse || ''}
+        onChange={(e) => onSelect(e.target.value)}
+      >
+        {courses.map((course) => (
+          <option key={course.course_id} value={course.course_id}>
+            {course.course_title}
+          </option>
+        ))}
+      </select>
+    </div>
   )
 }
 
@@ -226,12 +127,10 @@ function PracticeContent() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const { data: nextTaskData, isLoading: isLoadingNext, error: nextError, refetch: refetchNext } = useNextTask(user?.id)
   const { generateTaskAsync, gradeTaskAsync, isGenerating, isGrading } = useTasks()
-  const { invalidateXP } = useXP()
 
   const [currentTask, setCurrentTask] = useState<any>(null)
   const [code, setCode] = useState('')
   const [feedback, setFeedback] = useState<any>(null)
-  const [showConfetti, setShowConfetti] = useState(false)
   const [scaffoldedHint, setScaffoldedHint] = useState<string | null>(null)
   const [isLoadingHint, setIsLoadingHint] = useState(false)
 
@@ -283,11 +182,7 @@ function PracticeContent() {
       setFeedback(result)
 
       if (result.passed) {
-        setShowConfetti(true)
-        setTimeout(() => setShowConfetti(false), 3000)
-        invalidateXP() // Refresh XP display
-        const xpMessage = result.xpEarned > 0 ? ` +${result.xpEarned} XP! ` : ''
-        toast.success(`Nice work!${xpMessage}Difficulty adjusted for your next step 🚀`)
+        toast.success(`Correct.`)
       }
     } catch (error) {
       toast.error('Failed to grade task')
@@ -319,9 +214,9 @@ function PracticeContent() {
         failures: feedback.failures || []
       })
       setScaffoldedHint(response.data.hint)
-      toast.success('Hint generated!')
+      toast.success('Hint generated')
     } catch (error) {
-      toast.error('Failed to generate hint. This feature may not be enabled.')
+      toast.error('Failed to generate hint.')
     } finally {
       setIsLoadingHint(false)
     }
@@ -337,7 +232,7 @@ function PracticeContent() {
           handleRunTests()
         }
       }
-      // Ctrl/Cmd + Shift + R to reset (avoid conflict with browser refresh)
+      // Ctrl/Cmd + Shift + R to reset
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
         e.preventDefault()
         if (currentTask && !isGrading) {
@@ -353,11 +248,7 @@ function PracticeContent() {
   // Loading state
   if (coursesLoading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
-        </div>
+      <div className="max-w-3xl mx-auto py-8">
         <TaskCardSkeleton />
       </div>
     )
@@ -368,269 +259,79 @@ function PracticeContent() {
     return <PracticeOnboarding />
   }
 
-  // Error getting next task (no concepts in system)
+  // Error getting next task
   if (nextError) {
-    const errorMessage = (nextError as any)?.response?.data?.detail || 'No practice content available'
-    
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-8"
-      >
-        {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
-        </div>
-
-        {/* Course selector if multiple */}
-        {courses && courses.length > 1 && (
-          <CourseSelector 
-            courses={courses} 
-            selectedCourse={selectedCourseId} 
-            onSelect={setSelectedCourseId} 
-          />
-        )}
-
-        {/* No content yet message */}
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardContent className="py-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
-              <Target className="h-8 w-8 text-amber-500" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">
-              {t('noContent.title') || 'Practice Content Coming Soon'}
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              {t('noContent.description') || 'Complete some lessons first to unlock personalized practice challenges. Your progress is being tracked!'}
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/lessons">
-                <Button variant="outline" className="gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  {t('noContent.goToLessons') || 'Go to Lessons'}
-                </Button>
-              </Link>
-              <Link href="/courses">
-                <Button className="gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  {t('noContent.myCourses') || 'My Courses'}
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    )
-  }
-
-  // Loading next task
-  if (isLoadingNext || (nextTaskData && isGenerating && !currentTask)) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
-        </div>
-        {courses && courses.length > 1 && (
-          <CourseSelector 
-            courses={courses} 
-            selectedCourse={selectedCourseId} 
-            onSelect={setSelectedCourseId} 
-          />
-        )}
-        <TaskCardSkeleton />
+      <div className="max-w-3xl mx-auto py-12 text-center">
+        <h3 className="text-xl font-medium mb-2">{t('error.title') || "Unable to load task"}</h3>
+        <p className="text-muted-foreground mb-6">{t('error.description') || "Please try again later."}</p>
+        <Button onClick={() => refetchNext()} variant="outline">{t('error.retry') || "Retry"}</Button>
       </div>
     )
   }
 
-  if (nextError) {
+  // Generate loading
+  if (isLoadingNext || (nextTaskData && isGenerating && !currentTask)) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
+      <div className="max-w-3xl mx-auto py-8 space-y-8">
+        <div className="flex items-center justify-between pb-4 border-b">
+          <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+          <div className="h-8 w-24 bg-muted rounded animate-pulse" />
         </div>
-
-        <Card className="border-red-500/30 bg-red-500/5">
-          <CardContent className="py-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="h-8 w-8 text-red-500" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">
-              {t('error.title')}
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              {t('error.description')}
-            </p>
-            <Button onClick={() => refetchNext()} className="gap-2">
-              <RotateCcw className="h-4 w-4" />
-              {t('error.retry')}
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
+        <div className="h-32 bg-muted/50 rounded animate-pulse" />
+        <div className="h-64 bg-muted/30 rounded animate-pulse" />
+      </div>
     )
   }
 
   if (!nextTaskData || !currentTask) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
+      <div className="max-w-3xl mx-auto py-12 text-center">
+        <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="h-8 w-8 text-green-600" />
         </div>
-
-        {courses && courses.length > 1 && (
-          <CourseSelector 
-            courses={courses} 
-            selectedCourse={selectedCourseId} 
-            onSelect={setSelectedCourseId} 
-          />
-        )}
-
-        <Card className="border-green-500/30 bg-green-500/5">
-          <CardContent className="py-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
-              <Trophy className="h-8 w-8 text-green-500" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">
-              {t('allDone.title') || 'All Caught Up!'}
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              {t('allDone.description') || "You've completed all available challenges. Check back later for more or explore other courses."}
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/lessons">
-                <Button variant="outline" className="gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  {t('allDone.goToLessons') || 'Continue Learning'}
-                </Button>
-              </Link>
-              <Button onClick={() => refetchNext()} className="gap-2">
-                <RotateCcw className="h-4 w-4" />
-                {t('allDone.refresh') || 'Check for New Tasks'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+        <h3 className="text-2xl font-serif mb-2">{t('allDone.title') || "Practice Complete"}</h3>
+        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+           You've reviewed all pending items for now. 
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Link href="/lessons">
+            <Button variant="outline">{t('allDone.goToLessons') || "Back to Lessons"}</Button>
+          </Link>
+          <Button onClick={() => refetchNext()}>{t('allDone.refresh') || "Refresh"}</Button>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={200} />}
-
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-      >
+    <div className="max-w-3xl mx-auto py-8 space-y-8 animate-in fade-in duration-500">
+      
+      {/* "Paper" Header */}
+      <div className="flex items-start justify-between pb-6 border-b">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="secondary" className="px-3 py-1">
-            <Target className="h-3 w-3 mr-1" />
+          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
             {nextTaskData.conceptName}
-          </Badge>
-          <Badge className={cn(
-            "px-3 py-1",
-            nextTaskData.difficulty === 'easy' && "bg-green-500/10 text-green-600 border-green-500/30",
-            nextTaskData.difficulty === 'medium' && "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
-            nextTaskData.difficulty === 'hard' && "bg-red-500/10 text-red-600 border-red-500/30"
-          )}>
-            <Zap className="h-3 w-3 mr-1" />
-            {nextTaskData.difficulty}
-          </Badge>
-          <WhyThisTaskDrawer
-            conceptName={nextTaskData.conceptName}
-            difficulty={nextTaskData.difficulty}
-            reason={nextTaskData.reason}
-            mastery={undefined}
-          />
+          </span>
+          <h1 className="text-3xl font-serif text-foreground mt-1">Practice</h1>
         </div>
-      </motion.div>
+        
+        {courses && courses.length > 1 && (
+           <CourseSelector 
+             courses={courses} 
+             selectedCourse={selectedCourseId} 
+             onSelect={setSelectedCourseId} 
+           />
+        )}
+      </div>
 
-      {/* Course Selector */}
-      {courses && courses.length > 1 && (
-        <CourseSelector 
-          courses={courses} 
-          selectedCourse={selectedCourseId} 
-          onSelect={setSelectedCourseId} 
-        />
-      )}
+      {/* Task Prompt - Clean Typography */}
+      <div className="prose prose-lg dark:prose-invert max-w-none">
+         <p className="leading-relaxed whitespace-pre-wrap">{currentTask.prompt}</p>
+      </div>
 
-      {/* Task */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-      >
-        <TaskCard
-          prompt={currentTask.prompt}
-          tests={currentTask.tests}
-          hint={currentTask.hint}
-          difficulty={nextTaskData.difficulty}
-          taskType={currentTask.taskType}
-        />
-      </motion.div>
-
-      {/* Dynamic Task Input - renders appropriate UI based on task type */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">
-              {isCodeTask(currentTask.taskType as TaskType) ? t('yourSolution') : t('yourAnswer') || 'Your Answer'}
-            </h2>
-            <div className="flex items-center gap-2">
-              <HintButton
-                taskPrompt={currentTask.prompt}
-                userCode={code}
-                failures={feedback?.failures}
-                concept={nextTaskData.conceptName}
-              />
-              <span className="text-xs text-muted-foreground hidden sm:inline">
-                {isCodeTask(currentTask.taskType as TaskType) ? t('shortcuts') : ''}
-              </span>
-              <Button variant="outline" size="sm" onClick={handleReset} disabled={isGrading} title="Reset">
-                <RotateCcw className="h-4 w-4 mr-1" />
-                {t('reset')}
-              </Button>
-              <Button onClick={handleRunTests} disabled={isGrading} size="sm" title="Submit">
-                {isCodeTask(currentTask.taskType as TaskType) ? (
-                  <>
-                    <Play className="h-4 w-4 mr-1" />
-                    {isGrading ? t('running') : t('runTests')}
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-1" />
-                    {isGrading ? t('running') : t('submit') || 'Submit'}
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-          
-          {/* Render dynamic task input based on task type */}
+      {/* Input Area */}
+      <div className="pt-4 space-y-6">
           <TaskRenderer
             taskType={(currentTask.taskType || 'short_answer') as TaskType}
             prompt={currentTask.prompt}
@@ -643,16 +344,38 @@ function PracticeContent() {
             onChange={setCode}
             disabled={isGrading}
           />
-        </div>
-      </motion.div>
+          
+          <div className="flex justify-between items-center pt-4">
+             <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={handleReset} disabled={isGrading} className="text-muted-foreground">
+                  Reset
+                </Button>
+                <HintButton
+                  taskPrompt={currentTask.prompt}
+                  userCode={code}
+                  failures={feedback?.failures}
+                  concept={nextTaskData.conceptName}
+                />
+             </div>
+             
+             <Button 
+                onClick={handleRunTests} 
+                disabled={isGrading || !code} 
+                size="lg" 
+                className="px-8"
+              >
+                {isGrading ? (
+                   <span className="flex items-center gap-2">Checking...</span>
+                ) : (
+                   <span className="flex items-center gap-2">Submit <ArrowRight className="h-4 w-4" /></span>
+                )}
+             </Button>
+          </div>
+      </div>
 
-      {/* Feedback */}
+      {/* Feedback Panel */}
       {feedback && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div className="pt-8 border-t animate-in slide-in-from-bottom-4">
           <FeedbackPanel
             passed={feedback.passed}
             feedback={feedback.aiFeedback}
@@ -663,14 +386,13 @@ function PracticeContent() {
             scaffoldedHint={scaffoldedHint}
           />
           {feedback.passed && (
-            <div className="mt-4 flex justify-center">
-              <Button onClick={handleNextTask} size="lg">
-                <Sparkles className="h-4 w-4 mr-2" />
-                {t('nextTask')}
+            <div className="mt-8 flex justify-center">
+              <Button onClick={handleNextTask} size="lg" className="min-w-[200px]">
+                Next Problem <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
           )}
-        </motion.div>
+        </div>
       )}
     </div>
   )

@@ -49,7 +49,6 @@ export function Sidebar() {
   const coreNavItems = (isInstructorContext && isInstructor) ? [] : [
     { href: '/', label: t('dashboard'), icon: Home },
     { href: '/courses', label: 'My Courses', icon: BookOpen },
-    { href: '/discover', label: 'Discover', icon: Search },
     { href: '/practice', label: t('practice'), icon: Code },
     { href: '/attempts', label: t('attempts'), icon: History },
   ]

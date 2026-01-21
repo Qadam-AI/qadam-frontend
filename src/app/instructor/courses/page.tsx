@@ -17,6 +17,7 @@ import {
   EyeOff,
   UserPlus
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -52,6 +53,7 @@ interface Course {
 }
 
 export default function InstructorCoursesPage() {
+  const router = useRouter()
   const queryClient = useQueryClient()
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
@@ -150,70 +152,85 @@ export default function InstructorCoursesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 * i }}
             >
-              <Card className="h-full flex flex-col">
-                <CardHeader className="flex-row items-start justify-between space-y-0">
+              <Card 
+                className="h-full flex flex-col cursor-pointer hover:shadow-md transition-shadow" 
+                onClick={() => router.push(`/instructor/courses/${course.id}`)}
+              >
+                {/* Course Image */}
+                <div className="w-full aspect-video bg-muted relative overflow-hidden rounded-t-xl group">
+                  {course.thumbnail_url ? (
+                    <img 
+                      src={course.thumbnail_url} 
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground bg-secondary/30">
+                      <BookOpen className="h-10 w-10 opacity-20" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+                </div>
+
+                <CardHeader className="flex-row items-start justify-between space-y-0 pb-2">
                   <div className="space-y-1">
                     <CardTitle className="text-lg line-clamp-1">{course.title}</CardTitle>
                     <CardDescription className="line-clamp-2">
                       {course.description || 'No description'}
                     </CardDescription>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <Link href={`/instructor/courses/${course.id}`}>
-                        <DropdownMenuItem>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Edit Course
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-2">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <Link href={`/instructor/courses/${course.id}`}>
+                          <DropdownMenuItem>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit Course
+                          </DropdownMenuItem>
+                        </Link>
+                        <Link href={`/instructor/courses/${course.id}/students`}>
+                          <DropdownMenuItem>
+                            <Users className="h-4 w-4 mr-2" />
+                            View Students
+                          </DropdownMenuItem>
+                        </Link>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => togglePublishMutation.mutate({
+                            id: course.id,
+                            is_published: !course.is_published
+                          })}
+                        >
+                          {course.is_published ? (
+                            <>
+                              <EyeOff className="h-4 w-4 mr-2" />
+                              Unpublish
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Publish
+                            </>
+                          )}
                         </DropdownMenuItem>
-                      </Link>
-                      <Link href={`/instructor/courses/${course.id}/students`}>
-                        <DropdownMenuItem>
-                          <Users className="h-4 w-4 mr-2" />
-                          View Students
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => setDeleteId(course.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
                         </DropdownMenuItem>
-                      </Link>
-                      <Link href={`/instructor/courses/${course.id}/invite`}>
-                        <DropdownMenuItem>
-                          <UserPlus className="h-4 w-4 mr-2" />
-                          Invite Students
-                        </DropdownMenuItem>
-                      </Link>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => togglePublishMutation.mutate({
-                          id: course.id,
-                          is_published: !course.is_published
-                        })}
-                      >
-                        {course.is_published ? (
-                          <>
-                            <EyeOff className="h-4 w-4 mr-2" />
-                            Unpublish
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Publish
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => setDeleteId(course.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </CardHeader>
-                <CardContent className="flex-1 flex flex-col justify-end">
+                <CardContent className="flex-1 flex flex-col justify-end pt-0">
                   <div className="flex items-center gap-2 mb-3">
                     <Badge variant={course.is_published ? "default" : "secondary"}>
                       {course.is_published ? 'Published' : 'Draft'}

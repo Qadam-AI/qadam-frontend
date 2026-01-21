@@ -335,109 +335,78 @@ export default function ContentStructuringPage() {
   const approvedCount = concepts.filter(c => c.selected).length
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      {/* Pilot Banner */}
-      <PilotBanner />
+    <div className="space-y-8 max-w-4xl mx-auto py-8">
       
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Content Structuring</h1>
-        <p className="text-muted-foreground mt-1">
-          {MVP_MESSAGES.description}
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Content Assistant</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Transform your lesson materials into structured concepts and practice questions.
         </p>
       </div>
 
       {/* Course Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            Select Course
-          </CardTitle>
-          <CardDescription>
-            Choose which course this assessment will belong to
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course"} />
-            </SelectTrigger>
-            <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {courses.length === 0 && !coursesLoading && (
-            <p className="text-sm text-muted-foreground mt-2">
-              No courses found. <Link href="/instructor/courses" className="text-primary hover:underline">Create a course first</Link>.
-            </p>
-          )}
+      <Card className="border-none shadow-sm bg-muted/30">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <Label className="text-base font-medium mb-1.5 block">Select Course</Label>
+              <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                <SelectTrigger className="w-full bg-background">
+                  <SelectValue placeholder={coursesLoading ? "Loading..." : "Choose a course"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(courses.length === 0 && !coursesLoading) && (
+              <div className="shrink-0 pt-6">
+                <Link href="/instructor/courses" className="text-primary hover:underline text-sm font-medium">Create a course</Link>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* LLM Service Status - Enhanced */}
-      {llmChecking && (
-        <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800">
-          <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
-          <AlertTitle className="text-blue-900 dark:text-blue-100">Checking AI Service</AlertTitle>
-          <AlertDescription className="text-blue-700 dark:text-blue-300">
-            Verifying AI service availability...
-          </AlertDescription>
-        </Alert>
-      )}
-      
+      {/* Error Alert Only */}
       {!llmAvailable && !llmChecking && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>AI Service Unavailable</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p>{LLM_MESSAGES.unavailable}</p>
-            <div className="flex items-center gap-2 mt-2">
-              <Button variant="outline" size="sm" onClick={() => refreshLLM()}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retry Connection
-              </Button>
-              <span className="text-xs text-muted-foreground">
-                AI-powered features require a working AI service connection
-              </span>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {llmAvailable && !llmChecking && (
-        <Alert className="border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertTitle className="text-green-900 dark:text-green-100">AI Service Ready</AlertTitle>
-          <AlertDescription className="text-green-700 dark:text-green-300">
-            AI-powered content analysis and question generation are available.
+          <AlertTitle>Service Unavailable</AlertTitle>
+          <AlertDescription className="flex items-center gap-4 mt-2">
+            <span>The content assistant is currently offline.</span>
+            <Button variant="outline" size="sm" onClick={() => refreshLLM()} className="bg-background">
+              <RefreshCw className="h-3 w-3 mr-2" />
+              Retry
+            </Button>
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Workflow Steps Indicator */}
-      <div className="flex items-center gap-2 p-4 bg-muted/30 rounded-lg">
+      {/* Clean Stepper */}
+      <div className="flex items-center w-full max-w-2xl mx-auto mb-8">
         <StepIndicator 
           step={1} 
-          label="Add Content" 
+          label="Lesson Content" 
           active={currentStep === 'input'}
           completed={currentStep !== 'input'}
         />
-        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+        <div className={`flex-1 h-[2px] mx-4 ${currentStep !== 'input' ? 'bg-primary' : 'bg-muted'}`} />
         <StepIndicator 
           step={2} 
           label="Review Concepts" 
           active={currentStep === 'review'}
           completed={currentStep === 'generate'}
         />
-        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+        <div className={`flex-1 h-[2px] mx-4 ${currentStep === 'generate' ? 'bg-primary' : 'bg-muted'}`} />
         <StepIndicator 
           step={3} 
-          label="Generate Assessment" 
+          label="Create Practice" 
           active={currentStep === 'generate'}
           completed={!!assessmentResult}
         />
@@ -445,36 +414,20 @@ export default function ContentStructuringPage() {
 
       {/* Step 1: Content Input */}
       {currentStep === 'input' && (
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-blue-500" />
-                  Step 1: Add Your Content
-                </CardTitle>
-                <CardDescription>
-                  Paste lesson text, notes, or transcript. AI will suggest concepts for your review.
-                </CardDescription>
-              </div>
-              <Badge variant="outline" className="gap-1">
-                <Shield className="h-3 w-3" />
-                {MVP_MESSAGES.instructorControl}
-              </Badge>
-            </div>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">1</div>
+              Add Lesson Material
+            </CardTitle>
+            <CardDescription className="text-base pt-1">
+              Paste your lesson text, transcript, or notes. We'll identify the key concepts for you.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Why this step exists */}
-            <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-              <Info className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-700 dark:text-blue-300 text-sm">
-                <strong>Why this step:</strong> We analyze your content to extract potential concepts. 
-                Nothing is published until you review and approve.
-              </AlertDescription>
-            </Alert>
+          <CardContent className="space-y-6">
 
             <div className="space-y-2">
-              <Label>Content Title (optional)</Label>
+              <Label>Lesson Title (Optional)</Label>
               <Input
                 placeholder="e.g., Introduction to Python Variables"
                 value={contentTitle}
@@ -484,10 +437,10 @@ export default function ContentStructuringPage() {
 
             {/* Input Mode Tabs */}
             <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as 'text' | 'file')}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-2 bg-muted/40">
                 <TabsTrigger value="text" className="gap-2">
                   <FileText className="h-4 w-4" />
-                  Text Input
+                  Text / Notes
                 </TabsTrigger>
                 <TabsTrigger 
                   value="file" 
@@ -503,18 +456,19 @@ export default function ContentStructuringPage() {
               </TabsList>
 
               {/* Text Input Tab */}
-              <TabsContent value="text" className="space-y-2 mt-4">
-                <Label>Lesson Content *</Label>
+              <TabsContent value="text" className="space-y-3 mt-6">
+                <Label>Lesson Content</Label>
                 <Textarea
-                  placeholder="Paste your lesson content here...&#10;&#10;This can be:&#10;• Text from slides&#10;• Lecture notes&#10;• Video transcript&#10;• Chapter from a textbook"
+                  placeholder="Paste content here..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  rows={12}
-                  className="font-mono text-sm"
+                  rows={16}
+                  className="font-mono text-sm resize-none bg-muted/20"
                 />
-                <p className="text-xs text-muted-foreground">
-                  {content.length} characters • ~{Math.ceil(content.split(/\s+/).filter(Boolean).length / 200)} min read
-                </p>
+                <div className="flex justify-between text-xs text-muted-foreground px-1">
+                   <span>Supported: Text, Markdown</span>
+                   <span>{content.length > 0 ? `${content.length} chars` : ''}</span>
+                </div>
               </TabsContent>
 
               {/* File Upload Tab */}
@@ -638,9 +592,6 @@ export default function ContentStructuringPage() {
                               <CheckCircle className="h-3 w-3 mr-1" />
                               Text extracted successfully
                             </Badge>
-                            <p className="text-sm text-muted-foreground">
-                              {content.length} characters • ~{Math.ceil(content.split(/\s+/).filter(Boolean).length / 200)} min read
-                            </p>
                           </div>
                         )}
 
@@ -656,7 +607,7 @@ export default function ContentStructuringPage() {
                         <div className="flex justify-center gap-2">
                           {uploadedFile.status === 'done' || uploadedFile.status === 'error' ? (
                             <Button 
-                              variant="outline" 
+                              variant="ghost" 
                               size="sm"
                               onClick={() => {
                                 setUploadedFile(null)
@@ -664,7 +615,7 @@ export default function ContentStructuringPage() {
                               }}
                             >
                               <X className="h-4 w-4 mr-1" />
-                              Remove
+                              Remove File
                             </Button>
                           ) : null}
                         </div>
@@ -675,30 +626,21 @@ export default function ContentStructuringPage() {
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs gap-1">
-                <Brain className="h-3 w-3" />
-                LLM Required
-              </Badge>
-              <p className="text-sm text-muted-foreground">
-                {MVP_MESSAGES.manualTrigger}
-              </p>
-            </div>
+          <CardFooter className="flex justify-end pt-2 pb-6 px-6">
             <Button 
               onClick={() => analyzeContentMutation.mutate()}
-              className="gap-2"
+              className="px-8 min-w-[200px]"
               disabled={analyzeContentMutation.isPending || !content.trim() || !llmAvailable}
             >
               {analyzeContentMutation.isPending ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  Analyzing (10-30s)...
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  Processing...
                 </>
               ) : (
                 <>
-                  <Brain className="h-4 w-4" />
-                  Analyze Content
+                  Review Concepts 
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               )}
             </Button>
@@ -708,296 +650,221 @@ export default function ContentStructuringPage() {
 
       {/* Step 2: Concept Review */}
       {currentStep === 'review' && (
-        <div className="space-y-6">
-          {/* Summary Card */}
+        <div className="space-y-8 max-w-3xl mx-auto">
+          {/* Summary Card - Simplified */}
           {analysisResult?.summary && (
-            <Card className="bg-muted/30">
-              <CardContent className="pt-6">
-                <h4 className="font-medium mb-2 flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4 text-yellow-500" />
-                  Content Summary
-                </h4>
-                <p className="text-sm text-muted-foreground">{analysisResult.summary}</p>
-              </CardContent>
-            </Card>
+            <div className="prose prose-sm dark:prose-invert max-w-none bg-muted/20 p-6 rounded-lg border-l-4 border-primary/30">
+               <h4 className="font-semibold text-foreground m-0 mb-2">Lesson Summary</h4>
+               <p className="m-0 text-muted-foreground">{analysisResult.summary}</p>
+            </div>
           )}
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+          <div className="space-y-4">
+             <div className="flex items-center justify-between pb-2 border-b">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-purple-500" />
-                    Step 2: Review Suggested Concepts
-                  </CardTitle>
-                  <CardDescription>
-                    These concepts were extracted from your content. Review, edit, or remove before approving.
-                  </CardDescription>
+                   <h2 className="text-2xl font-bold tracking-tight">Key Concepts</h2>
+                   <p className="text-muted-foreground text-sm mt-1">
+                      Review the concepts extracted from your lesson. Edit to refine.
+                   </p>
                 </div>
-                <Badge className="gap-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                  <Eye className="h-3 w-3" />
-                  {MVP_MESSAGES.aiSuggests}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Why this step exists */}
-              <Alert className="bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800">
-                <Info className="h-4 w-4 text-purple-600" />
-                <AlertDescription className="text-purple-700 dark:text-purple-300 text-sm">
-                  <strong>Why this step:</strong> AI suggestions are not always accurate. 
-                  You are the expert — rename, merge, or delete concepts as needed.
-                </AlertDescription>
-              </Alert>
+                <Button 
+                   onClick={addConcept} 
+                   variant="outline" 
+                   size="sm"
+                   className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Concept
+                </Button>
+             </div>
 
-              {/* Concepts List */}
-              <div className="space-y-3">
+              {/* Concepts List - Editorial Style */}
+              <div className="space-y-4">
                 {concepts.map((concept) => (
-                  <div 
+                  <Card 
                     key={concept.id}
-                    className={`p-4 rounded-lg border transition-all ${
-                      concept.selected 
-                        ? 'border-primary/50 bg-primary/5' 
-                        : 'border-muted bg-muted/30 opacity-60'
+                    className={`border transition-all ${
+                      editingConcept === concept.id 
+                        ? 'ring-2 ring-primary/20 border-primary' 
+                        : 'hover:border-primary/50'
                     }`}
                   >
-                    <div className="flex items-start gap-3">
-                      <Checkbox 
-                        checked={concept.selected}
-                        onCheckedChange={() => toggleConcept(concept.id)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1 min-w-0">
+                    <CardContent className="p-5">
                         {editingConcept === concept.id ? (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <Input
                               value={concept.name}
                               onChange={(e) => updateConcept(concept.id, { name: e.target.value })}
-                              className="font-medium"
+                              className="font-semibold text-lg"
                               autoFocus
+                              placeholder="Concept Name"
                             />
                             <Textarea
                               value={concept.description}
                               onChange={(e) => updateConcept(concept.id, { description: e.target.value })}
-                              placeholder="Add a description..."
-                              rows={2}
-                              className="text-sm"
+                              placeholder="Description logic..."
+                              rows={3}
                             />
-                            <div className="flex gap-2">
+                            <div className="flex justify-end gap-2 pt-2">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => deleteConcept(concept.id)}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                Delete
+                              </Button>
                               <Button 
                                 size="sm" 
                                 onClick={() => setEditingConcept(null)}
                               >
-                                <Check className="h-3 w-3 mr-1" />
-                                Done
+                                Save Changes
                               </Button>
                             </div>
                           </div>
                         ) : (
-                          <>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium">{concept.name}</h4>
-                              {concept.edited && (
-                                <Badge variant="outline" className="text-xs">Modified</Badge>
-                              )}
-                            </div>
-                            {concept.description && (
-                              <p className="text-sm text-muted-foreground mt-1">{concept.description}</p>
-                            )}
-                          </>
+                          <div className="group relative">
+                             <div className="flex justify-between items-start gap-4">
+                                <div className="space-y-1">
+                                   <h3 className="font-semibold text-lg">{concept.name}</h3>
+                                   <p className="text-muted-foreground leading-relaxed">{concept.description}</p>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => setEditingConcept(concept.id)}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                             </div>
+                          </div>
                         )}
-                      </div>
-                      {editingConcept !== concept.id && (
-                        <div className="flex gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => setEditingConcept(concept.id)}
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => deleteConcept(concept.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
-
-                {/* Add Concept Button */}
-                <Button 
-                  variant="outline" 
-                  className="w-full border-dashed gap-2"
-                  onClick={addConcept}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Custom Concept
-                </Button>
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <div className="flex items-center gap-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setCurrentStep('input')}
-                  disabled={approveConceptsMutation.isPending}
-                >
-                  Back to Content
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {approvedCount} of {concepts.length} concepts selected
-                </span>
-              </div>
+          </div>
+          
+          <div className="flex justify-between pt-8 border-t">
+              <Button variant="ghost" onClick={() => setCurrentStep('input')}>
+                 Back to Content
+              </Button>
+              
               <Button 
                 onClick={() => approveConceptsMutation.mutate()}
                 disabled={approvedCount === 0 || approveConceptsMutation.isPending || !selectedCourseId}
-                className="gap-2"
+                className="px-8 min-w-[200px]"
               >
                 {approveConceptsMutation.isPending ? (
                   <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Generating Questions...
+                    <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                    Saving...
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-4 w-4" />
-                    Approve & Continue
+                    Continue to Practice 
+                    <ArrowRight className="h-4 w-4 ml-2" />
                   </>
                 )}
               </Button>
-            </CardFooter>
-          </Card>
+          </div>
         </div>
       )}
 
       {/* Step 3: Generate Assessment */}
       {currentStep === 'generate' && (
-        <div className="space-y-6">
-          {/* Approved Concepts Summary */}
-          <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800">
-            <CardContent className="pt-6">
-              <h4 className="font-medium mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
-                <CheckCircle2 className="h-4 w-4" />
-                Approved Concepts ({approvedCount})
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {concepts.filter(c => c.selected).map((c) => (
-                  <Badge key={c.id} variant="secondary" className="gap-1">
-                    <BookOpen className="h-3 w-3" />
-                    {c.name}
-                  </Badge>
-                ))}
-              </div>
+        <div className="space-y-8 max-w-3xl mx-auto">
+          
+          {/* Approved Concept Summary */}
+          <Card className="bg-muted/30 border-dashed">
+            <CardContent className="pt-6 flex justify-between items-center">
+               <div className="space-y-1">
+                 <h3 className="font-semibold text-foreground">Concepts Ready</h3>
+                 <p className="text-sm text-muted-foreground">
+                   {approvedCount} concepts approved for practice generation.
+                 </p>
+               </div>
+               <Button variant="outline" size="sm" onClick={() => setCurrentStep('review')}>
+                 Edit Concepts
+               </Button>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wand2 className="h-5 w-5 text-green-500" />
-                    Step 3: Generate Assessment
-                  </CardTitle>
-                  <CardDescription>
-                    Create practice questions from your approved concepts. Students will practice these to build mastery.
-                  </CardDescription>
-                </div>
-                <Badge variant="outline" className="gap-1">
-                  <Shield className="h-3 w-3" />
-                  {MVP_MESSAGES.instructorControl}
-                </Badge>
+          {/* Generation Configuration */}
+          <div className="space-y-6">
+              <div>
+                 <h2 className="text-2xl font-bold tracking-tight">Create Practice Set</h2>
+                 <p className="text-muted-foreground text-lg mt-2">
+                    Generate questions based on the approved concepts to test student understanding.
+                 </p>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Why this step exists */}
-              <Alert className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800">
-                <Info className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-700 dark:text-green-300 text-sm">
-                  <strong>Why this step:</strong> Questions are generated based on the concepts you approved. 
-                  This ensures assessments align with your intended learning objectives.
-                </AlertDescription>
-              </Alert>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Number of Questions</Label>
-                  <Select value={String(questionCount)} onValueChange={(v) => setQuestionCount(parseInt(v))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="3">3 questions</SelectItem>
-                      <SelectItem value="5">5 questions</SelectItem>
-                      <SelectItem value="10">10 questions</SelectItem>
-                      <SelectItem value="15">15 questions</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Question Types</Label>
-                  <div className="text-sm text-muted-foreground pt-2">
-                    Multiple choice, short answer
+              <Card>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <Label className="text-base">Number of Questions</Label>
+                      <Select value={String(questionCount)} onValueChange={(v) => setQuestionCount(parseInt(v))}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3">3 questions (Quick Check)</SelectItem>
+                          <SelectItem value="5">5 questions (Standard)</SelectItem>
+                          <SelectItem value="10">10 questions (Deep Dive)</SelectItem>
+                          <SelectItem value="15">15 questions (Exam Prep)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <Label className="text-base">Question Types</Label> 
+                      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-md">
+                         <span className="bg-background px-2 py-1 rounded border shadow-sm">Multiple Choice</span>
+                         <span className="bg-background px-2 py-1 rounded border shadow-sm">Short Answer</span>
+                         <span className="bg-background px-2 py-1 rounded border shadow-sm">True/False</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setCurrentStep('review')}
-                >
-                  Back to Review
-                </Button>
-                <Badge variant="outline" className="text-xs gap-1">
-                  <Brain className="h-3 w-3" />
-                  LLM Required
-                </Badge>
-              </div>
-              <Button 
-                onClick={() => generateAssessmentMutation.mutate()}
-                disabled={generateAssessmentMutation.isPending || !llmAvailable || !selectedCourseId}
-                className="gap-2"
-              >
-                {generateAssessmentMutation.isPending ? (
-                  <>
-                    <span className="animate-spin">⏳</span>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    Generate Assessment
-                  </>
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
+
+                  <div className="mt-8 flex justify-end">
+                     <Button 
+                        onClick={() => generateAssessmentMutation.mutate()}
+                        disabled={generateAssessmentMutation.isPending || !llmAvailable || !selectedCourseId}
+                        size="lg"
+                        className="w-full md:w-auto min-w-[200px]"
+                      >
+                        {generateAssessmentMutation.isPending ? (
+                          <>
+                            <Sparkles className="h-4 w-4 animate-spin mr-2" />
+                            Generating Questions...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Generate Practice Set
+                          </>
+                        )}
+                      </Button>
+                  </div>
+                </CardContent>
+              </Card>
+          </div>
 
           {/* Generated Assessment Preview */}
           {assessmentResult && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  Assessment Generated
-                </CardTitle>
-                <CardDescription>
-                  {assessmentResult.questions.length} questions ready for student practice
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+            <div className="space-y-6 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center justify-between">
+                 <h3 className="text-xl font-bold flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    Generated Questions
+                 </h3>
+                 <Badge variant="outline">{assessmentResult.questions.length} Questions</Badge>
+              </div>
+
+              <div className="space-y-4">
                   {assessmentResult.questions.map((q, i) => {
-                    // Map question type to readable label
                     const typeLabels: Record<string, string> = {
                       'multiple_choice': 'Multiple Choice',
                       'short_answer': 'Short Answer',
@@ -1009,38 +876,57 @@ export default function ContentStructuringPage() {
                     const typeLabel = typeLabels[q.type] || q.type
                     
                     return (
-                    <div key={q.id} className="p-4 rounded-lg bg-muted/50 border">
-                      <div className="flex items-start justify-between mb-2">
-                        <p className="font-medium">{i + 1}. {q.question}</p>
-                        <Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
-                          {typeLabel}
-                        </Badge>
-                      </div>
-                      {q.options && (
-                        <div className="space-y-1 ml-4 mt-3">
-                          {q.options.map((opt, j) => {
-                            const optText = typeof opt === 'string' ? opt : opt.text
-                            const isCorrect = typeof opt === 'object' && opt.is_correct
-                            return (
-                              <p key={j} className={`text-sm ${isCorrect ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
-                                {String.fromCharCode(65 + j)}. {optText}
-                                {isCorrect && ' ✓'}
-                              </p>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
+                    <Card key={q.id} className="overflow-hidden">
+                      <CardContent className="p-5">
+                          <div className="flex justify-between items-start gap-4 mb-3">
+                            <span className="font-mono text-sm text-muted-foreground bg-muted px-2 py-1 rounded">Q{i + 1}</span>
+                            <Badge variant="secondary" className="text-xs">{typeLabel}</Badge>
+                          </div>
+                          
+                          <p className="font-medium text-lg mb-4">{q.question}</p>
+                          
+                          {q.options && (
+                            <div className="space-y-2 pl-1">
+                              {q.options.map((opt, j) => {
+                                const optText = typeof opt === 'string' ? opt : opt.text
+                                const isCorrect = typeof opt === 'object' && opt.is_correct
+                                return (
+                                  <div 
+                                    key={j} 
+                                    className={`flex items-start gap-3 p-2 rounded-md ${isCorrect ? 'bg-green-50 dark:bg-green-900/10' : ''}`}
+                                  >
+                                    <div className={`
+                                      flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium
+                                      ${isCorrect ? 'border-green-600 text-green-600 bg-green-100' : 'border-muted-foreground text-muted-foreground'}
+                                    `}>
+                                      {String.fromCharCode(65 + j)}
+                                    </div>
+                                    <span className={`text-sm ${isCorrect ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                                      {optText}
+                                    </span>
+                                    {isCorrect && (
+                                      <CheckCircle2 className="h-4 w-4 text-green-600 ml-auto" />
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                      </CardContent>
+                    </Card>
                     )
                   })}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <p className="text-sm text-muted-foreground">
-                  These questions will be available for student practice. You can edit or regenerate anytime.
-                </p>
-              </CardFooter>
-            </Card>
+              </div>
+
+              <div className="flex justify-center pt-8 pb-12">
+                 <Button variant="outline" className="mr-4" onClick={() => setAssessmentResult(null)}>
+                    Discard
+                 </Button>
+                 <Button onClick={() => window.location.href = `/instructor/courses/${selectedCourseId}/content`}>
+                    Save and Exit
+                 </Button>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -1061,16 +947,18 @@ function StepIndicator({
   completed: boolean
 }) {
   return (
-    <div className={`flex items-center gap-2 ${active ? 'text-primary' : completed ? 'text-green-600' : 'text-muted-foreground'}`}>
+    <div className={`flex items-center gap-2 ${active ? 'text-primary' : completed ? 'text-primary/70' : 'text-muted-foreground/60'}`}>
       <div className={`
-        w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium
-        ${active ? 'bg-primary text-primary-foreground' : 
-          completed ? 'bg-green-600 text-white' : 
+        w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+        ${active ? 'bg-primary text-primary-foreground ring-4 ring-primary/10' : 
+          completed ? 'bg-primary/20 text-primary' : 
           'bg-muted text-muted-foreground'}
       `}>
         {completed ? <Check className="h-4 w-4" /> : step}
       </div>
-      <span className="text-sm font-medium hidden sm:inline">{label}</span>
+      <span className={`text-sm font-medium hidden sm:inline ${active ? 'text-foreground' : ''}`}>{label}</span>
     </div>
   )
 }
+
+

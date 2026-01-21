@@ -213,18 +213,18 @@ export default function MasteryOverview() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Concept Mastery</h1>
-          <p className="text-muted-foreground">Track which concepts students truly understand</p>
+          <h1 className="text-3xl font-bold text-foreground">Classroom Understanding</h1>
+          <p className="text-muted-foreground text-lg">See where your class is confident and where they need more help</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="border-none shadow-none bg-muted/30">
               <CardHeader className="pb-2"><Skeleton className="h-4 w-24" /></CardHeader>
               <CardContent><Skeleton className="h-8 w-16" /></CardContent>
             </Card>
           ))}
         </div>
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardContent className="pt-6">
             <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -238,60 +238,61 @@ export default function MasteryOverview() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Target className="h-8 w-8 text-primary" />
-          Concept Mastery
+        <h1 className="text-3xl font-bold flex items-center gap-2 text-foreground">
+          Classroom Understanding
         </h1>
-        <p className="text-muted-foreground">Track what students actually understand, not just completion</p>
+        <p className="text-muted-foreground text-lg mt-1">
+          Identifies concepts that may need re-teaching or more practice materials.
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card className="bg-gradient-to-br from-green-50 to-white dark:from-green-900/10 dark:to-transparent border-green-100 dark:border-green-900/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-green-800 dark:text-green-300 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Confident Concepts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-green-900 dark:text-green-100">
+              {conceptAnalytics?.filter(c => c.avg_pass_rate >= 70).length || 0}
+            </div>
+            <p className="text-sm text-green-700/80 dark:text-green-400 mt-1">
+              Class understands well
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/10 dark:to-transparent border-orange-100 dark:border-orange-900/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-orange-800 dark:text-orange-300 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Needs Review
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-orange-900 dark:text-orange-100">{stats.strugglingConcepts}</div>
+            <p className="text-sm text-orange-700/80 dark:text-orange-400 mt-1">
+              Concepts causing confusion
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-50 dark:bg-slate-900/20 border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Lightbulb className="h-4 w-4" />
+              <BookOpen className="h-4 w-4" />
               Total Concepts
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalConcepts}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-              Avg Pass Rate
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.avgPassRate}%</div>
-            <Progress value={stats.avgPassRate} className="mt-2" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-              Needs Attention
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.strugglingConcepts}</div>
-            <p className="text-xs text-muted-foreground">Concepts with &gt;30% struggling</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-green-500" />
-              Total Attempts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAttempts}</div>
+            <div className="text-4xl font-bold text-foreground">{stats.totalConcepts}</div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Across all selected courses
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -313,100 +314,100 @@ export default function MasteryOverview() {
       </div>
 
       <Tabs defaultValue="concepts" className="space-y-4">
-        <TabsList>
+        <TabsList className="bg-muted/30">
           <TabsTrigger value="concepts" className="flex items-center gap-2">
             <Lightbulb className="h-4 w-4" />
-            By Concept
+            Concepts
           </TabsTrigger>
           <TabsTrigger value="students" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            By Student
+            Students
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="concepts">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="h-5 w-5" />
-                Concept Performance Overview
-              </CardTitle>
-              <CardDescription>See which concepts students are struggling with most</CardDescription>
+          <Card className="border-none shadow-sm">
+            <CardHeader className="pl-0">
+              <CardTitle className="text-xl">Concept Performance</CardTitle>
+              <CardDescription className="text-base">Identify which topics are landing and which need review</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Concept</TableHead>
-                    <TableHead>Course</TableHead>
-                    <TableHead className="text-center">Students Struggling</TableHead>
-                    <TableHead className="text-center">Avg Pass Rate</TableHead>
-                    <TableHead className="text-center">Total Attempts</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(!conceptAnalytics || conceptAnalytics.length === 0) ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
-                        <div className="flex flex-col items-center gap-3">
-                          <Lightbulb className="h-12 w-12 text-muted-foreground/30" />
-                          <div>
-                            <p className="font-medium">No concept data yet</p>
-                            <p className="text-sm">Add lessons with concepts and have students practice to see data here</p>
-                          </div>
-                        </div>
-                      </TableCell>
+            <CardContent className="px-0">
+              <div className="rounded-md border-none">
+                <Table>
+                  <TableHeader className="bg-transparent/5">
+                    <TableRow className="border-b border-border/50 hover:bg-transparent">
+                      <TableHead className="font-semibold text-foreground pl-0">Concept</TableHead>
+                      <TableHead className="font-medium text-muted-foreground">Course</TableHead>
+                      <TableHead className="font-medium text-muted-foreground text-center">Class Confusion</TableHead>
+                      <TableHead className="font-medium text-muted-foreground text-center">Understanding</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
-                  ) : (
-                    conceptAnalytics.map((concept) => (
-                      <TableRow 
-                        key={concept.concept_id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => openConceptDetails(concept.concept_id)}
-                      >
-                        <TableCell>
-                          <div className="font-medium">{concept.concept_name}</div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">{concept.course_title}</span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            {concept.struggling_percentage > 30 ? (
-                              <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
-                                {concept.struggling_count} ({concept.struggling_percentage}%)
-                              </Badge>
-                            ) : concept.struggling_count > 0 ? (
-                              <Badge variant="secondary">
-                                {concept.struggling_count} ({concept.struggling_percentage}%)
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
+                  </TableHeader>
+                  <TableBody>
+                    {(!conceptAnalytics || conceptAnalytics.length === 0) ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-16 text-muted-foreground">
+                          <div className="flex flex-col items-center gap-4">
+                            <div className="p-4 rounded-full bg-muted/30">
+                              <Lightbulb className="h-8 w-8 text-muted-foreground/30" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-lg text-foreground">No concept data available</p>
+                              <p className="text-muted-foreground mt-1">Once students start practicing, understanding trends will appear here.</p>
+                            </div>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <Progress value={concept.avg_pass_rate} className="w-16 h-2" />
-                            <span className={`text-sm font-medium ${concept.avg_pass_rate >= 70 ? 'text-green-600' : concept.avg_pass_rate >= 50 ? 'text-yellow-600' : 'text-orange-600'}`}>
-                              {concept.avg_pass_rate}%
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center text-muted-foreground">
-                          {concept.total_attempts}
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon">
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      conceptAnalytics.map((concept) => (
+                        <TableRow 
+                          key={concept.concept_id}
+                          className="cursor-pointer hover:bg-muted/30 border-b border-border/40"
+                          onClick={() => openConceptDetails(concept.concept_id)}
+                        >
+                          <TableCell className="pl-0">
+                            <div className="font-medium text-base text-foreground">{concept.concept_name}</div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground">{concept.course_title}</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              {concept.struggling_percentage > 30 ? (
+                                <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100">
+                                  {concept.struggling_percentage}% Confused
+                                </Badge>
+                              ) : concept.struggling_count > 0 ? (
+                                <span className="text-sm text-muted-foreground">{concept.struggling_percentage}%</span>
+                              ) : (
+                                <span className="text-sm text-green-600/70">Clear</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-3">
+                              <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full ${concept.avg_pass_rate >= 70 ? 'bg-green-500' : concept.avg_pass_rate >= 50 ? 'bg-yellow-500' : 'bg-orange-500'}`} 
+                                  style={{ width: `${concept.avg_pass_rate}%` }}
+                                />
+                              </div>
+                              <span className={`text-sm font-medium w-8 text-right ${concept.avg_pass_rate >= 70 ? 'text-green-700' : 'text-foreground'}`}>
+                                {concept.avg_pass_rate}%
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground/50 hover:text-foreground">
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -522,10 +523,21 @@ export default function MasteryOverview() {
       <Sheet open={conceptSheetOpen} onOpenChange={setConceptSheetOpen}>
         <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
           {loadingConceptDetails ? (
-            <div className="space-y-4">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-32 w-full" />
-            </div>
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-5 rounded-full" />
+                  <Skeleton className="h-6 w-48" />
+                </SheetTitle>
+                <div className="space-y-2 pt-2">
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              </SheetHeader>
+              <div className="space-y-4 mt-6">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+            </>
           ) : conceptDetails ? (
             <>
               <SheetHeader>

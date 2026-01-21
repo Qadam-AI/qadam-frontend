@@ -11,15 +11,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Moon, Sun, Menu } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { Menu } from 'lucide-react'
 import Link from 'next/link'
 import { useUIStore } from '@/stores/ui-store'
-import { XPBadge } from '@/components/XPBadge'
 
 export function Navbar() {
   const { user, logout, isAuthenticated } = useAuth()
-  const { theme, setTheme } = useTheme()
   const { toggleSidebar } = useUIStore()
 
   const getInitials = (name: string | null) => {
@@ -47,18 +44,8 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          {isAuthenticated && user?.role !== 'instructor' && <XPBadge variant="compact" />}
+          {isAuthenticated && user?.role !== 'instructor' && null}
           
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-
           {isAuthenticated && user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

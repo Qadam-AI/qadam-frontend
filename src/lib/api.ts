@@ -37,8 +37,15 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const config = error.config as ExtendedAxiosRequestConfig
     const status = error.response?.status
-    const message = (error.response?.data as any)?.detail || error.message || 'Something went wrong'
+    let message = (error.response?.data as any)?.detail || error.message || 'Something went wrong'
     
+    // If detail is array (validation error), extract first message or join them
+    if (Array.isArray(message) && message.length > 0 && typeof message[0] === 'object') {
+      message = message.map((e: any) => e.msg || 'Invalid input').join(', ')
+    } else if (typeof message === 'object') {
+      message = JSON.stringify(message)
+    }
+
     // Handle token expiry (401)
     if (status === 401) {
       // Clear auth data
