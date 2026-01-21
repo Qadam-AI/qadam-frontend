@@ -253,13 +253,12 @@ export default function InstructorAssessments() {
                 />
               </div>
               <div>
-                <Label htmlFor="course">Link to Course (optional)</Label>
-                <Select value={selectedCourse || 'none'} onValueChange={(v) => setSelectedCourse(v === 'none' ? '' : v)}>
+                <Label htmlFor="course">Link to Course</Label>
+                <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a course" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No course</SelectItem>
                     {(courses || []).map((course) => (
                       <SelectItem key={course.id} value={course.id}>
                         {course.title}
@@ -299,7 +298,7 @@ export default function InstructorAssessments() {
               </Button>
               <Button 
                 onClick={() => generateAssessment.mutate()}
-                disabled={!topic || generateAssessment.isPending}
+                disabled={!topic || !selectedCourse || generateAssessment.isPending}
               >
                 {generateAssessment.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
