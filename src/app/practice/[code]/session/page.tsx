@@ -28,6 +28,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import confetti from 'canvas-confetti'
+import { toast } from 'sonner'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://qadam-backend-production.up.railway.app/api/v1'
 
@@ -240,6 +241,15 @@ export default function PracticeSessionPage() {
       localStorage.removeItem('practice_questions_count')
       localStorage.removeItem('practice_time_limit')
     },
+    onError: () => {
+      toast.error('Failed to submit session results. Please try refreshing.', {
+        duration: 5000,
+        action: {
+          label: 'Retry',
+          onClick: () => endSessionMutation.mutate()
+        }
+      })
+    }
   })
 
   const handleSubmitAnswer = () => {
@@ -371,6 +381,17 @@ export default function PracticeSessionPage() {
             </CardContent>
           </Card>
         </motion.div>
+      </div>
+    )
+  }
+
+  // Calculating results / Loading final summary
+  if (sessionComplete && !summary) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+        <h2 className="text-xl font-medium">Calculating Results...</h2>
+        <p className="text-muted-foreground mt-2">Checking your answers and generating feedback</p>
       </div>
     )
   }

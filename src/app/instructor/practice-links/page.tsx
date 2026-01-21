@@ -133,7 +133,7 @@ export default function PracticeLinksPage() {
     mutationFn: async () => {
       const res = await api.post(`/instructor/courses/${selectedCourseId}/practice-links`, {
         title: title || null,
-        concept_id: conceptId || null,
+        concept_id: (conceptId && conceptId !== 'all') ? conceptId : null,
         questions_count: questionsCount,
         time_limit_minutes: timeLimitMinutes ? parseInt(timeLimitMinutes) : null,
         max_uses: maxUses ? parseInt(maxUses) : null,
@@ -261,7 +261,7 @@ export default function PracticeLinksPage() {
                     <SelectValue placeholder="All concepts in course" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All concepts</SelectItem>
+                    <SelectItem value="all">All concepts</SelectItem>
                     {concepts.map((concept) => (
                       <SelectItem key={concept.id} value={concept.id}>
                         {concept.name}
