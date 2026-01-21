@@ -5,7 +5,6 @@ import api from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Progress } from '@/components/ui/progress'
 import { 
   Table, 
   TableBody, 
@@ -144,6 +143,17 @@ function TrendIcon({ trend }: { trend: 'improving' | 'stable' | 'declining' }) {
       return <TrendingDown className="h-4 w-4 text-red-500" />
     default:
       return <Minus className="h-4 w-4 text-gray-400" />
+  }
+}
+
+const safeFormatDistanceToNow = (date: string | Date | null | undefined) => {
+  if (!date) return 'Never'
+  try {
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return 'Unknown date'
+    return formatDistanceToNow(d, { addSuffix: true })
+  } catch {
+    return 'Unknown date'
   }
 }
 
@@ -577,10 +587,7 @@ export default function InstructorStudents() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center text-sm text-muted-foreground">
-                    {student.last_activity 
-                      ? formatDistanceToNow(new Date(student.last_activity), { addSuffix: true })
-                      : 'Never'
-                    }
+                    {safeFormatDistanceToNow(student.last_activity)}
                   </TableCell>
                   <TableCell className="text-center">
                     <span className={`font-medium ${student.attempts_last_7_days > 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
@@ -589,7 +596,12 @@ export default function InstructorStudents() {
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-2">
-                      <Progress value={student.pass_rate} className="w-16 h-2" />
+                      <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary transition-all duration-500" 
+                          style={{ width: `${student.pass_rate}%` }} 
+                        />
+                      </div>
                       <span className={`text-sm font-medium ${student.pass_rate >= 70 ? 'text-green-600' : student.pass_rate >= 50 ? 'text-yellow-600' : 'text-orange-600'}`}>
                         {student.pass_rate}%
                       </span>
@@ -617,9 +629,17 @@ export default function InstructorStudents() {
         <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
           {loadingDetails ? (
             <div className="space-y-4">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-32 w-full" />
+               <SheetHeader>
+                 <SheetTitle>
+                   <Skeleton className="h-10 w-48" />
+                 </SheetTitle>
+                 <SheetDescription>
+                   <Skeleton className="h-4 w-32" />
+                 </SheetDescription>
+               </SheetHeader>
+               <Separator className="my-6" />
+               <Skeleton className="h-32 w-full" />
+               <Skeleton className="h-32 w-full" />
             </div>
           ) : studentDetails ? (
             <>
@@ -683,41 +703,107 @@ export default function InstructorStudents() {
 
               <Separator className="my-6" />
 
+               {/* Redesigned Performance Section */}
               <div className="space-y-4">
                 <h3 className="font-semibold flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Recent Practice Attempts
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  Concept Mastery
                 </h3>
+                
                 {studentDetails.recent_attempts.length === 0 ? (
                   <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 text-center">
                     No practice attempts yet
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    {studentDetails.recent_attempts.map((attempt) => (
-                      <div 
-                        key={attempt.id}
-                        className="flex items-center justify-between p-3 rounded-lg border"
-                      >
-                        <div>
-                          <div className="font-medium text-sm">{attempt.concept_name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(attempt.created_at), { addSuffix: true })}
-                          </div>
-                        </div>
-                        <Badge variant={attempt.passed ? 'default' : 'secondary'}>
-                          {attempt.passed ? 'Passed' : 'Failed'}
-                        </Badge>
-                      </div>
-                    ))}
+                  <div className="space-y-3">
+                    {/* Aggregated view of attempts */}
+                    {(() => {
+                        // Group attempts by concept
+                        const conceptStats = studentDetails.recent_attempts.reduce((acc, attempt) => {
+                            if (!acc[attempt.concept_name]) {
+                                acc[attempt.concept_name] = {
+                                    name: attempt.concept_name,
+                                    total: 0,
+                                    passed: 0,
+                                    lastAttempt: new Date(attempt.created_at)
+                                };
+                            }
+                            acc[attempt.concept_name].total += 1;
+                            if (attempt.passed) acc[attempt.concept_name].passed += 1;
+                            
+                            const attemptDate = new Date(attempt.created_at);
+                            if (attemptDate > acc[attempt.concept_name].lastAttempt) {
+                                acc[attempt.concept_name].lastAttempt = attemptDate;
+                            }
+                            return acc;
+                        }, {} as Record<string, { name: string, total: number, passed: number, lastAttempt: Date }>);
+
+                        const sortedConcepts = Object.values(conceptStats).sort((a, b) => {
+                             // Sort by "Needs Attention" (lower pass rate) first
+                             const rateA = a.passed / a.total;
+                             const rateB = b.passed / b.total;
+                             return rateA - rateB;
+                        });
+
+                        return sortedConcepts.map((concept) => {
+                            const passRate = Math.round((concept.passed / concept.total) * 100);
+                            let statusColor = "bg-primary";
+                            let statusText = "Good";
+                            
+                            if (passRate < 50) {
+                                statusColor = "bg-red-500";
+                                statusText = "Needs Focus";
+                            } else if (passRate < 80) {
+                                statusColor = "bg-yellow-500";
+                                statusText = "Improving";
+                            } else {
+                                statusColor = "bg-green-500";
+                                statusText = "Mastered";
+                            }
+
+                            return (
+                                <div key={concept.name} className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h4 className="font-medium">{concept.name}</h4>
+                                            <p className="text-xs text-muted-foreground">
+                                                Last practiced {safeFormatDistanceToNow(concept.lastAttempt)}
+                                            </p>
+                                        </div>
+                                        <Badge variant={passRate >= 80 ? "default" : "secondary"} className={passRate < 50 ? "bg-red-100 text-red-700 hover:bg-red-100 border-red-200" : ""}>
+                                            {statusText}
+                                        </Badge>
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-xs mb-1">
+                                            <span>Accuracy</span>
+                                            <span className="font-medium">{passRate}% ({concept.passed}/{concept.total} passed)</span>
+                                        </div>
+                                        <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                                            <div
+                                                className={`h-full flex-1 transition-all ${statusColor}`}
+                                                style={{ width: `${passRate}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        });
+                    })()}
                   </div>
                 )}
               </div>
             </>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              Unable to load student details
-            </div>
+            <>
+              <SheetHeader>
+                <SheetTitle>Student Details</SheetTitle>
+              </SheetHeader>
+              <div className="text-center py-8 text-muted-foreground">
+                Unable to load student details
+              </div>
+            </>
           )}
         </SheetContent>
       </Sheet>

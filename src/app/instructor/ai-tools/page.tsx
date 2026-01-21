@@ -117,7 +117,7 @@ function formatFileSize(bytes: number): string {
 }
 
 export default function ContentStructuringPage() {
-  const { isAvailable: llmAvailable, isChecking: llmChecking, refresh: refreshLLM } = useLLMService()
+  const { isAvailable: llmAvailable, isChecking: llmChecking, refresh: refreshLLM, message: llmStatusMessage } = useLLMService()
   const { hasUploadAccess, maxSizeBytes, isLoading: uploadAccessLoading } = useUploadAccess()
   
   // Workflow state
@@ -379,7 +379,7 @@ export default function ContentStructuringPage() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Service Unavailable</AlertTitle>
           <AlertDescription className="flex items-center gap-4 mt-2">
-            <span>The content assistant is currently offline.</span>
+            <span>{llmStatusMessage || "The content assistant is currently offline."}</span>
             <Button variant="outline" size="sm" onClick={() => refreshLLM()} className="bg-background">
               <RefreshCw className="h-3 w-3 mr-2" />
               Retry
