@@ -379,17 +379,42 @@ export default function ContentStructuringPage() {
         </CardContent>
       </Card>
 
-      {/* LLM Service Status */}
+      {/* LLM Service Status - Enhanced */}
+      {llmChecking && (
+        <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800">
+          <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
+          <AlertTitle className="text-blue-900 dark:text-blue-100">Checking AI Service</AlertTitle>
+          <AlertDescription className="text-blue-700 dark:text-blue-300">
+            Verifying AI service availability...
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {!llmAvailable && !llmChecking && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Analysis Service Unavailable</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <span>{LLM_MESSAGES.unavailable}</span>
-            <Button variant="outline" size="sm" onClick={() => refreshLLM()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Retry
-            </Button>
+          <AlertTitle>AI Service Unavailable</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>{LLM_MESSAGES.unavailable}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <Button variant="outline" size="sm" onClick={() => refreshLLM()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry Connection
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                AI-powered features require a working AI service connection
+              </span>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {llmAvailable && !llmChecking && (
+        <Alert className="border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-900 dark:text-green-100">AI Service Ready</AlertTitle>
+          <AlertDescription className="text-green-700 dark:text-green-300">
+            AI-powered content analysis and question generation are available.
           </AlertDescription>
         </Alert>
       )}
@@ -667,8 +692,8 @@ export default function ContentStructuringPage() {
             >
               {analyzeContentMutation.isPending ? (
                 <>
-                  <span className="animate-spin">⏳</span>
-                  Analyzing...
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Analyzing (10-30s)...
                 </>
               ) : (
                 <>

@@ -29,6 +29,7 @@ const instructorNavItems = [
   { href: '/instructor', icon: BarChart3, label: 'Dashboard', exact: true },
   { href: '/instructor/courses', icon: BookOpen, label: 'My Courses' },
   { href: '/instructor/ai-tools', icon: Sparkles, label: 'Content Structuring' },
+  { href: '/instructor/practice-links', icon: Link2, label: 'Practice Links' },
   { href: '/instructor/mastery', icon: Target, label: 'Mastery Overview' },
   { href: '/instructor/students', icon: Users, label: 'Students' },
 ]

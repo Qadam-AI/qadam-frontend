@@ -2,9 +2,10 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Progress } from '@/components/ui/progress'
 import { 
   Table, 
   TableBody, 
@@ -20,24 +21,20 @@ import {
   Users, 
   Search,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Clock,
-  Award,
   BookOpen,
-  MoreHorizontal,
-  Mail,
-  Plus,
   Copy,
   Check,
-  UserPlus
+  UserPlus,
+  AlertTriangle,
+  Activity,
+  Target,
+  ChevronRight
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { useState } from 'react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useState, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -54,20 +51,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 
-interface StudentEnrollment {
+interface StudentAnalytics {
   user_id: string
-  user_email: string
+  guest_id?: string  // Present if is_guest is true
+  user_email: string | null
   user_name: string
   avatar_url?: string
   course_id: string
   course_title: string
+  courses_enrolled: number
   enrolled_at: string
-  progress: number
-  status: string
-  last_activity?: string
+  last_activity: string | null
+  total_attempts: number
+  passed_attempts: number
+  pass_rate: number
+  attempts_last_7_days: number
+  status: 'active' | 'at-risk' | 'inactive'
+  is_guest?: boolean  // True for guest students from practice links
+  practice_link_code?: string  // Present if is_guest is true
+  practice_link_title?: string  // Present if is_guest is true
+}
+
+interface StudentDetails {
+  user_id: string
+  user_name: string
+  user_email: string
+  avatar_url?: string
+  recent_attempts: {
+    id: string
+    concept_id: string
+    concept_name: string
+    passed: boolean
+    created_at: string
+  }[]
+  weak_concepts: {
+    concept_id: string
+    concept_name: string
+    total_attempts: number
+    passed_attempts: number
+    pass_rate: number
+  }[]
+  performance_trend: 'improving' | 'stable' | 'declining'
 }
 
 interface Course {
@@ -75,54 +110,96 @@ interface Course {
   title: string
 }
 
+function StatusBadge({ status }: { status: 'active' | 'at-risk' | 'inactive' }) {
+  switch (status) {
+    case 'active':
+      return (
+        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1">
+          <Activity className="h-3 w-3" />
+          Active
+        </Badge>
+      )
+    case 'at-risk':
+      return (
+        <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 flex items-center gap-1">
+          <AlertTriangle className="h-3 w-3" />
+          At Risk
+        </Badge>
+      )
+    case 'inactive':
+      return (
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          Inactive
+        </Badge>
+      )
+  }
+}
+
+function TrendIcon({ trend }: { trend: 'improving' | 'stable' | 'declining' }) {
+  switch (trend) {
+    case 'improving':
+      return <TrendingUp className="h-4 w-4 text-green-500" />
+    case 'declining':
+      return <TrendingDown className="h-4 w-4 text-red-500" />
+    default:
+      return <Minus className="h-4 w-4 text-gray-400" />
+  }
+}
+
 export default function InstructorStudents() {
   const [search, setSearch] = useState('')
+  const [courseFilter, setCourseFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [credentialsDialogOpen, setCredentialsDialogOpen] = useState(false)
   const [newStudentName, setNewStudentName] = useState('')
   const [selectedCourseId, setSelectedCourseId] = useState('')
   const [generatedCredentials, setGeneratedCredentials] = useState<{ username: string; password: string } | null>(null)
   const [copiedField, setCopiedField] = useState<'username' | 'password' | null>(null)
+  const [selectedStudent, setSelectedStudent] = useState<StudentAnalytics | null>(null)
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false)
   
   const queryClient = useQueryClient()
 
-  const { data: students, isLoading } = useQuery<StudentEnrollment[]>({
-    queryKey: ['instructor-students', search],
+  const { data: students, isLoading } = useQuery<StudentAnalytics[]>({
+    queryKey: ['instructor-student-analytics', courseFilter, statusFilter, search],
     queryFn: async () => {
-      try {
-        const res = await api.get('/instructor/students', {
-          params: { search: search || undefined }
-        })
-        // Handle both wrapped and direct array responses
-        return Array.isArray(res.data) ? res.data : (res.data?.students || [])
-      } catch {
-        return []
-      }
+      const params: Record<string, string> = {}
+      if (courseFilter !== 'all') params.course_id = courseFilter
+      if (statusFilter !== 'all') params.status_filter = statusFilter
+      if (search) params.search = search
+      
+      const res = await api.get('/instructor/analytics/students', { params })
+      return Array.isArray(res.data) ? res.data : []
     },
   })
 
   const { data: courses } = useQuery<Course[]>({
     queryKey: ['instructor-courses-list'],
     queryFn: async () => {
-      try {
-        const res = await api.get('/instructor/courses')
-        return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
-      } catch {
-        return []
-      }
+      const res = await api.get('/instructor/courses')
+      return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
     },
   })
 
-  const { data: stats } = useQuery({
-    queryKey: ['instructor-student-stats'],
+  const { data: studentDetails, isLoading: loadingDetails } = useQuery<StudentDetails>({
+    queryKey: ['student-details', selectedStudent?.user_id, selectedStudent?.is_guest],
     queryFn: async () => {
-      try {
-        const res = await api.get('/instructor/stats')
+      if (!selectedStudent) return null
+      const params: Record<string, string> = {}
+      if (courseFilter !== 'all') params.course_id = courseFilter
+      
+      // Use different endpoint for guest students
+      if (selectedStudent.is_guest && selectedStudent.guest_id) {
+        const res = await api.get(`/instructor/analytics/guests/${selectedStudent.guest_id}/details`, { params })
         return res.data
-      } catch {
-        return { total_students: 0, active_today: 0, avg_progress: 0 }
+      } else {
+        const res = await api.get(`/instructor/analytics/students/${selectedStudent.user_id}/details`, { params })
+        return res.data
       }
     },
+    enabled: !!selectedStudent && detailSheetOpen,
   })
 
   const createStudentMutation = useMutation({
@@ -136,8 +213,7 @@ export default function InstructorStudents() {
       setCredentialsDialogOpen(true)
       setNewStudentName('')
       setSelectedCourseId('')
-      queryClient.invalidateQueries({ queryKey: ['instructor-students'] })
-      queryClient.invalidateQueries({ queryKey: ['instructor-student-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['instructor-student-analytics'] })
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || 'Failed to create student')
@@ -163,21 +239,50 @@ export default function InstructorStudents() {
     setTimeout(() => setCopiedField(null), 2000)
   }
 
+  const openStudentDetails = (student: StudentAnalytics) => {
+    setSelectedStudent(student)
+    setDetailSheetOpen(true)
+  }
+
+  const stats = useMemo(() => {
+    if (!students || students.length === 0) {
+      return { total: 0, active: 0, atRisk: 0, inactive: 0, avgPassRate: 0, guests: 0 }
+    }
+    
+    const total = students.length
+    const active = students.filter(s => s.status === 'active').length
+    const atRisk = students.filter(s => s.status === 'at-risk').length
+    const inactive = students.filter(s => s.status === 'inactive').length
+    const guests = students.filter(s => s.is_guest).length
+    const avgPassRate = students.reduce((sum, s) => sum + s.pass_rate, 0) / total
+    
+    return { total, active, atRisk, inactive, avgPassRate: Math.round(avgPassRate), guests }
+  }, [students])
+
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">My Students</h1>
-          <p className="text-muted-foreground">View and manage students across your courses</p>
+          <h1 className="text-3xl font-bold">Students</h1>
+          <p className="text-muted-foreground">Track student engagement and performance</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid gap-4 md:grid-cols-5">
+          {[1, 2, 3, 4, 5].map((i) => (
             <Card key={i}>
-              <CardHeader><Skeleton className="h-4 w-24" /></CardHeader>
+              <CardHeader className="pb-2"><Skeleton className="h-4 w-24" /></CardHeader>
               <CardContent><Skeleton className="h-8 w-16" /></CardContent>
             </Card>
           ))}
         </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -187,12 +292,14 @@ export default function InstructorStudents() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">My Students</h1>
-        <p className="text-muted-foreground">View and manage students across your courses</p>
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Users className="h-8 w-8 text-primary" />
+          Students
+        </h1>
+        <p className="text-muted-foreground">Track student engagement and identify who needs help</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -201,46 +308,56 @@ export default function InstructorStudents() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_students || allStudents.length}</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4 text-green-500" />
-              Active Today
+              <Activity className="h-4 w-4 text-green-500" />
+              Active
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats?.active_today || 0}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-              Avg Progress
+              <AlertTriangle className="h-4 w-4 text-orange-500" />
+              At Risk
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.avg_progress || 0}%</div>
+            <div className="text-2xl font-bold text-orange-600">{stats.atRisk}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Award className="h-4 w-4 text-yellow-500" />
-              Completions
+              <Clock className="h-4 w-4 text-gray-500" />
+              Inactive
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_completions || 0}</div>
+            <div className="text-2xl font-bold text-gray-500">{stats.inactive}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Target className="h-4 w-4 text-blue-500" />
+              Avg Pass Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.avgPassRate}%</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search and Add Student */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -251,7 +368,32 @@ export default function InstructorStudents() {
           />
         </div>
         
-        {/* Add Student Button */}
+        <Select value={courseFilter} onValueChange={setCourseFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All courses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Courses</SelectItem>
+            {courses?.map((course) => (
+              <SelectItem key={course.id} value={course.id}>
+                {course.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="at-risk">At Risk</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+        
         <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -303,7 +445,6 @@ export default function InstructorStudents() {
           </DialogContent>
         </Dialog>
 
-        {/* Credentials Dialog */}
         <Dialog open={credentialsDialogOpen} onOpenChange={setCredentialsDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -368,34 +509,43 @@ export default function InstructorStudents() {
         </Dialog>
       </div>
 
-      {/* Students Table */}
       <Card>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Student</TableHead>
               <TableHead>Course</TableHead>
-              <TableHead>Progress</TableHead>
+              <TableHead className="text-center">Last Activity</TableHead>
+              <TableHead className="text-center">Attempts (7d)</TableHead>
+              <TableHead className="text-center">Pass Rate</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Enrolled</TableHead>
-              <TableHead>Last Active</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {allStudents.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  <div className="flex flex-col items-center gap-2">
-                    <Users className="h-8 w-8 text-muted-foreground/50" />
-                    <p>No students enrolled yet.</p>
-                    <p className="text-sm">Click &quot;Add Student&quot; to create student accounts, or share your course join links.</p>
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <div className="flex flex-col items-center gap-3">
+                    <Users className="h-12 w-12 text-muted-foreground/30" />
+                    <div>
+                      <p className="font-medium">No students found</p>
+                      <p className="text-sm">
+                        {search || courseFilter !== 'all' || statusFilter !== 'all'
+                          ? 'Try adjusting your filters'
+                          : 'Click "Add Student" to create student accounts'}
+                      </p>
+                    </div>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              allStudents.map((student, idx) => (
-                <TableRow key={`${student.user_id}-${student.course_id}-${idx}`}>
+              allStudents.map((student) => (
+                <TableRow 
+                  key={`${student.user_id}-${student.course_id}`}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => openStudentDetails(student)}
+                >
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
@@ -405,8 +555,18 @@ export default function InstructorStudents() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{student.user_name || 'Unknown'}</div>
-                        <div className="text-sm text-muted-foreground">{student.user_email}</div>
+                        <div className="font-medium flex items-center gap-2">
+                          {student.user_name || 'Unknown'}
+                          {student.is_guest && (
+                            <Badge variant="outline" className="text-xs">Guest</Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {student.is_guest 
+                            ? `via ${student.practice_link_title || student.practice_link_code}`
+                            : student.user_email
+                          }
+                        </div>
                       </div>
                     </div>
                   </TableCell>
@@ -416,61 +576,166 @@ export default function InstructorStudents() {
                       <span className="text-sm">{student.course_title}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full transition-all"
-                          style={{ width: `${student.progress}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-muted-foreground">{student.progress}%</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={
-                        student.status === 'completed' ? 'default' :
-                        student.status === 'active' ? 'secondary' :
-                        'outline'
-                      }
-                      className={student.status === 'completed' ? 'bg-green-600' : ''}
-                    >
-                      {student.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(student.enrolled_at), { addSuffix: true })}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-center text-sm text-muted-foreground">
                     {student.last_activity 
                       ? formatDistanceToNow(new Date(student.last_activity), { addSuffix: true })
                       : 'Never'
                     }
                   </TableCell>
+                  <TableCell className="text-center">
+                    <span className={`font-medium ${student.attempts_last_7_days > 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {student.attempts_last_7_days}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <Progress value={student.pass_rate} className="w-16 h-2" />
+                      <span className={`text-sm font-medium ${student.pass_rate >= 70 ? 'text-green-600' : student.pass_rate >= 50 ? 'text-yellow-600' : 'text-orange-600'}`}>
+                        {student.pass_rate}%
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Mail className="h-4 w-4 mr-2" />
-                          Send Message
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          View Progress
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <StatusBadge status={student.status} />
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" onClick={(e) => {
+                      e.stopPropagation()
+                      openStudentDetails(student)
+                    }}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
+      </Card>
+
+      <Sheet open={detailSheetOpen} onOpenChange={setDetailSheetOpen}>
+        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+          {loadingDetails ? (
+            <div className="space-y-4">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          ) : studentDetails ? (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={studentDetails.avatar_url} />
+                    <AvatarFallback>
+                      {studentDetails.user_name?.charAt(0) || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div>{studentDetails.user_name}</div>
+                    <div className="text-sm text-muted-foreground font-normal">
+                      {studentDetails.user_email}
+                    </div>
+                  </div>
+                </SheetTitle>
+                <SheetDescription className="flex items-center gap-2 pt-2">
+                  Performance Trend: 
+                  <span className="flex items-center gap-1 font-medium">
+                    <TrendIcon trend={studentDetails.performance_trend} />
+                    {studentDetails.performance_trend === 'improving' ? 'Improving' :
+                     studentDetails.performance_trend === 'declining' ? 'Declining' : 'Stable'}
+                  </span>
+                </SheetDescription>
+              </SheetHeader>
+
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  Concepts Needing Attention
+                </h3>
+                {studentDetails.weak_concepts.length === 0 ? (
+                  <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 text-center">
+                    No struggling concepts identified yet
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {studentDetails.weak_concepts.slice(0, 5).map((concept) => (
+                      <div 
+                        key={concept.concept_id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800"
+                      >
+                        <div>
+                          <div className="font-medium text-sm">{concept.concept_name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {concept.passed_attempts}/{concept.total_attempts} attempts passed
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-orange-600">
+                          {concept.pass_rate}%
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Recent Practice Attempts
+                </h3>
+                {studentDetails.recent_attempts.length === 0 ? (
+                  <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 text-center">
+                    No practice attempts yet
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {studentDetails.recent_attempts.map((attempt) => (
+                      <div 
+                        key={attempt.id}
+                        className="flex items-center justify-between p-3 rounded-lg border"
+                      >
+                        <div>
+                          <div className="font-medium text-sm">{attempt.concept_name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(attempt.created_at), { addSuffix: true })}
+                          </div>
+                        </div>
+                        <Badge variant={attempt.passed ? 'default' : 'secondary'}>
+                          {attempt.passed ? 'Passed' : 'Failed'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              Unable to load student details
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <Card className="bg-muted/50">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5" />
+            <div>
+              <h4 className="font-semibold mb-1">Understanding Student Status</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li><span className="font-medium text-green-600">Active:</span> Practiced within the last 7 days</li>
+                <li><span className="font-medium text-orange-600">At Risk:</span> Low pass rate (&lt;50%) or no activity for 7+ days</li>
+                <li><span className="font-medium text-gray-500">Inactive:</span> No activity for 14+ days</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     </div>
   )
