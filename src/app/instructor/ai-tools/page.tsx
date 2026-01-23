@@ -922,7 +922,7 @@ export default function ContentStructuringPage() {
                  <Button variant="outline" className="mr-4" onClick={() => setAssessmentResult(null)}>
                     Discard
                  </Button>
-                 <Button onClick={() => window.location.href = `/instructor/courses/${selectedCourseId}/content`}>
+                 <Button onClick={() => window.location.href = `/instructor/courses/${selectedCourseId}`}>
                     Save and Exit
                  </Button>
               </div>
