@@ -263,12 +263,12 @@ export default function ContentStructuringPage() {
           difficulty: c.difficulty,
         })),
         content: content,
+        generate_questions: false,
       })
       return res.data
     },
     onSuccess: (result: any) => {
-      const totalQuestions = result.concepts.reduce((sum: number, c: any) => sum + c.questions_generated, 0)
-      toast.success(`Saved ${result.concepts.length} concepts and generated ${totalQuestions} practice questions!`)
+      toast.success(`Saved ${result.concepts.length} concepts. Ready for question creation.`)
       setCurrentStep('generate')
     },
     onError: (error: any) => {
