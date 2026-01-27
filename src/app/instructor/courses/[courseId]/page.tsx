@@ -692,7 +692,7 @@ export default function CourseDetailPage() {
                     <img 
                       src={coverPreview || coverImageUrl} 
                       alt="Course cover preview" 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                     {uploadingCover && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

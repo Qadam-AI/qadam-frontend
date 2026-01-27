@@ -72,7 +72,9 @@ export function Navbar() {
                   </>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
+                  <Link href={user?.role === 'instructor' || user?.user_type === 'instructor' ? '/instructor/settings' : '/profile'}>
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout}>
                   Log out

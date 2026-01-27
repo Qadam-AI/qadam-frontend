@@ -175,7 +175,11 @@ function ProfileContent() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Member since {new Date(user?.created_at || Date.now()).toLocaleDateString()}
+                  Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  }) : 'Unknown'}
                 </div>
               </div>
             </div>
