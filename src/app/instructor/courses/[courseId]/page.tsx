@@ -234,6 +234,37 @@ export default function CourseDetailPage() {
     }
   })
 
+  // Create student mutation
+  const createStudentMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post('/instructor/students', {
+        firstName: studentFirstName,
+        lastName: studentLastName,
+        courseId: courseId,
+        email: studentEmail || undefined,
+        phoneNumber: studentPhone || undefined,
+      })
+      return res.data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['course-students', courseId] })
+      queryClient.invalidateQueries({ queryKey: ['instructor-course', courseId] })
+      setCreatedCredentials({
+        username: data.username,
+        password: data.password,
+      })
+      toast.success('Student created successfully!')
+      // Reset form
+      setStudentFirstName('')
+      setStudentLastName('')
+      setStudentEmail('')
+      setStudentPhone('')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to create student')
+    }
+  })
+
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
