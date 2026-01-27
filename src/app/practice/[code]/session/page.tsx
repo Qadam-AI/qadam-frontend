@@ -6,7 +6,6 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -15,20 +14,21 @@ import { Input } from '@/components/ui/input'
 import { 
   CheckCircle2,
   XCircle,
-  ArrowRight,
   Clock,
   Trophy,
-  AlertCircle,
   Loader2,
   Lightbulb,
   RotateCcw,
-  Home,
-  Target,
   Sparkles,
   ChevronRight
 } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { toast } from 'sonner'
+
+// Design System
+import { SurfaceCard } from '@/design-system/surfaces'
+import { Stack } from '@/design-system/layout'
+import { Heading, Text, LabelText } from '@/design-system/typography'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://qadam-backend-production.up.railway.app/api/v1'
 
@@ -97,7 +97,6 @@ export default function PracticeSessionPage() {
   const [progress, setProgress] = useState({ answered: 0, total: 10, correct: 0 })
   const [sessionComplete, setSessionComplete] = useState(false)
   const [summary, setSummary] = useState<SessionSummary | null>(null)
-  const [startTime, setStartTime] = useState<Date | null>(null)
   const [questionStartTime, setQuestionStartTime] = useState<Date | null>(null)
   const [hintsRevealed, setHintsRevealed] = useState(0)
 
@@ -120,7 +119,6 @@ export default function PracticeSessionPage() {
     setTotalQuestions(count ? parseInt(count) : 10)
     setTimeLimit(limit ? parseInt(limit) * 60 : null)
     setTimeRemaining(limit ? parseInt(limit) * 60 : null)
-    setStartTime(new Date())
     setProgress(p => ({ ...p, total: count ? parseInt(count) : 10 }))
   }, [code, router])
 
@@ -131,7 +129,6 @@ export default function PracticeSessionPage() {
     const interval = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev === null || prev <= 1) {
-          // Time's up - end session
           endSessionMutation.mutate()
           return 0
         }
@@ -200,7 +197,6 @@ export default function PracticeSessionPage() {
       setShowFeedback(true)
       setProgress(data.progress)
 
-      // Celebration on correct
       if (data.is_correct) {
         confetti({
           particleCount: 50,
@@ -225,7 +221,6 @@ export default function PracticeSessionPage() {
       setSummary(data)
       setSessionComplete(true)
 
-      // Big celebration for good performance
       if (data.accuracy >= 0.7) {
         confetti({
           particleCount: 100,
@@ -234,7 +229,6 @@ export default function PracticeSessionPage() {
         })
       }
 
-      // Clear localStorage
       localStorage.removeItem('practice_session_token')
       localStorage.removeItem('practice_session_id')
       localStorage.removeItem('practice_guest_name')
@@ -242,7 +236,7 @@ export default function PracticeSessionPage() {
       localStorage.removeItem('practice_time_limit')
     },
     onError: () => {
-      toast.error('Failed to submit session results. Please try refreshing.', {
+      toast.error('Failed to submit results. Please try refreshing.', {
         duration: 5000,
         action: {
           label: 'Retry',
@@ -282,50 +276,49 @@ export default function PracticeSessionPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  // Loading state
+  // Loading initial session
   if (!sessionToken || !sessionId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
 
-  // Session complete / Summary
+  // Session complete - summary
   if (sessionComplete && summary) {
     const percentCorrect = Math.round(summary.accuracy * 100)
     const grade = percentCorrect >= 90 ? 'A' : percentCorrect >= 80 ? 'B' : percentCorrect >= 70 ? 'C' : percentCorrect >= 60 ? 'D' : 'F'
     
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-md"
         >
-          <Card className="shadow-lg">
-            <CardHeader className="text-center space-y-4">
+          <SurfaceCard variant="elevated">
+            <Stack gap="lg">
+              {/* Trophy icon */}
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: 'spring', delay: 0.2 }}
+                transition={{ type: 'spring', delay: 0.1 }}
                 className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center ${
                   percentCorrect >= 70 ? 'bg-green-500/10' : 'bg-yellow-500/10'
                 }`}
               >
                 <Trophy className={`h-10 w-10 ${
-                  percentCorrect >= 70 ? 'text-green-500' : 'text-yellow-500'
+                  percentCorrect >= 70 ? 'text-green-600' : 'text-yellow-600'
                 }`} />
               </motion.div>
-              <div>
-                <CardTitle className="text-2xl">Practice Complete!</CardTitle>
-                <CardDescription className="mt-1">
-                  Great work, {summary.guest_name}!
-                </CardDescription>
-              </div>
-            </CardHeader>
 
-            <CardContent className="space-y-6">
+              {/* Title */}
+              <div className="text-center">
+                <Heading level={2} className="mb-2">Practice Complete!</Heading>
+                <Text variant="muted">Great work, {summary.guest_name}!</Text>
+              </div>
+
               {/* Score */}
               <div className="text-center">
                 <div className="text-6xl font-bold text-primary mb-2">{percentCorrect}%</div>
@@ -336,20 +329,22 @@ export default function PracticeSessionPage() {
 
               {/* Stats */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="text-2xl font-bold">{summary.questions_correct}/{summary.questions_answered}</div>
-                  <div className="text-sm text-muted-foreground">Correct</div>
+                  <Text size="sm" variant="muted">Correct</Text>
                 </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="text-2xl font-bold">{summary.max_streak}</div>
-                  <div className="text-sm text-muted-foreground">Best Streak</div>
+                  <Text size="sm" variant="muted">Best Streak</Text>
                 </div>
               </div>
 
               {summary.total_time_seconds && (
-                <div className="text-center text-muted-foreground">
-                  <Clock className="h-4 w-4 inline mr-1" />
-                  Completed in {formatTime(summary.total_time_seconds)}
+                <div className="text-center">
+                  <Text variant="muted" className="flex items-center justify-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    Completed in {formatTime(summary.total_time_seconds)}
+                  </Text>
                 </div>
               )}
 
@@ -357,65 +352,66 @@ export default function PracticeSessionPage() {
               <div className={`p-4 rounded-lg text-center ${
                 percentCorrect >= 70 ? 'bg-green-500/10' : 'bg-yellow-500/10'
               }`}>
-                <p className="font-medium">
+                <Text className="font-medium">
                   {percentCorrect >= 90 ? '🌟 Outstanding! You mastered this topic!' :
                    percentCorrect >= 70 ? '👏 Well done! Keep up the great work!' :
                    percentCorrect >= 50 ? '💪 Good effort! Review and try again!' :
                    '📚 Keep practicing! You\'ll get better!'}
-                </p>
+                </Text>
               </div>
 
               {/* Actions */}
               <div className="space-y-2">
                 <Button 
                   className="w-full gap-2" 
+                  size="lg"
                   onClick={() => router.push(`/practice/${code}`)}
                 >
                   <RotateCcw className="h-4 w-4" />
                   Try Again with New Questions
                 </Button>
-                <p className="text-xs text-center text-muted-foreground pt-1">
+                <Text size="xs" variant="subtle" className="text-center pt-1">
                   Your score has been recorded. Great effort!
-                </p>
+                </Text>
               </div>
-            </CardContent>
-          </Card>
+            </Stack>
+          </SurfaceCard>
         </motion.div>
       </div>
     )
   }
 
-  // Calculating results / Loading final summary
+  // Calculating results
   if (sessionComplete && !summary) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-        <h2 className="text-xl font-medium">Calculating Results...</h2>
-        <p className="text-muted-foreground mt-2">Checking your answers and generating feedback</p>
+        <Heading level={3} className="mb-2">Calculating Results...</Heading>
+        <Text variant="muted">Checking your answers and generating feedback</Text>
       </div>
     )
   }
 
-  // Question UI
+  // Question UI - focused practice mode
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4">
+      <div className="max-w-2xl mx-auto space-y-6 py-8">
+        {/* Minimal header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="font-semibold text-lg">{guestName}&apos;s Practice</h1>
-            <p className="text-sm text-muted-foreground">
+            <Text className="font-semibold">{guestName}'s Practice</Text>
+            <Text size="sm" variant="muted">
               Question {progress.answered + 1} of {progress.total}
-            </p>
+            </Text>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Badge variant="outline" className="gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-              {progress.correct} correct
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+              {progress.correct}
             </Badge>
             {timeRemaining !== null && (
               <Badge 
@@ -430,9 +426,9 @@ export default function PracticeSessionPage() {
         </motion.div>
 
         {/* Progress bar */}
-        <Progress value={(progress.answered / progress.total) * 100} className="h-2" />
+        <Progress value={(progress.answered / progress.total) * 100} className="h-1.5" />
 
-        {/* Question Card */}
+        {/* Question/Feedback Card */}
         <AnimatePresence mode="wait">
           {loadingQuestion || !currentQuestion ? (
             <motion.div
@@ -443,111 +439,108 @@ export default function PracticeSessionPage() {
               className="flex flex-col items-center justify-center py-12"
             >
               <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-              <p className="text-sm text-muted-foreground">Loading next question...</p>
+              <Text variant="muted">Loading next question...</Text>
             </motion.div>
           ) : showFeedback ? (
             <motion.div
               key="feedback"
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
             >
-              <Card className={`border-2 ${
-                lastAnswer?.is_correct ? 'border-green-500' : 'border-destructive'
-              }`}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    {lastAnswer?.is_correct ? (
-                      <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center">
-                        <CheckCircle2 className="h-6 w-6 text-green-500" />
-                      </div>
-                    ) : (
-                      <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center">
-                        <XCircle className="h-6 w-6 text-destructive" />
-                      </div>
-                    )}
-                    <div>
-                      <CardTitle className={lastAnswer?.is_correct ? 'text-green-500' : 'text-destructive'}>
+              <SurfaceCard variant={lastAnswer?.is_correct ? 'default' : 'bordered'}>
+                <Stack gap="md">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2.5 rounded-lg ${
+                      lastAnswer?.is_correct 
+                        ? 'bg-green-500/10 text-green-600' 
+                        : 'bg-destructive/10 text-destructive'
+                    }`}>
+                      {lastAnswer?.is_correct ? (
+                        <CheckCircle2 className="h-6 w-6" />
+                      ) : (
+                        <XCircle className="h-6 w-6" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <LabelText className={lastAnswer?.is_correct ? 'text-green-600' : 'text-destructive'}>
                         {lastAnswer?.is_correct ? 'Correct!' : 'Incorrect'}
-                      </CardTitle>
+                      </LabelText>
                       {!lastAnswer?.is_correct && lastAnswer?.correct_answer && (
-                        <CardDescription>
+                        <Text size="sm" variant="muted" className="mt-1">
                           Correct answer: <span className="font-medium text-foreground">{lastAnswer.correct_answer}</span>
-                        </CardDescription>
+                        </Text>
                       )}
                     </div>
                   </div>
-                </CardHeader>
-                
-                {lastAnswer?.explanation && (
-                  <CardContent>
-                    <div className="p-4 bg-muted rounded-lg">
+
+                  {lastAnswer?.explanation && (
+                    <div className="p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-start gap-2">
-                        <Lightbulb className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
+                        <Lightbulb className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-medium mb-1">Explanation</p>
-                          <p className="text-sm text-muted-foreground">{lastAnswer.explanation}</p>
+                          <LabelText className="mb-1">Explanation</LabelText>
+                          <Text size="sm" variant="muted">{lastAnswer.explanation}</Text>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                )}
+                  )}
 
-                <CardContent className="pt-0">
-                  <Button onClick={handleNextQuestion} className="w-full gap-2">
-                    {progress.answered >= progress.total ? (
-                      <>
-                        See Results
-                        <Trophy className="h-4 w-4" />
-                      </>
-                    ) : (
-                      <>
-                        Next Question
-                        <ChevronRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
+                  <div className="pt-2">
+                    <Button onClick={handleNextQuestion} className="w-full gap-2" size="lg">
+                      {progress.answered >= progress.total ? (
+                        <>
+                          See Results
+                          <Trophy className="h-4 w-4" />
+                        </>
+                      ) : (
+                        <>
+                          Next Question
+                          <ChevronRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </Stack>
+              </SurfaceCard>
             </motion.div>
           ) : (
             <motion.div
               key={currentQuestion.id}
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              exit={{ opacity: 0, x: -10 }}
             >
-              <Card>
-                <CardHeader>
+              <SurfaceCard variant="elevated">
+                <Stack gap="lg">
+                  {/* Question */}
                   <div className="flex items-start justify-between gap-4">
-                    <CardTitle className="text-lg leading-relaxed">
+                    <Text className="text-lg leading-relaxed flex-1">
                       {currentQuestion.question_text}
-                    </CardTitle>
+                    </Text>
                     <Badge variant="outline" className="shrink-0">
                       {currentQuestion.difficulty <= 3 ? 'Easy' : 
                        currentQuestion.difficulty <= 6 ? 'Medium' : 'Hard'}
                     </Badge>
                   </div>
-                </CardHeader>
 
-                <CardContent className="space-y-6">
                   {/* Multiple Choice */}
                   {currentQuestion.question_type === 'multiple_choice' && currentQuestion.options && (
                     <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer}>
-                      <div className="space-y-3">
+                      <div className="space-y-2.5">
                         {currentQuestion.options.map((option, idx) => (
                           <motion.div
                             key={option.id || idx}
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
+                            transition={{ delay: idx * 0.05 }}
                           >
                             <Label
                               htmlFor={option.id || String(idx)}
-                              className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                              className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-all ${
                                 selectedAnswer === (option.id || option.text)
-                                  ? 'border-primary bg-primary/5'
-                                  : 'hover:bg-muted'
+                                  ? 'border-primary bg-primary/5 shadow-sm'
+                                  : 'hover:bg-muted/50'
                               }`}
                             >
                               <RadioGroupItem 
@@ -565,9 +558,8 @@ export default function PracticeSessionPage() {
                   {/* Short Answer */}
                   {currentQuestion.question_type !== 'multiple_choice' && (
                     <div className="space-y-2">
-                      <Label htmlFor="answer">Your Answer</Label>
+                      <LabelText>Your Answer</LabelText>
                       <Input
-                        id="answer"
                         value={shortAnswer}
                         onChange={(e) => setShortAnswer(e.target.value)}
                         placeholder="Type your answer..."
@@ -582,32 +574,38 @@ export default function PracticeSessionPage() {
                   )}
 
                   {/* Hints */}
-                  {currentQuestion.hints && currentQuestion.hints.length > 0 && hintsRevealed < currentQuestion.hints.length && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setHintsRevealed(h => h + 1)}
-                      className="gap-2"
-                    >
-                      <Lightbulb className="h-4 w-4" />
-                      Show Hint ({currentQuestion.hints.length - hintsRevealed} left)
-                    </Button>
-                  )}
-
-                  {currentQuestion.hints && hintsRevealed > 0 && (
-                    <div className="space-y-2">
-                      {currentQuestion.hints.slice(0, hintsRevealed).map((hint, idx) => (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-sm"
+                  {currentQuestion.hints && currentQuestion.hints.length > 0 && (
+                    <>
+                      {hintsRevealed < currentQuestion.hints.length && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setHintsRevealed(h => h + 1)}
+                          className="gap-2 self-start"
                         >
-                          <Lightbulb className="h-4 w-4 text-yellow-500 inline mr-2" />
-                          {hint}
-                        </motion.div>
-                      ))}
-                    </div>
+                          <Lightbulb className="h-4 w-4" />
+                          Show Hint ({currentQuestion.hints.length - hintsRevealed} left)
+                        </Button>
+                      )}
+
+                      {hintsRevealed > 0 && (
+                        <div className="space-y-2">
+                          {currentQuestion.hints.slice(0, hintsRevealed).map((hint, idx) => (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg"
+                            >
+                              <Text size="sm" className="flex items-start gap-2">
+                                <Lightbulb className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+                                {hint}
+                              </Text>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {/* Submit */}
@@ -633,8 +631,8 @@ export default function PracticeSessionPage() {
                       </>
                     )}
                   </Button>
-                </CardContent>
-              </Card>
+                </Stack>
+              </SurfaceCard>
             </motion.div>
           )}
         </AnimatePresence>

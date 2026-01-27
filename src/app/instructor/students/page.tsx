@@ -1,21 +1,13 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Progress } from '@/components/ui/progress'
 import { 
   Users, 
   Search,
@@ -30,19 +22,14 @@ import {
   AlertTriangle,
   Activity,
   Target,
-  ChevronRight
+  Send,
+  X,
+  Loader2,
+  LayoutGrid,
+  LayoutList
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useState, useMemo } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -50,20 +37,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
+
+// Design System
+import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
+import { MetricCard, SurfaceCard, InfoPanel } from '@/design-system/surfaces'
+import { EmptyState, LoadingState, Skeleton } from '@/design-system/feedback'
+import { DrawerLayout } from '@/design-system/patterns/drawer-layout'
+import { ModalLayout } from '@/design-system/patterns/modal-layout'
+import { LabelText, HelperText } from '@/design-system/typography'
 
 interface StudentAnalytics {
   user_id: string
-  guest_id?: string  // Present if is_guest is true
+  guest_id?: string
   user_email: string | null
   user_name: string
   avatar_url?: string
@@ -77,32 +66,11 @@ interface StudentAnalytics {
   pass_rate: number
   attempts_last_7_days: number
   status: 'active' | 'at-risk' | 'inactive'
-  is_guest?: boolean  // True for guest students from practice links
-  practice_link_code?: string  // Present if is_guest is true
-  practice_link_title?: string  // Present if is_guest is true
+  is_guest?: boolean
+  practice_link_code?: string
+  practice_link_title?: string
 }
 
-interface StudentDetails {
-  user_id: string
-  user_name: string
-  user_email: string
-  avatar_url?: string
-  recent_attempts: {
-    id: string
-    concept_id: string
-    concept_name: string
-    passed: boolean
-    created_at: string
-  }[]
-  weak_concepts: {
-    concept_id: string
-    concept_name: string
-    total_attempts: number
-    passed_attempts: number
-    pass_rate: number
-  }[]
-  performance_trend: 'improving' | 'stable' | 'declining'
-}
 
 interface Course {
   id: string
@@ -150,25 +118,25 @@ const safeFormatDistanceToNow = (date: string | Date | null | undefined) => {
   if (!date) return 'Never'
   try {
     const d = new Date(date)
-    if (isNaN(d.getTime())) return 'Unknown date'
+    if (isNaN(d.getTime())) return 'Unknown'
     return formatDistanceToNow(d, { addSuffix: true })
   } catch {
-    return 'Unknown date'
+    return 'Unknown'
   }
 }
 
 export default function InstructorStudents() {
+  const router = useRouter()
   const [search, setSearch] = useState('')
   const [courseFilter, setCourseFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [credentialsDialogOpen, setCredentialsDialogOpen] = useState(false)
   const [newStudentName, setNewStudentName] = useState('')
   const [selectedCourseId, setSelectedCourseId] = useState('')
   const [generatedCredentials, setGeneratedCredentials] = useState<{ username: string; password: string } | null>(null)
   const [copiedField, setCopiedField] = useState<'username' | 'password' | null>(null)
-  const [selectedStudent, setSelectedStudent] = useState<StudentAnalytics | null>(null)
-  const [detailSheetOpen, setDetailSheetOpen] = useState(false)
   
   const queryClient = useQueryClient()
 
@@ -193,24 +161,6 @@ export default function InstructorStudents() {
     },
   })
 
-  const { data: studentDetails, isLoading: loadingDetails } = useQuery<StudentDetails>({
-    queryKey: ['student-details', selectedStudent?.user_id, selectedStudent?.is_guest],
-    queryFn: async () => {
-      if (!selectedStudent) return null
-      const params: Record<string, string> = {}
-      if (courseFilter !== 'all') params.course_id = courseFilter
-      
-      // Use different endpoint for guest students
-      if (selectedStudent.is_guest && selectedStudent.guest_id) {
-        const res = await api.get(`/instructor/analytics/guests/${selectedStudent.guest_id}/details`, { params })
-        return res.data
-      } else {
-        const res = await api.get(`/instructor/analytics/students/${selectedStudent.user_id}/details`, { params })
-        return res.data
-      }
-    },
-    enabled: !!selectedStudent && detailSheetOpen,
-  })
 
   const createStudentMutation = useMutation({
     mutationFn: async (data: { full_name: string; course_id: string }) => {
@@ -250,8 +200,17 @@ export default function InstructorStudents() {
   }
 
   const openStudentDetails = (student: StudentAnalytics) => {
-    setSelectedStudent(student)
-    setDetailSheetOpen(true)
+    // Navigate to dedicated student profile page
+    const studentId = student.is_guest && student.guest_id 
+      ? `guest_${student.guest_id}`
+      : student.user_id
+    
+    console.log('🔍 CLICKED STUDENT - Navigating to:', studentId)
+    console.log('🔍 Full student data:', student)
+    console.log('🔍 Full URL:', `/instructor/students/${studentId}`)
+    
+    // Try direct navigation
+    window.location.href = `/instructor/students/${studentId}`
   }
 
   const stats = useMemo(() => {
@@ -269,560 +228,397 @@ export default function InstructorStudents() {
     return { total, active, atRisk, inactive, avgPassRate: Math.round(avgPassRate), guests }
   }, [students])
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Students</h1>
-          <p className="text-muted-foreground">Track student engagement and performance</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-5">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2"><Skeleton className="h-4 w-24" /></CardHeader>
-              <CardContent><Skeleton className="h-8 w-16" /></CardContent>
-            </Card>
-          ))}
-        </div>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  const allStudents = students || []
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Users className="h-8 w-8 text-primary" />
-          Students
-        </h1>
-        <p className="text-muted-foreground">Track student engagement and identify who needs help</p>
-      </div>
+    <PageShell maxWidth="2xl">
+      <PageHeader
+        title="Students"
+        description="Track student engagement and identify who needs help"
+        action={
+          <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Add Student
+          </Button>
+        }
+      />
 
-      <div className="grid gap-4 md:grid-cols-5">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Total Students
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Activity className="h-4 w-4 text-green-500" />
-              Active
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-              At Risk
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.atRisk}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-500" />
-              Inactive
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-500">{stats.inactive}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Target className="h-4 w-4 text-blue-500" />
-              Avg Pass Rate
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.avgPassRate}%</div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* KPI Metrics */}
+      <Section>
+        <Grid cols={4} gap="md">
+          <MetricCard label="Total" value={stats.total} icon={Users} variant="default" />
+          <MetricCard label="Active" value={stats.active} icon={Activity} variant="success" />
+          <MetricCard label="At Risk" value={stats.atRisk} icon={AlertTriangle} variant="warning" />
+          <MetricCard label="Avg Pass Rate" value={`${stats.avgPassRate}%`} icon={Target} variant="info" />
+        </Grid>
+      </Section>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search students..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <Select value={courseFilter} onValueChange={setCourseFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="All courses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Courses</SelectItem>
-            {courses?.map((course) => (
-              <SelectItem key={course.id} value={course.id}>
-                {course.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Filters */}
+      <Section>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search students..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select value={courseFilter} onValueChange={setCourseFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="All courses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Courses</SelectItem>
+              {courses?.map((course) => (
+                <SelectItem key={course.id} value={course.id}>
+                  {course.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="at-risk">At Risk</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Student
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="at-risk">At Risk</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* View Toggle */}
+          <div className="flex items-center gap-1 p-1 bg-muted/30 rounded-lg">
+            <Button
+              variant={viewMode === 'card' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('card')}
+              className="gap-2"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              Cards
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Student</DialogTitle>
-              <DialogDescription>
-                Enter student&apos;s name and select a course. Login credentials will be generated automatically.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="student-name">Full Name</Label>
-                <Input
-                  id="student-name"
-                  placeholder="Enter student's full name"
-                  value={newStudentName}
-                  onChange={(e) => setNewStudentName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="course">Course</Label>
-                <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses?.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddStudent} disabled={createStudentMutation.isPending}>
-                {createStudentMutation.isPending ? 'Creating...' : 'Create Student'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="gap-2"
+            >
+              <LayoutList className="h-4 w-4" />
+              List
+            </Button>
+          </div>
+        </div>
+      </Section>
 
-        <Dialog open={credentialsDialogOpen} onOpenChange={setCredentialsDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-500" />
-                Student Created Successfully
-              </DialogTitle>
-              <DialogDescription>
-                Share these credentials with the student. They can use them to log in.
-              </DialogDescription>
-            </DialogHeader>
-            {generatedCredentials && (
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">Username</Label>
-                  <div className="flex items-center gap-2">
-                    <Input readOnly value={generatedCredentials.username} className="font-mono" />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => copyToClipboard(generatedCredentials.username, 'username')}
-                    >
-                      {copiedField === 'username' ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">Password</Label>
-                  <div className="flex items-center gap-2">
-                    <Input readOnly value={generatedCredentials.password} className="font-mono" />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => copyToClipboard(generatedCredentials.password, 'password')}
-                    >
-                      {copiedField === 'password' ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>Important:</strong> Save these credentials now. The password cannot be retrieved later.
-                </div>
-              </div>
-            )}
-            <DialogFooter>
-              <Button onClick={() => {
-                setCredentialsDialogOpen(false)
-                setGeneratedCredentials(null)
-              }}>
-                Done
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead className="text-center">Last Activity</TableHead>
-              <TableHead className="text-center">Attempts (7d)</TableHead>
-              <TableHead className="text-center">Pass Rate</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {allStudents.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                  <div className="flex flex-col items-center gap-3">
-                    <Users className="h-12 w-12 text-muted-foreground/30" />
-                    <div>
-                      <p className="font-medium">No students found</p>
-                      <p className="text-sm">
-                        {search || courseFilter !== 'all' || statusFilter !== 'all'
-                          ? 'Try adjusting your filters'
-                          : 'Click "Add Student" to create student accounts'}
-                      </p>
-                    </div>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              allStudents.map((student) => (
-                <TableRow 
-                  key={`${student.user_id}-${student.course_id}`}
-                  className="cursor-pointer hover:bg-muted/50"
+      {/* Students List */}
+      <Section>
+        {isLoading ? (
+          <LoadingState message="Loading students..." />
+        ) : !students || students.length === 0 ? (
+          <SurfaceCard variant="muted" className="py-12">
+            <EmptyState
+              icon={Users}
+              title="No students found"
+              description={
+                search || courseFilter !== 'all' || statusFilter !== 'all'
+                  ? 'Try adjusting your filters'
+                  : 'Add students to start tracking their progress'
+              }
+              action={
+                !search && courseFilter === 'all' && statusFilter === 'all'
+                  ? { label: 'Add Student', onClick: () => setAddDialogOpen(true) }
+                  : undefined
+              }
+            />
+          </SurfaceCard>
+        ) : viewMode === 'card' ? (
+          <Grid cols={3} gap="md">
+            {students.map((student, index) => (
+              <motion.div
+                key={`${student.user_id}-${student.course_id}`}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.02 }}
+              >
+                <SurfaceCard
+                  className="cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all h-full"
                   onClick={() => openStudentDetails(student)}
                 >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={student.avatar_url} />
-                        <AvatarFallback>
-                          {student.user_name?.charAt(0) || student.user_email?.charAt(0) || '?'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium flex items-center gap-2">
-                          {student.user_name || 'Unknown'}
-                          {student.is_guest && (
-                            <Badge variant="outline" className="text-xs">Guest</Badge>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {student.is_guest 
-                            ? `via ${student.practice_link_title || student.practice_link_code}`
-                            : student.user_email
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{student.course_title}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center text-sm text-muted-foreground">
-                    {safeFormatDistanceToNow(student.last_activity)}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <span className={`font-medium ${student.attempts_last_7_days > 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
-                      {student.attempts_last_7_days}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary transition-all duration-500" 
-                          style={{ width: `${student.pass_rate}%` }} 
-                        />
-                      </div>
-                      <span className={`text-sm font-medium ${student.pass_rate >= 70 ? 'text-green-600' : student.pass_rate >= 50 ? 'text-yellow-600' : 'text-orange-600'}`}>
-                        {student.pass_rate}%
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={student.status} />
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" onClick={(e) => {
-                      e.stopPropagation()
-                      openStudentDetails(student)
-                    }}>
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
-
-      <Sheet open={detailSheetOpen} onOpenChange={setDetailSheetOpen}>
-        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-          {loadingDetails ? (
-            <div className="space-y-4">
-               <SheetHeader>
-                 <SheetTitle>
-                   <Skeleton className="h-10 w-48" />
-                 </SheetTitle>
-                 <SheetDescription>
-                   <Skeleton className="h-4 w-32" />
-                 </SheetDescription>
-               </SheetHeader>
-               <Separator className="my-6" />
-               <Skeleton className="h-32 w-full" />
-               <Skeleton className="h-32 w-full" />
-            </div>
-          ) : studentDetails ? (
-            <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={studentDetails.avatar_url} />
-                    <AvatarFallback>
-                      {studentDetails.user_name?.charAt(0) || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div>{studentDetails.user_name}</div>
-                    <div className="text-sm text-muted-foreground font-normal">
-                      {studentDetails.user_email}
-                    </div>
-                  </div>
-                </SheetTitle>
-                <SheetDescription className="flex items-center gap-2 pt-2">
-                  Performance Trend: 
-                  <span className="flex items-center gap-1 font-medium">
-                    <TrendIcon trend={studentDetails.performance_trend} />
-                    {studentDetails.performance_trend === 'improving' ? 'Improving' :
-                     studentDetails.performance_trend === 'declining' ? 'Declining' : 'Stable'}
-                  </span>
-                </SheetDescription>
-              </SheetHeader>
-
-              <Separator className="my-6" />
-
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                  Concepts Needing Attention
-                </h3>
-                {studentDetails.weak_concepts.length === 0 ? (
-                  <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 text-center">
-                    No struggling concepts identified yet
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {studentDetails.weak_concepts.slice(0, 5).map((concept) => (
-                      <div 
-                        key={concept.concept_id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800"
-                      >
-                        <div>
-                          <div className="font-medium text-sm">{concept.concept_name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {concept.passed_attempts}/{concept.total_attempts} attempts passed
+                  <Stack gap="md">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Avatar className="h-12 w-12 shrink-0">
+                          <AvatarImage src={student.avatar_url} />
+                          <AvatarFallback className="text-lg">
+                            {student.user_name?.charAt(0) || student.user_email?.charAt(0) || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base mb-1 truncate">
+                            {student.user_name || 'Unknown'}
+                          </div>
+                          <div className="text-sm text-muted-foreground truncate">
+                            {student.is_guest 
+                              ? `via ${student.practice_link_title || student.practice_link_code}`
+                              : student.user_email
+                            }
                           </div>
                         </div>
-                        <Badge variant="outline" className="text-orange-600">
-                          {concept.pass_rate}%
-                        </Badge>
                       </div>
-                    ))}
+                      <StatusBadge status={student.status} />
+                    </div>
+
+                    <Separator />
+
+                    {/* Course */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground truncate">{student.course_title}</span>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-3 bg-muted/30 rounded-lg">
+                        <div className="text-xs text-muted-foreground mb-1">Pass Rate</div>
+                        <div className={`text-2xl font-bold ${
+                          student.pass_rate >= 70 ? 'text-green-600' : 
+                          student.pass_rate >= 50 ? 'text-yellow-600' : 
+                          'text-orange-600'
+                        }`}>
+                          {student.pass_rate}%
+                        </div>
+                        <Progress value={student.pass_rate} className="h-1.5 mt-2" />
+                      </div>
+                      
+                      <div className="text-center p-3 bg-muted/30 rounded-lg">
+                        <div className="text-xs text-muted-foreground mb-1">7d Activity</div>
+                        <div className={`text-2xl font-bold ${
+                          student.attempts_last_7_days > 0 ? 'text-primary' : 'text-muted-foreground'
+                        }`}>
+                          {student.attempts_last_7_days}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">attempts</div>
+                      </div>
+                    </div>
+
+                    {/* Last Activity */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>Last active</span>
+                      </div>
+                      <span className="font-medium">{safeFormatDistanceToNow(student.last_activity)}</span>
+                    </div>
+
+                    {student.is_guest && (
+                      <Badge variant="outline" className="w-fit text-xs">Guest Student</Badge>
+                    )}
+                  </Stack>
+                </SurfaceCard>
+              </motion.div>
+            ))}
+          </Grid>
+        ) : (
+          <Stack gap="sm">
+            {students.map((student, index) => (
+              <motion.div
+                key={`${student.user_id}-${student.course_id}`}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.02 }}
+              >
+                <SurfaceCard
+                  className="cursor-pointer hover:shadow-md hover:border-primary/30 transition-all"
+                  onClick={() => openStudentDetails(student)}
+                >
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-10 w-10 shrink-0">
+                      <AvatarImage src={student.avatar_url} />
+                      <AvatarFallback>
+                        {student.user_name?.charAt(0) || student.user_email?.charAt(0) || '?'}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium flex items-center gap-2 mb-0.5">
+                        {student.user_name || 'Unknown'}
+                        {student.is_guest && (
+                          <Badge variant="outline" className="text-xs">Guest</Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {student.is_guest 
+                          ? `via ${student.practice_link_title || student.practice_link_code}`
+                          : student.user_email
+                        }
+                      </div>
+                    </div>
+                    
+                    <div className="hidden sm:block shrink-0">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <BookOpen className="h-4 w-4" />
+                        <span>{student.course_title}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center shrink-0 hidden md:block">
+                      <p className="text-sm text-muted-foreground mb-1">Last active</p>
+                      <p className="text-sm font-medium">
+                        {safeFormatDistanceToNow(student.last_activity)}
+                      </p>
+                    </div>
+                    
+                    <div className="text-center shrink-0">
+                      <p className="text-sm text-muted-foreground mb-1">7d attempts</p>
+                      <p className={`text-lg font-bold ${student.attempts_last_7_days > 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        {student.attempts_last_7_days}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground mb-1">Pass rate</p>
+                        <p className={`text-lg font-bold ${
+                          student.pass_rate >= 70 ? 'text-green-600' : 
+                          student.pass_rate >= 50 ? 'text-yellow-600' : 
+                          'text-orange-600'
+                        }`}>
+                          {student.pass_rate}%
+                        </p>
+                      </div>
+                      <div className="w-24">
+                        <Progress value={student.pass_rate} className="h-2" />
+                      </div>
+                    </div>
+                    
+                    <StatusBadge status={student.status} />
                   </div>
-                )}
-              </div>
+                </SurfaceCard>
+              </motion.div>
+            ))}
+          </Stack>
+        )}
+      </Section>
 
-              <Separator className="my-6" />
+      {/* Legend */}
+      <Section>
+        <InfoPanel icon={AlertTriangle} title="Student Status Guide">
+          <ul className="text-sm space-y-1">
+            <li><span className="font-medium text-green-600">Active:</span> Practiced within the last 7 days</li>
+            <li><span className="font-medium text-orange-600">At Risk:</span> Low pass rate (&lt;50%) or no activity for 7+ days</li>
+            <li><span className="font-medium text-gray-500">Inactive:</span> No activity for 14+ days</li>
+          </ul>
+        </InfoPanel>
+      </Section>
 
-               {/* Redesigned Performance Section */}
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  Concept Mastery
-                </h3>
-                
-                {studentDetails.recent_attempts.length === 0 ? (
-                  <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 text-center">
-                    No practice attempts yet
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {/* Aggregated view of attempts */}
-                    {(() => {
-                        // Group attempts by concept
-                        const conceptStats = studentDetails.recent_attempts.reduce((acc, attempt) => {
-                            if (!acc[attempt.concept_name]) {
-                                acc[attempt.concept_name] = {
-                                    name: attempt.concept_name,
-                                    total: 0,
-                                    passed: 0,
-                                    lastAttempt: new Date(attempt.created_at)
-                                };
-                            }
-                            acc[attempt.concept_name].total += 1;
-                            if (attempt.passed) acc[attempt.concept_name].passed += 1;
-                            
-                            const attemptDate = new Date(attempt.created_at);
-                            if (attemptDate > acc[attempt.concept_name].lastAttempt) {
-                                acc[attempt.concept_name].lastAttempt = attemptDate;
-                            }
-                            return acc;
-                        }, {} as Record<string, { name: string, total: number, passed: number, lastAttempt: Date }>);
-
-                        const sortedConcepts = Object.values(conceptStats).sort((a, b) => {
-                             // Sort by "Needs Attention" (lower pass rate) first
-                             const rateA = a.passed / a.total;
-                             const rateB = b.passed / b.total;
-                             return rateA - rateB;
-                        });
-
-                        return sortedConcepts.map((concept) => {
-                            const passRate = Math.round((concept.passed / concept.total) * 100);
-                            let statusColor = "bg-primary";
-                            let statusText = "Good";
-                            
-                            if (passRate < 50) {
-                                statusColor = "bg-red-500";
-                                statusText = "Needs Focus";
-                            } else if (passRate < 80) {
-                                statusColor = "bg-yellow-500";
-                                statusText = "Improving";
-                            } else {
-                                statusColor = "bg-green-500";
-                                statusText = "Mastered";
-                            }
-
-                            return (
-                                <div key={concept.name} className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <h4 className="font-medium">{concept.name}</h4>
-                                            <p className="text-xs text-muted-foreground">
-                                                Last practiced {safeFormatDistanceToNow(concept.lastAttempt)}
-                                            </p>
-                                        </div>
-                                        <Badge variant={passRate >= 80 ? "default" : "secondary"} className={passRate < 50 ? "bg-red-100 text-red-700 hover:bg-red-100 border-red-200" : ""}>
-                                            {statusText}
-                                        </Badge>
-                                    </div>
-                                    
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span>Accuracy</span>
-                                            <span className="font-medium">{passRate}% ({concept.passed}/{concept.total} passed)</span>
-                                        </div>
-                                        <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                                            <div
-                                                className={`h-full flex-1 transition-all ${statusColor}`}
-                                                style={{ width: `${passRate}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        });
-                    })()}
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <SheetHeader>
-                <SheetTitle>Student Details</SheetTitle>
-              </SheetHeader>
-              <div className="text-center py-8 text-muted-foreground">
-                Unable to load student details
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-
-      <Card className="bg-muted/50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5" />
-            <div>
-              <h4 className="font-semibold mb-1">Understanding Student Status</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li><span className="font-medium text-green-600">Active:</span> Practiced within the last 7 days</li>
-                <li><span className="font-medium text-orange-600">At Risk:</span> Low pass rate (&lt;50%) or no activity for 7+ days</li>
-                <li><span className="font-medium text-gray-500">Inactive:</span> No activity for 14+ days</li>
-              </ul>
-            </div>
+      {/* Add Student Modal */}
+      <ModalLayout
+        open={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        title="Add New Student"
+        description="Enter student's name and select a course. Login credentials will be generated automatically."
+        size="md"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddStudent} disabled={createStudentMutation.isPending}>
+              {createStudentMutation.isPending ? 'Creating...' : 'Create Student'}
+            </Button>
+          </>
+        }
+      >
+        <Stack gap="md">
+          <div className="space-y-2">
+            <LabelText required>Full Name</LabelText>
+            <Input
+              placeholder="Enter student's full name"
+              value={newStudentName}
+              onChange={(e) => setNewStudentName(e.target.value)}
+            />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="space-y-2">
+            <LabelText required>Course</LabelText>
+            <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a course" />
+              </SelectTrigger>
+              <SelectContent>
+                {courses?.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </Stack>
+      </ModalLayout>
+
+      {/* Credentials Modal */}
+      <ModalLayout
+        open={credentialsDialogOpen}
+        onClose={() => setCredentialsDialogOpen(false)}
+        title="Student Created Successfully"
+        description="Share these credentials with the student. They can use them to log in."
+        size="md"
+        footer={
+          <Button onClick={() => {
+            setCredentialsDialogOpen(false)
+            setGeneratedCredentials(null)
+          }}>
+            Done
+          </Button>
+        }
+      >
+        {generatedCredentials && (
+          <Stack gap="md">
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Username</Label>
+              <div className="flex items-center gap-2">
+                <Input readOnly value={generatedCredentials.username} className="font-mono" />
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => copyToClipboard(generatedCredentials.username, 'username')}
+                >
+                  {copiedField === 'username' ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Password</Label>
+              <div className="flex items-center gap-2">
+                <Input readOnly value={generatedCredentials.password} className="font-mono" />
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => copyToClipboard(generatedCredentials.password, 'password')}
+                >
+                  {copiedField === 'password' ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            <InfoPanel variant="warning">
+              <strong>Important:</strong> Save these credentials now. The password cannot be retrieved later.
+            </InfoPanel>
+          </Stack>
+        )}
+      </ModalLayout>
+    </PageShell>
   )
 }

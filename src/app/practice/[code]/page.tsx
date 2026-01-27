@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { 
   BookOpen, 
@@ -21,6 +19,11 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react'
+
+// Design System
+import { SurfaceCard, InfoPanel } from '@/design-system/surfaces'
+import { LabelText, HelperText, Heading, Text } from '@/design-system/typography'
+import { Stack } from '@/design-system/layout'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://qadam-backend-production.up.railway.app/api/v1'
 
@@ -72,7 +75,6 @@ export default function PracticeJoinPage() {
       return response.data
     },
     onSuccess: (data) => {
-      // Store session token in localStorage
       localStorage.setItem('practice_session_token', data.session_token)
       localStorage.setItem('practice_session_id', data.practice_session_id)
       localStorage.setItem('practice_guest_name', data.guest_name)
@@ -82,11 +84,9 @@ export default function PracticeJoinPage() {
       }
       
       setJoined(true)
-      
-      // Redirect to practice session after brief animation
       setTimeout(() => {
         router.push(`/practice/${code}/session`)
-      }, 1500)
+      }, 1200)
     },
   })
 
@@ -96,7 +96,6 @@ export default function PracticeJoinPage() {
     joinMutation.mutate(studentName)
   }
 
-  // Error mapping
   const getErrorMessage = (error: string | null) => {
     const messages: Record<string, string> = {
       link_not_found: 'This practice link does not exist.',
@@ -108,86 +107,91 @@ export default function PracticeJoinPage() {
     return messages[error || ''] || 'Something went wrong. Please try again.'
   }
 
+  // Loading state
   if (loadingInfo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your practice session...</p>
-          <p className="text-xs text-muted-foreground mt-2">This usually takes a few seconds</p>
+          <Text variant="muted">Loading practice session...</Text>
         </motion.div>
       </div>
     )
   }
 
+  // Error state
   if (infoError || (linkInfo && !linkInfo.is_valid)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md"
         >
-          <Card className="max-w-md w-full">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+          <SurfaceCard variant="elevated" className="text-center">
+            <Stack gap="md">
+              <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
                 <AlertCircle className="h-8 w-8 text-destructive" />
               </div>
-              <CardTitle>Practice Unavailable</CardTitle>
-              <CardDescription>
-                {linkInfo ? getErrorMessage(linkInfo.error) : 'Unable to load practice link.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-3">
-              <p className="text-sm text-muted-foreground">
+              <div>
+                <Heading level={3} className="mb-2">Practice Unavailable</Heading>
+                <Text variant="muted">
+                  {linkInfo ? getErrorMessage(linkInfo.error) : 'Unable to load practice link.'}
+                </Text>
+              </div>
+              <Text size="sm" variant="subtle" className="pb-4">
                 Contact your teacher for a working practice link.
-              </p>
-              <Button variant="outline" onClick={() => router.push('/')}>
+              </Text>
+              <Button variant="outline" onClick={() => router.push('/')} className="w-full">
                 Back to Home
               </Button>
-            </CardContent>
-          </Card>
+            </Stack>
+          </SurfaceCard>
         </motion.div>
       </div>
     )
   }
 
+  // Success joining state
   if (joined) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', delay: 0.2 }}
+            transition={{ type: 'spring', delay: 0.1 }}
             className="mx-auto w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-6"
           >
-            <CheckCircle2 className="h-10 w-10 text-green-500" />
+            <CheckCircle2 className="h-10 w-10 text-green-600" />
           </motion.div>
-          <h2 className="text-2xl font-bold mb-2">Welcome, {studentName}!</h2>
-          <p className="text-muted-foreground mb-4">Starting your practice session...</p>
+          <Heading level={2} className="mb-2">Welcome, {studentName}!</Heading>
+          <Text variant="muted" className="mb-4">Starting your practice session...</Text>
           <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
         </motion.div>
       </div>
     )
   }
 
+  // Main join form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <Card className="shadow-lg">
-          <CardHeader className="text-center space-y-4">
+        <SurfaceCard variant="elevated">
+          <Stack gap="lg">
+            {/* Icon */}
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -196,22 +200,22 @@ export default function PracticeJoinPage() {
             >
               <Target className="h-8 w-8 text-primary" />
             </motion.div>
-            <div>
-              <CardTitle className="text-2xl">{linkInfo?.title || 'Practice Session'}</CardTitle>
-              <CardDescription className="mt-2">
-                <span className="font-medium text-foreground">{linkInfo?.course_title}</span>
-                {linkInfo?.concept_name && (
-                  <span className="block text-sm mt-1">
-                    Topic: {linkInfo.concept_name}
-                  </span>
-                )}
-              </CardDescription>
-            </div>
-          </CardHeader>
 
-          <CardContent className="space-y-6">
-            {/* Practice info */}
-            <div className="flex justify-center gap-4">
+            {/* Title */}
+            <div className="text-center">
+              <Heading level={2} className="mb-2">
+                {linkInfo?.title || 'Practice Session'}
+              </Heading>
+              <Text className="font-medium">{linkInfo?.course_title}</Text>
+              {linkInfo?.concept_name && (
+                <Text size="sm" variant="muted" className="mt-1">
+                  Topic: {linkInfo.concept_name}
+                </Text>
+              )}
+            </div>
+
+            {/* Info badges */}
+            <div className="flex justify-center gap-3">
               <Badge variant="secondary" className="gap-1.5 px-3 py-1.5">
                 <BookOpen className="h-3.5 w-3.5" />
                 {linkInfo?.questions_count} questions
@@ -225,14 +229,13 @@ export default function PracticeJoinPage() {
             </div>
 
             {/* Join form */}
-            <form onSubmit={handleJoin} className="space-y-4">
+            <form onSubmit={handleJoin} className="space-y-4 pt-2">
               <div className="space-y-2">
-                <Label htmlFor="name" className="flex items-center gap-2">
+                <LabelText className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   Your Name
-                </Label>
+                </LabelText>
                 <Input
-                  id="name"
                   placeholder="Enter your name to start"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
@@ -242,9 +245,9 @@ export default function PracticeJoinPage() {
                   autoFocus
                   className="text-center text-lg"
                 />
-                <p className="text-xs text-muted-foreground text-center">
+                <HelperText className="text-center">
                   No sign-up needed. Just type your name and start!
-                </p>
+                </HelperText>
               </div>
 
               <Button 
@@ -271,23 +274,21 @@ export default function PracticeJoinPage() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-3 bg-destructive/10 border border-destructive/20 rounded-md"
                 >
-                  <p className="text-sm text-destructive text-center">
+                  <InfoPanel variant="error" className="text-center">
                     {(joinMutation.error as any)?.response?.data?.detail || 'Failed to join. Please try again.'}
-                  </p>
+                  </InfoPanel>
                 </motion.div>
               )}
             </form>
 
-            {/* Footer note */}
-            <p className="text-xs text-center text-muted-foreground">
-              ✓ Instant feedback after each answer
-              <br />
-              ✓ Progress saved automatically
-            </p>
-          </CardContent>
-        </Card>
+            {/* Footer */}
+            <div className="pt-2 space-y-1 text-center">
+              <Text size="xs" variant="subtle">✓ Instant feedback after each answer</Text>
+              <Text size="xs" variant="subtle">✓ Progress saved automatically</Text>
+            </div>
+          </Stack>
+        </SurfaceCard>
       </motion.div>
     </div>
   )

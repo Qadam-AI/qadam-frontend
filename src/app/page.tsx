@@ -7,22 +7,33 @@ import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Navbar } from './_components/navbar'
 import { Sidebar } from './_components/sidebar'
-import { Footer } from './_components/footer'
 import { MasteryCard } from './_components/mastery-card'
-import { DashboardSkeleton } from './_components/skeletons'
-import { ErrorState } from './_components/empty-states'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, BookOpen, Code, History, Flame, Trophy, CheckCircle2, GraduationCap } from 'lucide-react'
+import { 
+  ArrowRight, 
+  BookOpen, 
+  Code, 
+  Flame, 
+  Trophy, 
+  CheckCircle2, 
+  GraduationCap,
+  Sparkles,
+  Play
+} from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { AuthGuard } from './_components/auth-guard'
 import LandingPage from './(public)/landing/page'
-import { useTranslations } from '@/lib/i18n'
-
 import { useEffect } from 'react'
+import Link from 'next/link'
+
+// Design System
+import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
+import { MetricCard, SurfaceCard, InfoPanel } from '@/design-system/surfaces'
+import { LoadingState, EmptyState } from '@/design-system/feedback'
+import { Heading, Text } from '@/design-system/typography'
 
 interface LessonProgressStats {
   totalLessons: number
@@ -50,11 +61,9 @@ interface RecentAttempt {
 function DashboardContent() {
   const { user } = useAuth()
   const router = useRouter()
-  const t = useTranslations('dashboard')
-  const tCommon = useTranslations('common')
   const { data: masteryData, isLoading, error, refetch } = useMastery(user?.id)
 
-  // If instructor, redirect to instructor dashboard (safety check, should be handled by login/useAuth)
+  // Redirect instructors
   useEffect(() => {
     if (user?.role === 'instructor' || user?.role === 'admin') {
       router.push('/instructor')
@@ -74,7 +83,6 @@ function DashboardContent() {
   const { data: lessonStats } = useQuery<LessonProgressStats>({
     queryKey: ['lesson-progress-stats'],
     queryFn: async () => {
-      // Fetch courses and completed lessons in parallel
       const [coursesRes, completedRes] = await Promise.all([
         api.get('/courses?enrolled_only=true'),
         api.get('/lessons/progress'),
@@ -121,359 +129,320 @@ function DashboardContent() {
   })
 
   if (isLoading) {
-    return <DashboardSkeleton />
+    return (
+      <PageShell maxWidth="2xl">
+        <LoadingState message="Loading your dashboard..." />
+      </PageShell>
+    )
   }
 
   if (error) {
-    return <ErrorState error="Failed to load mastery data" retry={() => refetch()} />
+    return (
+      <PageShell maxWidth="2xl">
+        <EmptyState 
+          icon={GraduationCap}
+          title="Unable to load dashboard"
+          description="We couldn't load your progress data. Please try again."
+          action={{
+            label: 'Retry',
+            onClick: () => refetch()
+          }}
+        />
+      </PageShell>
+    )
   }
 
   const lessonProgress = lessonStats 
     ? Math.round((lessonStats.completedLessons / Math.max(lessonStats.totalLessons, 1)) * 100)
     : 0
 
-  // Helper function to format time ago
-  const formatTimeAgo = (dateStr: string) => {
-    const date = new Date(dateStr)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-    
-    if (diffMins < 1) return tCommon('justNow')
-    if (diffMins < 60) return `${diffMins}m ${tCommon('ago')}`
-    if (diffHours < 24) return `${diffHours}h ${tCommon('ago')}`
-    return `${diffDays}d ${tCommon('ago')}`
-  }
+  const hasContent = lessonStats && lessonStats.courses.length > 0
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <PageShell maxWidth="2xl">
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        className="space-y-8"
       >
-        <h1 className="text-4xl font-bold tracking-tight">
-          {t('welcomeBack', { name: user?.name || t('defaultUser') })}
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          {t('subtitle')}
-        </p>
-      </motion.div>
-
-      {/* Quick Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.05 }}
-        >
-          <Card className={`bg-gradient-to-br border-orange-200 dark:border-orange-800 ${streak?.isActiveToday ? 'from-orange-100 to-orange-200/50 dark:from-orange-900/40 dark:to-orange-800/30' : 'from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20'}`}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">{t('currentStreak')}</p>
-                  <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">{streak?.currentStreak ?? 0}</p>
-                  <p className="text-xs text-orange-600/70 dark:text-orange-400/70">
-                    {streak?.isActiveToday ? `🔥 ${t('activeToday')}` : t('days')}
-                  </p>
-                </div>
-                <div className={`p-3 rounded-full ${streak?.isActiveToday ? 'bg-orange-300 dark:bg-orange-700' : 'bg-orange-200 dark:bg-orange-800'}`}>
-                  <Flame className={`h-6 w-6 ${streak?.isActiveToday ? 'text-orange-700 dark:text-orange-200' : 'text-orange-600 dark:text-orange-300'}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
-          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">{t('lessonsDone')}</p>
-                  <p className="text-3xl font-bold text-green-700 dark:text-green-300">
-                    {lessonStats?.completedLessons ?? 0}
-                  </p>
-                  <p className="text-xs text-green-600/70 dark:text-green-400/70">
-                    {t('ofTotal', { total: lessonStats?.totalLessons ?? 0 })}
-                  </p>
-                </div>
-                <div className="p-3 rounded-full bg-green-200 dark:bg-green-800">
-                  <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-        >
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{t('conceptsMastered')}</p>
-                  <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">
-                    {masteryData?.filter(m => m.mastery >= 80).length ?? 0}
-                  </p>
-                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70">
-                    {t('ofConcepts', { total: masteryData?.length ?? 0 })}
-                  </p>
-                </div>
-                <div className="p-3 rounded-full bg-blue-200 dark:bg-blue-800">
-                  <Trophy className="h-6 w-6 text-blue-600 dark:text-blue-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">{t('overallProgress')}</p>
-                  <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">{lessonProgress}%</p>
-                  <Progress value={lessonProgress} className="h-1.5 mt-2 w-24" />
-                </div>
-                <div className="p-3 rounded-full bg-purple-200 dark:bg-purple-800">
-                  <GraduationCap className="h-6 w-6 text-purple-600 dark:text-purple-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Course Progress */}
-      {lessonStats && lessonStats.courses.length > 0 && (
+        {/* Welcome Header */}
         <div>
-          <h2 className="text-2xl font-semibold mb-4">{t('courseProgress')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {lessonStats.courses.map((course, index) => {
-              const progress = course.total > 0 
-                ? Math.round((course.completed / course.total) * 100) 
-                : 0
-              const isComplete = course.completed === course.total && course.total > 0
+          <Heading level={1} className="mb-2">
+            Welcome back, {user?.name || 'Student'}
+          </Heading>
+          <Text variant="muted" className="text-lg">
+            Ready to continue your learning journey?
+          </Text>
+        </div>
 
-              return (
-                <motion.div
-                  key={course.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                >
-                  <Card 
-                    className={`cursor-pointer hover:shadow-md transition-all ${isComplete ? 'border-green-300 dark:border-green-700' : ''}`}
-                    onClick={() => router.push('/lessons')}
+        {/* Next Up Hero - If has courses */}
+        {hasContent && lessonStats.courses.some(c => c.completed < c.total) && (
+          <SurfaceCard variant="elevated" className="bg-gradient-to-br from-primary/5 to-indigo-500/5">
+            <Stack gap="md">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <Text className="uppercase tracking-wide text-xs font-medium text-primary mb-1">
+                    Next Up
+                  </Text>
+                  <Heading level={3} className="mb-2">
+                    {lessonStats.courses.find(c => c.completed < c.total)?.title || 'Continue Learning'}
+                  </Heading>
+                  <Text variant="muted">
+                    {lessonStats.courses.find(c => c.completed < c.total) && 
+                     `${lessonStats.courses.find(c => c.completed < c.total)!.completed} of ${lessonStats.courses.find(c => c.completed < c.total)!.total} lessons completed`}
+                  </Text>
+                </div>
+                <Link href="/lessons">
+                  <Button size="lg" className="gap-2">
+                    <Play className="h-4 w-4" />
+                    Continue
+                  </Button>
+                </Link>
+              </div>
+            </Stack>
+          </SurfaceCard>
+        )}
+
+        {/* Quick Stats */}
+        <Section>
+          <Grid cols={4} gap="md">
+            <MetricCard
+              label="Current Streak"
+              value={streak?.currentStreak ?? 0}
+              icon={Flame}
+              variant={streak?.isActiveToday ? 'warning' : 'default'}
+              trend={streak?.isActiveToday ? { value: 'Active today!', positive: true } : undefined}
+            />
+            <MetricCard
+              label="Lessons Done"
+              value={lessonStats?.completedLessons ?? 0}
+              icon={CheckCircle2}
+              variant="success"
+              trend={lessonStats?.totalLessons ? { value: `of ${lessonStats.totalLessons}`, positive: true } : undefined}
+            />
+            <MetricCard
+              label="Understanding"
+              value={masteryData?.filter(m => m.mastery >= 80).length ?? 0}
+              icon={Trophy}
+              variant="info"
+              trend={masteryData?.length ? { value: `of ${masteryData.length} concepts`, positive: true } : undefined}
+            />
+            <MetricCard
+              label="Overall Progress"
+              value={`${lessonProgress}%`}
+              icon={GraduationCap}
+              variant="default"
+            />
+          </Grid>
+        </Section>
+
+        {/* Course Progress */}
+        {hasContent && (
+          <Section title="Your Courses" description="Track your progress across courses">
+            <Grid cols={2} gap="md">
+              {lessonStats.courses.map((course, index) => {
+                const progress = course.total > 0 
+                  ? Math.round((course.completed / course.total) * 100) 
+                  : 0
+                const isComplete = course.completed === course.total && course.total > 0
+
+                return (
+                  <motion.div
+                    key={course.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium truncate pr-2">{course.title}</h3>
-                        {isComplete ? (
-                          <Badge variant="default" className="bg-green-500 shrink-0">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            {t('complete')}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="shrink-0">
-                            {course.completed}/{course.total}
-                          </Badge>
-                        )}
-                      </div>
-                      <Progress value={progress} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {progress}% {t('percentComplete')}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+                    <Link href="/lessons">
+                      <SurfaceCard 
+                        className={`cursor-pointer hover:shadow-md transition-all ${
+                          isComplete ? 'border-green-300 dark:border-green-700' : ''
+                        }`}
+                      >
+                        <Stack gap="sm">
+                          <div className="flex items-center justify-between">
+                            <Text className="font-medium">{course.title}</Text>
+                            {isComplete ? (
+                              <Badge variant="default" className="bg-green-600 shrink-0 gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Complete
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="shrink-0">
+                                {course.completed}/{course.total}
+                              </Badge>
+                            )}
+                          </div>
+                          <Progress value={progress} className="h-2" />
+                          <Text size="xs" variant="muted">
+                            {progress}% complete
+                          </Text>
+                        </Stack>
+                      </SurfaceCard>
+                    </Link>
+                  </motion.div>
+                )
+              })}
+            </Grid>
+          </Section>
+        )}
 
-      {/* Mastery Overview */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">{t('yourMastery')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {masteryData && masteryData.length > 0 ? (
-            masteryData.map((item, index) => (
-              <MasteryCard
-                key={item.conceptId}
-                concept={item.conceptName}
-                value={item.mastery}
-                index={index}
-                onPractice={() => router.push('/practice')}
-              />
-            ))
-          ) : (
-            <Card className="col-span-full">
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">
-                  {t('noMasteryData')}
-                </p>
-                <Button className="mt-4" onClick={() => router.push('/practice')}>
-                  {t('startPractice')}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+        {/* Understanding Overview */}
+        {masteryData && masteryData.length > 0 && (
+          <Section title="Understanding Overview" description="Your progress on key concepts">
+            <Grid cols={4} gap="md">
+              {masteryData.slice(0, 8).map((item, index) => (
+                <MasteryCard
+                  key={item.conceptId}
+                  concept={item.conceptName}
+                  value={item.mastery}
+                  index={index}
+                  onPractice={() => router.push('/practice')}
+                />
+              ))}
+            </Grid>
+            {masteryData.length > 8 && (
+              <div className="flex justify-center pt-4">
+                <Link href="/analytics">
+                  <Button variant="outline" className="gap-2">
+                    View All Concepts
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </Section>
+        )}
 
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">{t('quickActions')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/practice')}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Code className="h-5 w-5 text-primary" />
+        {/* Quick Actions */}
+        <Section title="Quick Actions">
+          <Grid cols={3} gap="md">
+            <Link href="/practice">
+              <SurfaceCard className="cursor-pointer hover:shadow-md transition-all group">
+                <Stack gap="sm">
+                  <div className="p-3 rounded-lg bg-primary/10 w-fit">
+                    <Code className="h-6 w-6 text-primary" />
                   </div>
-                  <CardTitle className="text-lg">{t('continuePractice')}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {t('continuePracticeDesc')}
-                </p>
-                <Button variant="ghost" className="w-full justify-between">
-                  {t('start')}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
+                  <Text className="font-semibold group-hover:text-primary transition-colors">
+                    Continue Practice
+                  </Text>
+                  <Text size="sm" variant="muted">
+                    Reinforce concepts with adaptive questions
+                  </Text>
+                </Stack>
+              </SurfaceCard>
+            </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/lessons')}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <BookOpen className="h-5 w-5 text-primary" />
+            <Link href="/lessons">
+              <SurfaceCard className="cursor-pointer hover:shadow-md transition-all group">
+                <Stack gap="sm">
+                  <div className="p-3 rounded-lg bg-primary/10 w-fit">
+                    <BookOpen className="h-6 w-6 text-primary" />
                   </div>
-                  <CardTitle className="text-lg">{t('goToLessons')}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {t('goToLessonsDesc')}
-                </p>
-                <Button variant="ghost" className="w-full justify-between">
-                  {t('browse')}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
+                  <Text className="font-semibold group-hover:text-primary transition-colors">
+                    Browse Lessons
+                  </Text>
+                  <Text size="sm" variant="muted">
+                    Learn new concepts and topics
+                  </Text>
+                </Stack>
+              </SurfaceCard>
+            </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-          >
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/attempts')}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <History className="h-5 w-5 text-primary" />
+            <Link href="/attempts">
+              <SurfaceCard className="cursor-pointer hover:shadow-md transition-all group">
+                <Stack gap="sm">
+                  <div className="p-3 rounded-lg bg-primary/10 w-fit">
+                    <Trophy className="h-6 w-6 text-primary" />
                   </div>
-                  <CardTitle className="text-lg">{t('viewHistory')}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {t('viewHistoryDesc')}
-                </p>
-                <Button variant="ghost" className="w-full justify-between">
-                  {t('view')}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
+                  <Text className="font-semibold group-hover:text-primary transition-colors">
+                    View History
+                  </Text>
+                  <Text size="sm" variant="muted">
+                    See your practice attempts
+                  </Text>
+                </Stack>
+              </SurfaceCard>
+            </Link>
+          </Grid>
+        </Section>
 
-      {/* Recent Activity */}
-      {recentAttempts && recentAttempts.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold">{t('recentActivity')}</h2>
-            <Button variant="ghost" size="sm" onClick={() => router.push('/attempts')}>
-              {t('viewHistory')}
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
+        {/* Recent Activity */}
+        {recentAttempts && recentAttempts.length > 0 && (
+          <Section 
+            title="Recent Activity" 
+            action={{
+              label: 'View All',
+              onClick: () => router.push('/attempts')
+            }}
+          >
+            <SurfaceCard>
+              <Stack gap="sm">
                 {recentAttempts.map((attempt, index) => (
                   <motion.div
                     key={attempt.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                    transition={{ delay: index * 0.05 }}
                     className="flex items-center justify-between py-3 border-b last:border-0"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-full ${attempt.passed 
-                        ? 'bg-green-100 dark:bg-green-900/30' 
-                        : 'bg-red-100 dark:bg-red-900/30'}`}
-                      >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-full ${
+                        attempt.passed 
+                          ? 'bg-green-500/10 text-green-600' 
+                          : 'bg-red-500/10 text-red-600'
+                      }`}>
                         {attempt.passed ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          <CheckCircle2 className="h-4 w-4" />
                         ) : (
-                          <Code className="h-4 w-4 text-red-600 dark:text-red-400" />
+                          <Code className="h-4 w-4" />
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-sm">
+                        <Text className="font-medium">
                           {attempt.concept_name || 'Practice Task'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {attempt.passed ? tCommon('completed') : 'Attempted'} • {formatTimeAgo(attempt.created_at)}
-                        </p>
+                        </Text>
+                        <Text size="xs" variant="muted">
+                          {attempt.passed ? 'Completed' : 'Attempted'} • {new Date(attempt.created_at).toLocaleDateString()}
+                        </Text>
                       </div>
                     </div>
-                    <Badge variant={attempt.passed ? 'default' : 'secondary'} className={attempt.passed ? 'bg-green-500' : ''}>
-                      {attempt.passed ? tCommon('completed') : 'Failed'}
+                    <Badge variant={attempt.passed ? 'default' : 'secondary'} className={attempt.passed ? 'bg-green-600' : ''}>
+                      {attempt.passed ? 'Passed' : 'Failed'}
                     </Badge>
                   </motion.div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </div>
+              </Stack>
+            </SurfaceCard>
+          </Section>
+        )}
+
+        {/* Empty State - No Courses */}
+        {!hasContent && (
+          <div className="py-12">
+            <EmptyState
+              icon={GraduationCap}
+              title="Start Your Learning Journey"
+              description="You haven't enrolled in any courses yet. Browse lessons to get started!"
+              action={{
+                label: 'Browse Lessons',
+                onClick: () => router.push('/lessons')
+              }}
+            />
+            <div className="mt-8">
+              <InfoPanel icon={Sparkles} title="How It Works" variant="info">
+                <ul className="text-sm space-y-1">
+                  <li>• Watch lessons and learn concepts</li>
+                  <li>• Practice with adaptive questions</li>
+                  <li>• Track your understanding in real-time</li>
+                  <li>• Build streaks and stay motivated</li>
+                </ul>
+              </InfoPanel>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </PageShell>
   )
 }
 
@@ -486,29 +455,24 @@ export default function Home() {
     return <LandingPage />
   }
 
-  // Double check redirection for instructors landing on root
+  // Redirect instructors
   if (user?.role === 'instructor' || user?.role === 'admin') {
     if (typeof window !== 'undefined') {
       router.push('/instructor')
     }
   }
 
-  // If authenticated, show dashboard
   return (
     <AuthGuard>
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
-          <main className="flex-1 p-6 lg:p-8 lg:ml-64">
-            <div className="container max-w-7xl mx-auto">
-              <DashboardContent />
-            </div>
+          <main className="flex-1 lg:ml-64">
+            <DashboardContent />
           </main>
         </div>
-        <Footer />
       </div>
     </AuthGuard>
   )
 }
-

@@ -1,19 +1,9 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Progress } from '@/components/ui/progress'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { 
@@ -23,30 +13,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import { 
   Target, 
   Search,
-  TrendingUp,
   AlertTriangle,
   CheckCircle2,
   Users,
   Lightbulb,
   BookOpen,
-  ChevronRight,
-  Clock
+  GitBranch,
+  TrendingDown,
+  TrendingUp,
+  Minus
 } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
-import { useState, useMemo } from 'react'
-import { Separator } from '@/components/ui/separator'
+import { motion } from 'framer-motion'
+
+// Design System
+import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
+import { MetricCard, SurfaceCard, InfoPanel } from '@/design-system/surfaces'
+import { EmptyState, LoadingState } from '@/design-system/feedback'
+import { Heading, Text, LabelText } from '@/design-system/typography'
+
+// Import concept map components
+import { StudentPerformanceMap } from './components/StudentPerformanceMap'
+import { ConceptPerformanceList } from './components/ConceptPerformanceList'
+
+interface Course {
+  id: string
+  title: string
+}
+
+interface Student {
+  user_id: string
+  user_name: string
+  user_email: string
+}
 
 interface ConceptAnalytics {
   concept_id: string
@@ -61,562 +63,269 @@ interface ConceptAnalytics {
   total_attempts: number
 }
 
-interface StrugglingStudent {
-  user_id: string
-  user_name: string
-  user_email: string
-  avatar_url?: string
-  total_attempts: number
-  passed_attempts: number
-  pass_rate: number
-}
-
-interface ConceptDetails {
-  concept_id: string
-  concept_name: string
-  struggling_students: StrugglingStudent[]
-}
-
-interface StudentConceptPerformance {
-  concept_id: string
-  concept_name: string
-  course_title: string
-  total_attempts: number
-  passed_attempts: number
-  pass_rate: number
-  status: 'not-started' | 'weak' | 'ok' | 'strong'
-  last_attempt: string | null
-}
-
-interface Course {
-  id: string
-  title: string
-}
-
-interface StudentForDropdown {
-  user_id: string
-  user_name: string
-  user_email: string
-}
-
-function StatusBadge({ status }: { status: 'not-started' | 'weak' | 'ok' | 'strong' }) {
-  switch (status) {
-    case 'strong':
-      return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Strong</Badge>
-    case 'ok':
-      return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">OK</Badge>
-    case 'weak':
-      return <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">Weak</Badge>
-    default:
-      return <Badge variant="outline">Not Started</Badge>
-  }
-}
-
-export default function MasteryOverview() {
+export default function MasteryOverviewPage() {
+  const [activeTab, setActiveTab] = useState('concepts')
   const [selectedCourse, setSelectedCourse] = useState<string>('all')
-  const [selectedConceptId, setSelectedConceptId] = useState<string | null>(null)
-  const [conceptSheetOpen, setConceptSheetOpen] = useState(false)
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('')
-  const [studentSearch, setStudentSearch] = useState('')
+  const [selectedStudent, setSelectedStudent] = useState<string>('')
+  const [studentCourse, setStudentCourse] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState('')
 
+  // Fetch courses
   const { data: courses } = useQuery<Course[]>({
-    queryKey: ['instructor-courses-list'],
+    queryKey: ['instructor-courses'],
     queryFn: async () => {
       const res = await api.get('/instructor/courses')
-      return Array.isArray(res.data) ? res.data : (res.data?.courses || [])
-    },
-  })
-
-  const { data: conceptAnalytics, isLoading: loadingConcepts } = useQuery<ConceptAnalytics[]>({
-    queryKey: ['instructor-concept-analytics', selectedCourse],
-    queryFn: async () => {
-      const params: Record<string, string> = {}
-      if (selectedCourse !== 'all') params.course_id = selectedCourse
-      const res = await api.get('/instructor/analytics/concepts', { params })
-      return Array.isArray(res.data) ? res.data : []
-    },
-  })
-
-  const { data: conceptDetails, isLoading: loadingConceptDetails } = useQuery<ConceptDetails>({
-    queryKey: ['concept-struggling-students', selectedConceptId],
-    queryFn: async () => {
-      if (!selectedConceptId) return null
-      const res = await api.get(`/instructor/analytics/concepts/${selectedConceptId}/students`)
       return res.data
     },
-    enabled: !!selectedConceptId && conceptSheetOpen,
   })
 
-  const { data: students } = useQuery<StudentForDropdown[]>({
-    queryKey: ['instructor-students-dropdown', selectedCourse],
+  // Fetch students for selected course
+  const { data: students } = useQuery<Student[]>({
+    queryKey: ['course-students', selectedCourse],
     queryFn: async () => {
-      const params: Record<string, string> = {}
-      if (selectedCourse !== 'all') params.course_id = selectedCourse
-      const res = await api.get('/instructor/analytics/students', { params })
-      const data = Array.isArray(res.data) ? res.data : []
-      const unique = new Map()
-      data.forEach((s: any) => {
-        if (!unique.has(s.user_id)) {
-          unique.set(s.user_id, { user_id: s.user_id, user_name: s.user_name, user_email: s.user_email })
-        }
-      })
-      return Array.from(unique.values())
+      if (selectedCourse === 'all') {
+        const res = await api.get('/instructor/students')
+        return res.data
+      }
+      const res = await api.get(`/instructor/courses/${selectedCourse}/students`)
+      return res.data
     },
+    enabled: activeTab === 'students',
   })
 
-  const { data: studentConceptPerformance, isLoading: loadingStudentPerformance } = useQuery<StudentConceptPerformance[]>({
-    queryKey: ['student-concept-performance', selectedStudentId, selectedCourse],
+  // Fetch concept analytics (for "By Concept" tab)
+  const { data: conceptAnalytics, isLoading: loadingConcepts } = useQuery<ConceptAnalytics[]>({
+    queryKey: ['concept-analytics', selectedCourse],
     queryFn: async () => {
-      if (!selectedStudentId) return []
-      const params: Record<string, string> = {}
-      if (selectedCourse !== 'all') params.course_id = selectedCourse
-      const res = await api.get(`/instructor/analytics/students/${selectedStudentId}/concepts`, { params })
-      return Array.isArray(res.data) ? res.data : []
+      const params = new URLSearchParams()
+      if (selectedCourse !== 'all') {
+        params.append('course_id', selectedCourse)
+      }
+      const res = await api.get(`/instructor/analytics/concepts?${params}`)
+      return res.data
     },
-    enabled: !!selectedStudentId,
+    enabled: activeTab === 'concepts',
   })
 
-  const filteredStudents = useMemo(() => {
-    if (!students) return []
-    if (!studentSearch) return students
-    const search = studentSearch.toLowerCase()
-    return students.filter(s => 
-      s.user_name?.toLowerCase().includes(search) || 
-      s.user_email?.toLowerCase().includes(search)
+  // Filter concepts by search
+  const filteredConcepts = useMemo(() => {
+    if (!conceptAnalytics) return []
+    if (!searchTerm) return conceptAnalytics
+    return conceptAnalytics.filter(c => 
+      c.concept_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.course_title.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  }, [students, studentSearch])
+  }, [conceptAnalytics, searchTerm])
 
+  // Calculate stats
   const stats = useMemo(() => {
-    if (!conceptAnalytics || conceptAnalytics.length === 0) {
-      return { totalConcepts: 0, avgPassRate: 0, strugglingConcepts: 0, totalAttempts: 0 }
-    }
-    
-    const totalConcepts = conceptAnalytics.length
-    const avgPassRate = conceptAnalytics.reduce((sum, c) => sum + c.avg_pass_rate, 0) / totalConcepts
-    const strugglingConcepts = conceptAnalytics.filter(c => c.struggling_percentage > 30).length
-    const totalAttempts = conceptAnalytics.reduce((sum, c) => sum + c.total_attempts, 0)
-    
-    return { 
-      totalConcepts, 
-      avgPassRate: Math.round(avgPassRate), 
-      strugglingConcepts,
-      totalAttempts
+    if (!conceptAnalytics) return { struggling: 0, confident: 0, total: 0 }
+    return {
+      struggling: conceptAnalytics.filter(c => c.struggling_percentage > 30).length,
+      confident: conceptAnalytics.filter(c => c.avg_pass_rate >= 70).length,
+      total: conceptAnalytics.length,
     }
   }, [conceptAnalytics])
 
-  const openConceptDetails = (conceptId: string) => {
-    setSelectedConceptId(conceptId)
-    setConceptSheetOpen(true)
-  }
-
-  if (loadingConcepts) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Classroom Understanding</h1>
-          <p className="text-muted-foreground text-lg">See where your class is confident and where they need more help</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="border-none shadow-none bg-muted/30">
-              <CardHeader className="pb-2"><Skeleton className="h-4 w-24" /></CardHeader>
-              <CardContent><Skeleton className="h-8 w-16" /></CardContent>
-            </Card>
-          ))}
-        </div>
-        <Card className="border-none shadow-sm">
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2 text-foreground">
-          Classroom Understanding
-        </h1>
-        <p className="text-muted-foreground text-lg mt-1">
-          Identifies concepts that may need re-teaching or more practice materials.
-        </p>
-      </div>
+    <PageShell maxWidth="full">
+      <PageHeader
+        title="Understanding Overview"
+        description="Visualize student performance across concepts and identify areas that need attention"
+      />
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="bg-gradient-to-br from-green-50 to-white dark:from-green-900/10 dark:to-transparent border-green-100 dark:border-green-900/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-800 dark:text-green-300 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              Confident Concepts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold text-green-900 dark:text-green-100">
-              {conceptAnalytics?.filter(c => c.avg_pass_rate >= 70).length || 0}
-            </div>
-            <p className="text-sm text-green-700/80 dark:text-green-400 mt-1">
-              Class understands well
-            </p>
-          </CardContent>
-        </Card>
+      {/* KPI Metrics */}
+      <Section>
+        <Grid cols={4} gap="md">
+          <MetricCard
+            label="Concepts Mastered"
+            value={stats.confident}
+            icon={CheckCircle2}
+            variant="success"
+            trend={{ value: `${stats.total} total`, positive: true }}
+          />
+          <MetricCard
+            label="Needs Attention"
+            value={stats.struggling}
+            icon={AlertTriangle}
+            variant="warning"
+            trend={stats.struggling > 0 ? { value: 'Review needed', positive: false } : undefined}
+          />
+          <MetricCard
+            label="Active Students"
+            value={students?.length || 0}
+            icon={Users}
+            variant="info"
+          />
+          <MetricCard
+            label="Total Concepts"
+            value={stats.total}
+            icon={Lightbulb}
+            variant="default"
+          />
+        </Grid>
+      </Section>
 
-        <Card className="bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/10 dark:to-transparent border-orange-100 dark:border-orange-900/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-orange-800 dark:text-orange-300 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Needs Review
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold text-orange-900 dark:text-orange-100">{stats.strugglingConcepts}</div>
-            <p className="text-sm text-orange-700/80 dark:text-orange-400 mt-1">
-              Concepts causing confusion
-            </p>
-          </CardContent>
-        </Card>
+      {/* Main Tabs */}
+      <Section>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="concepts" className="gap-2">
+              <Lightbulb className="h-4 w-4" />
+              By Concept
+            </TabsTrigger>
+            <TabsTrigger value="students" className="gap-2">
+              <Users className="h-4 w-4" />
+              By Student
+            </TabsTrigger>
+          </TabsList>
 
-        <Card className="bg-slate-50 dark:bg-slate-900/20 border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Total Concepts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold text-foreground">{stats.totalConcepts}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Across all selected courses
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex gap-4">
-        <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="All courses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Courses</SelectItem>
-            {courses?.map((course) => (
-              <SelectItem key={course.id} value={course.id}>
-                {course.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Tabs defaultValue="concepts" className="space-y-4">
-        <TabsList className="bg-muted/30">
-          <TabsTrigger value="concepts" className="flex items-center gap-2">
-            <Lightbulb className="h-4 w-4" />
-            Concepts
-          </TabsTrigger>
-          <TabsTrigger value="students" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Students
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="concepts">
-          <Card className="border-none shadow-sm">
-            <CardHeader className="pl-0">
-              <CardTitle className="text-xl">Concept Performance</CardTitle>
-              <CardDescription className="text-base">Identify which topics are landing and which need review</CardDescription>
-            </CardHeader>
-            <CardContent className="px-0">
-              <div className="rounded-md border-none">
-                <Table>
-                  <TableHeader className="bg-transparent/5">
-                    <TableRow className="border-b border-border/50 hover:bg-transparent">
-                      <TableHead className="font-semibold text-foreground pl-0">Concept</TableHead>
-                      <TableHead className="font-medium text-muted-foreground">Course</TableHead>
-                      <TableHead className="font-medium text-muted-foreground text-center">Class Confusion</TableHead>
-                      <TableHead className="font-medium text-muted-foreground text-center">Understanding</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(!conceptAnalytics || conceptAnalytics.length === 0) ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-16 text-muted-foreground">
-                          <div className="flex flex-col items-center gap-4">
-                            <div className="p-4 rounded-full bg-muted/30">
-                              <Lightbulb className="h-8 w-8 text-muted-foreground/30" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-lg text-foreground">No concept data available</p>
-                              <p className="text-muted-foreground mt-1">Once students start practicing, understanding trends will appear here.</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      conceptAnalytics.map((concept) => (
-                        <TableRow 
-                          key={concept.concept_id}
-                          className="cursor-pointer hover:bg-muted/30 border-b border-border/40"
-                          onClick={() => openConceptDetails(concept.concept_id)}
-                        >
-                          <TableCell className="pl-0">
-                            <div className="font-medium text-base text-foreground">{concept.concept_name}</div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm text-muted-foreground">{concept.course_title}</span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              {concept.struggling_percentage > 30 ? (
-                                <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100">
-                                  {concept.struggling_percentage}% Confused
-                                </Badge>
-                              ) : concept.struggling_count > 0 ? (
-                                <span className="text-sm text-muted-foreground">{concept.struggling_percentage}%</span>
-                              ) : (
-                                <span className="text-sm text-green-600/70">Clear</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-3">
-                              <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full rounded-full ${concept.avg_pass_rate >= 70 ? 'bg-green-500' : concept.avg_pass_rate >= 50 ? 'bg-yellow-500' : 'bg-orange-500'}`} 
-                                  style={{ width: `${concept.avg_pass_rate}%` }}
-                                />
-                              </div>
-                              <span className={`text-sm font-medium w-8 text-right ${concept.avg_pass_rate >= 70 ? 'text-green-700' : 'text-foreground'}`}>
-                                {concept.avg_pass_rate}%
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground/50 hover:text-foreground">
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="students">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Student Concept Performance
-              </CardTitle>
-              <CardDescription>View per-concept performance for individual students</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Search students..."
-                    value={studentSearch}
-                    onChange={(e) => setStudentSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger className="w-[280px]">
-                    <SelectValue placeholder="Select a student" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredStudents.map((student) => (
-                      <SelectItem key={student.user_id} value={student.user_id}>
-                        {student.user_name || student.user_email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {!selectedStudentId ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
-                  <p className="font-medium">Select a student to view their concept performance</p>
-                </div>
-              ) : loadingStudentPerformance ? (
-                <div className="space-y-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
+          {/* By Concept Tab */}
+          <TabsContent value="concepts" className="space-y-6">
+            <div className="flex items-center gap-4">
+              {/* Course filter */}
+              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                <SelectTrigger className="w-[280px]">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="All courses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {courses?.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
                   ))}
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Concept</TableHead>
-                      <TableHead>Course</TableHead>
-                      <TableHead className="text-center">Attempts</TableHead>
-                      <TableHead className="text-center">Pass Rate</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Attempt</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(!studentConceptPerformance || studentConceptPerformance.length === 0) ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No concept data for this student
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      studentConceptPerformance.map((concept) => (
-                        <TableRow key={concept.concept_id}>
-                          <TableCell className="font-medium">{concept.concept_name}</TableCell>
-                          <TableCell className="text-muted-foreground">{concept.course_title}</TableCell>
-                          <TableCell className="text-center">
-                            {concept.total_attempts > 0 ? (
-                              <span>{concept.passed_attempts}/{concept.total_attempts}</span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {concept.total_attempts > 0 ? (
-                              <div className="flex items-center justify-center gap-2">
-                                <Progress value={concept.pass_rate} className="w-16 h-2" />
-                                <span className={`text-sm font-medium ${concept.pass_rate >= 75 ? 'text-green-600' : concept.pass_rate >= 50 ? 'text-yellow-600' : 'text-orange-600'}`}>
-                                  {concept.pass_rate}%
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={concept.status} />
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {concept.last_attempt 
-                              ? formatDistanceToNow(new Date(concept.last_attempt), { addSuffix: true })
-                              : 'Never'
-                            }
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                </SelectContent>
+              </Select>
 
-      <Sheet open={conceptSheetOpen} onOpenChange={setConceptSheetOpen}>
-        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-          {loadingConceptDetails ? (
-            <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <Skeleton className="h-5 w-5 rounded-full" />
-                  <Skeleton className="h-6 w-48" />
-                </SheetTitle>
-                <div className="space-y-2 pt-2">
-                  <Skeleton className="h-4 w-full" />
-                </div>
-              </SheetHeader>
-              <div className="space-y-4 mt-6">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-32 w-full" />
+              {/* Search */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search concepts..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
               </div>
-            </>
-          ) : conceptDetails ? (
-            <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5" />
-                  {conceptDetails.concept_name}
-                </SheetTitle>
-                <SheetDescription>
-                  Students struggling with this concept (pass rate &lt; 50%)
-                </SheetDescription>
-              </SheetHeader>
+            </div>
 
-              <Separator className="my-6" />
+            {loadingConcepts ? (
+              <LoadingState message="Loading concept performance..." />
+            ) : !filteredConcepts || filteredConcepts.length === 0 ? (
+              <SurfaceCard variant="muted" className="py-12">
+                <EmptyState
+                  icon={Lightbulb}
+                  title="No concept data available"
+                  description={searchTerm ? "No concepts match your search" : "Once students start practicing, performance data will appear here."}
+                />
+              </SurfaceCard>
+            ) : (
+              <ConceptPerformanceList concepts={filteredConcepts} />
+            )}
+          </TabsContent>
 
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                  Struggling Students ({conceptDetails.struggling_students.length})
-                </h3>
-                
-                {conceptDetails.struggling_students.length === 0 ? (
-                  <div className="text-sm text-muted-foreground bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center border border-green-200 dark:border-green-800">
-                    <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                    <p className="font-medium text-green-700 dark:text-green-400">All students are doing well!</p>
-                    <p className="text-green-600 dark:text-green-500">No students are struggling with this concept</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {conceptDetails.struggling_students.map((student) => (
-                      <div 
-                        key={student.user_id}
-                        className="flex items-center justify-between p-3 rounded-lg border bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={student.avatar_url} />
-                            <AvatarFallback>
-                              {student.user_name?.charAt(0) || '?'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium text-sm">{student.user_name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {student.passed_attempts}/{student.total_attempts} passed
-                            </div>
+          {/* By Student Tab */}
+          <TabsContent value="students" className="space-y-6">
+            {/* Student Selection */}
+            <SurfaceCard>
+              <Stack gap="lg">
+                <div>
+                  <Heading level={4} className="mb-2">Select Student</Heading>
+                  <Text variant="muted" className="text-sm">
+                    Choose a student to visualize their understanding across concepts
+                  </Text>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Student selector */}
+                  <div>
+                    <LabelText className="mb-2">Student</LabelText>
+                    <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                      <SelectTrigger>
+                        <Users className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Choose a student..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {!students || students.length === 0 ? (
+                          <div className="p-4 text-center text-sm text-muted-foreground">
+                            No students found
                           </div>
-                        </div>
-                        <Badge variant="outline" className="text-orange-600">
-                          {student.pass_rate}%
-                        </Badge>
-                      </div>
-                    ))}
+                        ) : (
+                          students.map((student) => (
+                            <SelectItem key={student.user_id} value={student.user_id}>
+                              <div className="flex flex-col">
+                                <span>{student.user_name}</span>
+                                <span className="text-xs text-muted-foreground">{student.user_email}</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              Unable to load concept details
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
 
-      <Card className="bg-muted/50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <Lightbulb className="h-5 w-5 text-primary mt-0.5" />
-            <div>
-              <h4 className="font-semibold mb-1">Understanding This Data</h4>
-              <p className="text-sm text-muted-foreground">
-                Students are marked as &quot;struggling&quot; when their pass rate on a concept falls below 50%. 
-                Use this data to identify concepts that need more explanation or practice materials.
-                Click on any concept to see the list of students who need extra help.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                  {/* Course selector */}
+                  <div>
+                    <LabelText className="mb-2">Course</LabelText>
+                    <Select 
+                      value={studentCourse} 
+                      onValueChange={setStudentCourse}
+                      disabled={!selectedStudent}
+                    >
+                      <SelectTrigger>
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Choose a course..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {!courses || courses.length === 0 ? (
+                          <div className="p-4 text-center text-sm text-muted-foreground">
+                            No courses found
+                          </div>
+                        ) : (
+                          courses.map((course) => (
+                            <SelectItem key={course.id} value={course.id}>
+                              {course.title}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {selectedStudent && studentCourse && (
+                  <InfoPanel icon={GitBranch} title="Visual Performance Map" variant="info">
+                    <Text className="text-sm">
+                      Concept nodes are colored by performance: 
+                      <span className="text-green-600 font-medium"> Green (mastered)</span>, 
+                      <span className="text-yellow-600 font-medium"> Yellow (learning)</span>, 
+                      <span className="text-red-600 font-medium"> Red (struggling)</span>
+                    </Text>
+                  </InfoPanel>
+                )}
+              </Stack>
+            </SurfaceCard>
+
+            {/* Student Performance Map */}
+            {selectedStudent && studentCourse ? (
+              <StudentPerformanceMap
+                studentId={selectedStudent}
+                courseId={studentCourse}
+              />
+            ) : (
+              <SurfaceCard variant="muted" className="py-16">
+                <EmptyState
+                  icon={Target}
+                  title="Select a student and course"
+                  description="Choose a student and course above to see their visual performance map"
+                />
+              </SurfaceCard>
+            )}
+          </TabsContent>
+        </Tabs>
+      </Section>
+    </PageShell>
   )
 }

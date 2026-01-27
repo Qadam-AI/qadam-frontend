@@ -2,26 +2,32 @@
 
 import { useParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from '@/lib/i18n'
 import api from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
 import { 
   ArrowLeft,
   Play,
-  Video,
-  FileText,
   CheckCircle2,
   Lock,
   Clock,
-  User
+  User,
+  Target,
+  BookOpen
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { Navbar } from '../../_components/navbar'
+import { Sidebar } from '../../_components/sidebar'
+import { AuthGuard } from '../../_components/auth-guard'
+
+// Design System
+import { PageShell, Section, Stack, Grid } from '@/design-system/layout'
+import { SurfaceCard, MetricCard, InfoPanel } from '@/design-system/surfaces'
+import { LoadingState } from '@/design-system/feedback'
+import { Heading, Text, LabelText } from '@/design-system/typography'
 
 interface CourseDetails {
   id: string
@@ -48,16 +54,14 @@ interface LessonItem {
   progress_percent?: number
 }
 
-export default function CourseViewPage() {
+function CourseDetailContent() {
   const params = useParams()
   const queryClient = useQueryClient()
-  const t = useTranslations('courseDetail')
   const courseId = params.courseId as string
 
   const { data: course, isLoading } = useQuery({
     queryKey: ['course-view', courseId],
     queryFn: async () => {
-      // Get course details from enrolled courses perspective
       const res = await api.get<CourseDetails>(`/courses/${courseId}/enrolled`)
       return res.data
     }
@@ -72,203 +76,201 @@ export default function CourseViewPage() {
     }
   })
 
-  return (
-    <div className="container mx-auto max-w-4xl p-6 space-y-8">
-      {/* Back button */}
-      <Link href="/courses">
-        <Button variant="ghost" size="sm" className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          {t('backToCourses')}
-        </Button>
-      </Link>
+  if (isLoading) {
+    return (
+      <PageShell maxWidth="2xl">
+        <LoadingState message="Loading course..." />
+      </PageShell>
+    )
+  }
 
-      {isLoading ? (
-        <div className="space-y-6">
-          <Skeleton className="h-10 w-3/4" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-2 w-full" />
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map(i => (
-              <Skeleton key={i} className="h-20 w-full" />
-            ))}
-          </div>
-        </div>
-      ) : course ? (
-        <>
-          {/* Course Header */}
-          <div className="space-y-4">
-            <div className="flex items-start gap-4">
-              {course.thumbnail_url ? (
-                <img 
-                  src={course.thumbnail_url}
-                  alt={course.title}
-                  className="w-24 h-24 rounded-lg object-cover"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Play className="h-10 w-10 text-primary/40" />
+  if (!course) {
+    return (
+      <PageShell maxWidth="lg">
+        <Text variant="muted">Course not found</Text>
+      </PageShell>
+    )
+  }
+
+  const nextLesson = course.lessons.find(l => !l.is_completed && !l.is_locked)
+
+  return (
+    <PageShell maxWidth="2xl">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-8"
+      >
+        {/* Back button */}
+        <Link href="/courses">
+          <Button variant="ghost" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            My Courses
+          </Button>
+        </Link>
+
+        {/* Course Header */}
+        <SurfaceCard variant="elevated">
+          <div className="flex items-start gap-6">
+            {course.thumbnail_url ? (
+              <img 
+                src={course.thumbnail_url}
+                alt={course.title}
+                className="w-32 h-32 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="w-32 h-32 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BookOpen className="h-14 w-14 text-primary/30" />
+              </div>
+            )}
+            <div className="flex-1">
+              <Heading level={1} className="mb-2">{course.title}</Heading>
+              {course.instructor_name && (
+                <div className="flex items-center gap-2 text-muted-foreground mb-3">
+                  <User className="h-4 w-4" />
+                  <Text variant="muted">by {course.instructor_name}</Text>
                 </div>
               )}
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold">{course.title}</h1>
-                {course.instructor_name && (
-                  <div className="flex items-center gap-2 mt-2 text-muted-foreground">
-                    <User className="h-4 w-4" />
-                    <span>{t('byInstructor', { name: course.instructor_name })}</span>
-                  </div>
-                )}
-              </div>
+              {course.description && (
+                <Text variant="muted">{course.description}</Text>
+              )}
             </div>
-
-            {course.description && (
-              <p className="text-muted-foreground">{course.description}</p>
-            )}
-
-            {/* Progress */}
-            <Card>
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{t('courseProgress')}</span>
-                  <span className="text-2xl font-bold text-primary">
-                    {Math.round(course.progress_percent)}%
-                  </span>
-                </div>
-                <Progress value={course.progress_percent} className="h-3" />
-                <p className="text-sm text-muted-foreground mt-2">
-                  {t('lessonsCompleted', { completed: course.completed_lessons, total: course.total_lessons })}
-                </p>
-              </CardContent>
-            </Card>
           </div>
+        </SurfaceCard>
 
-          {/* Lessons List */}
-          <div className="space-y-3">
-            <h2 className="text-xl font-semibold">{t('courseContent')}</h2>
-            
+        {/* Progress Card */}
+        <SurfaceCard variant="muted">
+          <Stack gap="md">
+            <div className="flex items-center justify-between">
+              <LabelText>Course Progress</LabelText>
+              <Text className="text-2xl font-bold text-primary">
+                {Math.round(course.progress_percent)}%
+              </Text>
+            </div>
+            <Progress value={course.progress_percent} className="h-3" />
+            <Text size="sm" variant="muted">
+              {course.completed_lessons} of {course.total_lessons} lessons completed
+            </Text>
+          </Stack>
+        </SurfaceCard>
+
+        {/* Next Up */}
+        {nextLesson && (
+          <InfoPanel icon={Target} title="Next Up" variant="info">
+            <div className="flex items-center justify-between">
+              <Text size="sm">{nextLesson.title}</Text>
+              <Link href={`/lesson/${nextLesson.id}`}>
+                <Button size="sm" className="gap-2">
+                  <Play className="h-4 w-4" />
+                  Continue
+                </Button>
+              </Link>
+            </div>
+          </InfoPanel>
+        )}
+
+        {/* Lessons List */}
+        <Section title="Course Content" description={`${course.total_lessons} lessons`}>
+          <Stack gap="sm">
             {course.lessons.map((lesson, index) => (
               <motion.div
                 key={lesson.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.02 }}
               >
-                <Card className={cn(
-                  "overflow-hidden transition-all",
-                  lesson.is_locked && "opacity-60",
-                  lesson.is_completed && "border-green-500/30 bg-green-500/5"
-                )}>
-                  <CardContent className="p-4">
+                <Link 
+                  href={lesson.is_locked ? '#' : `/lesson/${lesson.id}`}
+                  className={lesson.is_locked ? 'pointer-events-none' : ''}
+                >
+                  <SurfaceCard 
+                    className={cn(
+                      "transition-all",
+                      lesson.is_locked ? 'opacity-60' : 'hover:shadow-md cursor-pointer'
+                    )}
+                  >
                     <div className="flex items-center gap-4">
-                      {/* Lesson number / status */}
+                      {/* Number/Icon */}
                       <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
+                        "w-12 h-12 rounded-lg flex items-center justify-center shrink-0 font-semibold",
                         lesson.is_completed 
-                          ? "bg-green-500 text-white" 
-                          : lesson.is_locked 
-                            ? "bg-muted text-muted-foreground"
-                            : "bg-primary/10 text-primary"
+                          ? 'bg-green-500/10 text-green-600' 
+                          : lesson.is_locked
+                          ? 'bg-muted text-muted-foreground'
+                          : 'bg-primary/10 text-primary'
                       )}>
                         {lesson.is_completed ? (
-                          <CheckCircle2 className="h-5 w-5" />
+                          <CheckCircle2 className="h-6 w-6" />
                         ) : lesson.is_locked ? (
-                          <Lock className="h-4 w-4" />
+                          <Lock className="h-5 w-5" />
                         ) : (
-                          <span className="font-semibold">{lesson.position}</span>
+                          <span>{lesson.position}</span>
                         )}
                       </div>
 
-                      {/* Content type icon */}
-                      <div className="flex-shrink-0">
-                        {lesson.content_type === 'video' ? (
-                          <Video className="h-5 w-5 text-blue-500" />
-                        ) : (
-                          <FileText className="h-5 w-5 text-amber-500" />
-                        )}
-                      </div>
-
-                      {/* Lesson info */}
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{lesson.title}</h3>
-                        {lesson.description && (
-                          <p className="text-sm text-muted-foreground truncate">
-                            {lesson.description}
-                          </p>
-                        )}
-                        {lesson.duration_minutes && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                            <Clock className="h-3 w-3" />
-                            {t('minutes', { count: lesson.duration_minutes })}
-                          </div>
-                        )}
+                        <Text className="font-medium mb-1">
+                          {lesson.title}
+                        </Text>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          {lesson.duration_minutes && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {lesson.duration_minutes} min
+                            </span>
+                          )}
+                          <Badge variant="outline" className="text-xs">
+                            {lesson.content_type}
+                          </Badge>
+                          {lesson.is_locked && (
+                            <Badge variant="secondary" className="text-xs">
+                              Locked
+                            </Badge>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Action button */}
-                      <div className="flex-shrink-0">
-                        {lesson.is_locked ? (
-                          <Button disabled variant="ghost" size="sm">
-                            <Lock className="h-4 w-4 mr-2" />
-                            {t('locked')}
-                          </Button>
-                        ) : lesson.is_completed ? (
-                          <Link href={`/lesson/${lesson.id}`}>
-                            <Button variant="outline" size="sm">
-                              <Play className="h-4 w-4 mr-2" />
-                              {t('review')}
-                            </Button>
-                          </Link>
+                      {/* Status */}
+                      <div className="shrink-0">
+                        {lesson.is_completed ? (
+                          <Badge variant="default" className="bg-green-600 gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Done
+                          </Badge>
+                        ) : lesson.is_locked ? (
+                          <Badge variant="secondary">Locked</Badge>
                         ) : (
-                          <Link href={`/lesson/${lesson.id}`}>
-                            <Button size="sm">
-                              <Play className="h-4 w-4 mr-2" />
-                              {t('start')}
-                            </Button>
-                          </Link>
+                          <Button size="sm" variant="ghost" className="gap-2">
+                            Start
+                            <Play className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
                     </div>
-
-                    {/* Progress bar for in-progress lessons */}
-                    {!lesson.is_completed && !lesson.is_locked && lesson.progress_percent && lesson.progress_percent > 0 && (
-                      <div className="mt-3 pt-3 border-t">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                          <span>{t('progress')}</span>
-                          <span>{Math.round(lesson.progress_percent)}%</span>
-                        </div>
-                        <Progress value={lesson.progress_percent} className="h-1" />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                  </SurfaceCard>
+                </Link>
               </motion.div>
             ))}
-          </div>
+          </Stack>
+        </Section>
+      </motion.div>
+    </PageShell>
+  )
+}
 
-          {/* Completion badge */}
-          {course.progress_percent === 100 && (
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-center py-8"
-            >
-              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-green-500/10 border border-green-500/30">
-                <CheckCircle2 className="h-6 w-6 text-green-500" />
-                <span className="font-semibold text-green-600 dark:text-green-400">
-                  {t('courseCompleted')} 🎉
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">{t('notFound')}</p>
-          <Link href="/courses">
-            <Button variant="outline" className="mt-4">
-              {t('goToMyCourses')}
-            </Button>
-          </Link>
+export default function CourseViewPage() {
+  return (
+    <AuthGuard>
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex flex-1">
+          <Sidebar />
+          <main className="flex-1 lg:ml-64">
+            <CourseDetailContent />
+          </main>
         </div>
-      )}
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

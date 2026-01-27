@@ -350,12 +350,6 @@ export async function deleteLesson(lessonId: string): Promise<void> {
   await api.delete(`/instructor/lessons/${lessonId}`)
 }
 
-export async function reorderLessons(courseId: string, lessonIds: string[]): Promise<void> {
-  await api.post(`/instructor/courses/${courseId}/lessons/reorder`, {
-    lesson_ids: lessonIds
-  })
-}
-
 // Student management
 export async function getCourseStudents(courseId: string): Promise<StudentProgress[]> {
   const response = await api.get<StudentProgress[]>(`/instructor/courses/${courseId}/students`)
@@ -392,6 +386,84 @@ export async function getInstructorDashboard(): Promise<{
 }> {
   const response = await api.get('/instructor/dashboard')
   return response.data
+}
+
+// ===== Concept Map API =====
+
+export interface ConceptMapNode {
+  id: string
+  name: string
+  description?: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  prereq_ids: string[]
+  lesson_ids: string[]
+  position_in_lessons: Record<string, number>
+}
+
+export interface LessonMapLane {
+  id: string
+  title: string
+  position: number
+  concept_count: number
+}
+
+export interface CourseConceptMapResponse {
+  course_id: string
+  course_title: string
+  lessons: LessonMapLane[]
+  concepts: ConceptMapNode[]
+}
+
+export async function getCourseConceptMap(courseId: string): Promise<CourseConceptMapResponse> {
+  const response = await api.get(`/instructor/courses/${courseId}/concept-map`)
+  return response.data
+}
+
+export async function reorderLessons(courseId: string, lessonIds: string[]): Promise<void> {
+  await api.patch(`/instructor/courses/${courseId}/lessons/reorder`, {
+    lesson_ids: lessonIds
+  })
+}
+
+export async function reorderConceptsInLesson(
+  courseId: string,
+  lessonId: string,
+  conceptIds: string[]
+): Promise<void> {
+  await api.patch(`/instructor/courses/${courseId}/lessons/${lessonId}/concepts/reorder`, {
+    concept_ids: conceptIds
+  })
+}
+
+export async function updateConcept(
+  courseId: string,
+  conceptId: string,
+  data: {
+    name?: string
+    description?: string
+    difficulty?: 'easy' | 'medium' | 'hard'
+    prereq_ids?: string[]
+  }
+): Promise<void> {
+  await api.patch(`/instructor/courses/${courseId}/concepts/${conceptId}`, data)
+}
+
+export async function addConceptToLesson(
+  courseId: string,
+  lessonId: string,
+  conceptId: string
+): Promise<void> {
+  await api.post(`/instructor/courses/${courseId}/lessons/${lessonId}/concepts`, {
+    concept_id: conceptId
+  })
+}
+
+export async function removeConceptFromLesson(
+  courseId: string,
+  lessonId: string,
+  conceptId: string
+): Promise<void> {
+  await api.delete(`/instructor/courses/${courseId}/lessons/${lessonId}/concepts/${conceptId}`)
 }
 
 export default api

@@ -2,11 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { useAuth } from '@/hooks/useAuth'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
 import { 
   BookOpen, 
@@ -23,9 +20,13 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Navbar } from '../_components/navbar'
 import { Sidebar } from '../_components/sidebar'
-import { Footer } from '../_components/footer'
 import { AuthGuard } from '../_components/auth-guard'
-import { useTranslations } from '@/lib/i18n'
+
+// Design System
+import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
+import { MetricCard, SurfaceCard } from '@/design-system/surfaces'
+import { LoadingState, EmptyState } from '@/design-system/feedback'
+import { Heading, Text } from '@/design-system/typography'
 
 interface EnrolledCourse {
   id: string
@@ -51,10 +52,7 @@ interface PendingInvitation {
 }
 
 function MyCoursesContent() {
-  const { user } = useAuth()
-  const t = useTranslations('courses')
-
-  const { data: courses, isLoading, error } = useQuery({
+  const { data: courses, isLoading } = useQuery({
     queryKey: ['my-courses'],
     queryFn: async () => {
       const res = await api.get<EnrolledCourse[]>('/instructor/my-courses')
@@ -76,211 +74,125 @@ function MyCoursesContent() {
     ? Math.round(courses.reduce((sum, c) => sum + (c.progress_percent ?? 0), 0) / courses.length) 
     : 0
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+  if (isLoading) {
+    return (
+      <PageShell maxWidth="2xl">
+        <LoadingState message="Loading your courses..." />
+      </PageShell>
+    )
   }
 
   return (
-    <motion.div 
-      className="space-y-8"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* Header */}
-      <motion.div variants={itemVariants}>
-        <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
-      </motion.div>
+    <PageShell maxWidth="2xl">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-8"
+      >
+        {/* Header */}
+        <PageHeader
+          title="My Courses"
+          description="Your enrolled courses and learning progress"
+        />
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{t('stats.enrolled')}</p>
-                  <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">
-                    {courses?.length || 0}
-                  </p>
-                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70">{t('stats.totalCourses')}</p>
-                </div>
-                <div className="p-3 rounded-full bg-blue-200 dark:bg-blue-800">
-                  <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        {/* Quick Stats */}
+        <Section>
+          <Grid cols={4} gap="md">
+            <MetricCard
+              label="Enrolled"
+              value={courses?.length || 0}
+              icon={BookOpen}
+              variant="info"
+            />
+            <MetricCard
+              label="In Progress"
+              value={inProgressCourses}
+              icon={Clock}
+              variant="warning"
+            />
+            <MetricCard
+              label="Completed"
+              value={completedCourses}
+              icon={Trophy}
+              variant="success"
+            />
+            <MetricCard
+              label="Overall"
+              value={`${totalProgress}%`}
+              icon={GraduationCap}
+              variant="default"
+            />
+          </Grid>
+        </Section>
 
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-600 dark:text-orange-400">{t('stats.inProgress')}</p>
-                  <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">
-                    {inProgressCourses}
-                  </p>
-                  <p className="text-xs text-orange-600/70 dark:text-orange-400/70">{t('stats.activeLearning')}</p>
-                </div>
-                <div className="p-3 rounded-full bg-orange-200 dark:bg-orange-800">
-                  <Clock className="h-6 w-6 text-orange-600 dark:text-orange-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">{t('stats.completed')}</p>
-                  <p className="text-3xl font-bold text-green-700 dark:text-green-300">
-                    {completedCourses}
-                  </p>
-                  <p className="text-xs text-green-600/70 dark:text-green-400/70">
-                    {completedCourses > 0 ? t('stats.greatJob') : t('stats.keepGoing')}
-                  </p>
-                </div>
-                <div className="p-3 rounded-full bg-green-200 dark:bg-green-800">
-                  <Trophy className="h-6 w-6 text-green-600 dark:text-green-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-600 dark:text-purple-400">{t('stats.overall')}</p>
-                  <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">
-                    {totalProgress}%
-                  </p>
-                  <Progress value={totalProgress} className="h-1.5 mt-2 w-24" />
-                </div>
-                <div className="p-3 rounded-full bg-purple-200 dark:bg-purple-800">
-                  <GraduationCap className="h-6 w-6 text-purple-600 dark:text-purple-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Pending Invitations */}
-      {invitations && invitations.length > 0 && (
-        <motion.div variants={itemVariants}>
-          <Card className="border-primary/50 bg-gradient-to-r from-primary/5 to-indigo-500/5">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
+        {/* Pending Invitations */}
+        {invitations && invitations.length > 0 && (
+          <SurfaceCard variant="bordered" className="border-primary/30 bg-primary/5">
+            <Stack gap="md">
+              <div className="flex items-center gap-2">
                 <Mail className="h-5 w-5 text-primary" />
-                {t('invitations.title')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 md:grid-cols-2">
+                <Text className="font-semibold">Course Invitations</Text>
+              </div>
+              <Grid cols={2} gap="sm">
                 {invitations.map((inv, index) => (
                   <motion.div 
                     key={inv.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 rounded-xl bg-background border shadow-sm"
+                    transition={{ delay: index * 0.05 }}
                   >
-                    <div>
-                      <p className="font-medium">{inv.course_title}</p>
-                      {inv.instructor_name && (
-                        <p className="text-sm text-muted-foreground">
-                          {t('invitations.from', { instructor: inv.instructor_name })}
-                        </p>
-                      )}
-                    </div>
-                    <Link href={`/courses/join/${inv.invite_token}`}>
-                      <Button size="sm" className="gap-1">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {t('invitations.accept')}
-                      </Button>
-                    </Link>
+                    <SurfaceCard className="border shadow-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1">
+                          <Text className="font-medium">{inv.course_title}</Text>
+                          {inv.instructor_name && (
+                            <Text size="sm" variant="muted">
+                              From {inv.instructor_name}
+                            </Text>
+                          )}
+                        </div>
+                        <Link href={`/courses/join/${inv.invite_token}`}>
+                          <Button size="sm" className="gap-1 shrink-0">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Accept
+                          </Button>
+                        </Link>
+                      </div>
+                    </SurfaceCard>
                   </motion.div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+              </Grid>
+            </Stack>
+          </SurfaceCard>
+        )}
 
-      {/* Courses Grid */}
-      <motion.div variants={itemVariants}>
-        {isLoading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map(i => (
-              <Card key={i}>
-                <div className="h-32 bg-muted" />
-                <CardContent className="pt-4">
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-1/2 mb-4" />
-                  <Skeleton className="h-2 w-full" />
-                </CardContent>
-              </Card>
-            ))}
+        {/* Courses Grid */}
+        {courses?.length === 0 ? (
+          <div className="py-12">
+            <EmptyState
+              icon={GraduationCap}
+              title="No courses yet"
+              description="You haven't enrolled in any courses. Browse lessons to start learning!"
+              action={{
+                label: 'Browse Lessons',
+                onClick: () => window.location.href = '/lessons'
+              }}
+            />
           </div>
-        ) : courses?.length === 0 ? (
-          <Card className="border-dashed border-2">
-            <CardContent className="py-20 text-center">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              >
-                <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-indigo-500/10 flex items-center justify-center mb-6">
-                  <GraduationCap className="h-12 w-12 text-primary" />
-                </div>
-              </motion.div>
-              <h2 className="text-2xl font-bold mb-3">{t('empty.title')}</h2>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                {t('empty.description')}
-              </p>
-              <div className="flex justify-center gap-3">
-                <Link href="/lessons">
-                  <Button size="lg" className="gap-2">
-                    <BookOpen className="h-5 w-5" />
-                    {t('empty.browseLessons')}
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
         ) : (
-          <>
-            <h2 className="text-2xl font-semibold mb-4">{t('continueLearning')}</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Section title="Continue Learning" description="Pick up where you left off">
+            <Grid cols={3} gap="md">
               {courses?.map((course, index) => (
                 <motion.div
                   key={course.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.05 }}
                 >
                   <Link href={`/courses/${course.course_id}`}>
-                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group cursor-pointer h-full">
+                    <SurfaceCard className="overflow-hidden hover:shadow-lg transition-all group cursor-pointer h-full">
                       {/* Thumbnail */}
-                      <div className="relative h-36 bg-gradient-to-br from-primary/30 via-indigo-500/20 to-purple-500/30 overflow-hidden">
+                      <div className="relative h-36 bg-gradient-to-br from-primary/20 via-indigo-500/10 to-purple-500/20">
                         {course.thumbnail_url ? (
                           <img 
                             src={course.thumbnail_url} 
@@ -289,79 +201,82 @@ function MyCoursesContent() {
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <BookOpen className="h-14 w-14 text-primary/40" />
+                            <BookOpen className="h-14 w-14 text-primary/30" />
                           </div>
                         )}
-                        {/* Progress overlay */}
+                        
+                        {/* Completion badge */}
                         {course.progress_percent === 100 && (
                           <div className="absolute top-3 right-3">
-                            <Badge className="bg-green-500 gap-1">
+                            <Badge className="bg-green-600 gap-1">
                               <CheckCircle2 className="h-3 w-3" />
-                              {t('stats.completed')}
+                              Complete
                             </Badge>
                           </div>
                         )}
+                        
                         {/* Gradient overlay */}
                         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
                       </div>
 
-                      <CardContent className="p-5 space-y-4 -mt-4 relative">
+                      <div className="p-5 space-y-4 -mt-4 relative">
                         <div>
-                          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                          <Heading level={4} className="line-clamp-2 group-hover:text-primary transition-colors mb-1">
                             {course.course_title}
-                          </h3>
+                          </Heading>
                           {course.instructor_name && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {t('card.by', { instructor: course.instructor_name })}
-                            </p>
+                            <Text size="sm" variant="muted">
+                              by {course.instructor_name}
+                            </Text>
                           )}
                         </div>
 
                         {/* Progress */}
                         <div>
                           <div className="flex items-center justify-between text-sm mb-2">
-                            <span className="text-muted-foreground">
-                              {t('card.lessonsOf', { completed: course.lessons_completed ?? 0, total: course.total_lessons ?? 0 })}
-                            </span>
-                            <span className="font-semibold text-primary">
+                            <Text size="sm" variant="muted">
+                              {course.lessons_completed ?? 0} of {course.total_lessons ?? 0} lessons
+                            </Text>
+                            <Text size="sm" className="font-semibold text-primary">
                               {Math.round(course.progress_percent ?? 0)}%
-                            </span>
+                            </Text>
                           </div>
                           <Progress value={course.progress_percent ?? 0} className="h-2" />
                         </div>
 
                         {/* Continue button */}
-                        <Button className="w-full gap-2 group-hover:gap-3 transition-all" variant={
-                          (course.progress_percent ?? 0) > 0 ? 'default' : 'outline'
-                        }>
+                        <Button 
+                          className="w-full gap-2 group-hover:gap-3 transition-all" 
+                          variant={(course.progress_percent ?? 0) > 0 ? 'default' : 'outline'}
+                        >
                           {(course.progress_percent ?? 0) === 100 ? (
                             <>
                               <CheckCircle2 className="h-4 w-4" />
-                              {t('card.reviewCourse')}
+                              Review Course
                             </>
                           ) : (course.progress_percent ?? 0) > 0 ? (
                             <>
                               <Play className="h-4 w-4" />
-                              {t('card.continue')}
+                              Continue
                               <ArrowRight className="h-4 w-4" />
                             </>
                           ) : (
                             <>
                               <BookOpen className="h-4 w-4" />
-                              {t('card.startLearning')}
+                              Start Learning
                             </>
                           )}
                         </Button>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </SurfaceCard>
                   </Link>
                 </motion.div>
               ))}
-            </div>
-          </>
+            </Grid>
+          </Section>
         )}
       </motion.div>
-    </motion.div>
+    </PageShell>
   )
 }
 
@@ -372,13 +287,10 @@ export default function MyCoursesPage() {
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto p-6 lg:p-8 lg:ml-64">
-            <div className="mx-auto max-w-7xl">
-              <MyCoursesContent />
-            </div>
+          <main className="flex-1 lg:ml-64">
+            <MyCoursesContent />
           </main>
         </div>
-        <Footer />
       </div>
     </AuthGuard>
   )

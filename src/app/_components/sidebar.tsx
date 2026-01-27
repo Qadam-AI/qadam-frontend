@@ -40,10 +40,19 @@ export function Sidebar() {
   const { user } = useAuth()
   const t = useTranslations('nav')
 
+  // CRITICAL: Don't render student sidebar on instructor pages AT ALL
+  // Check early and return null immediately
+  const isOnInstructorPage = pathname?.startsWith('/instructor')
+  const userIsInstructor = user?.role === 'instructor' || user?.role === 'admin'
+  
+  if (isOnInstructorPage && userIsInstructor) {
+    return null
+  }
+
   // Check if user is on instructor pages
-  const isInstructorContext = pathname.startsWith('/instructor')
+  const isInstructorContext = isOnInstructorPage || false
   // For instructors in instructor context, hide learner items
-  const isInstructor = user?.role === 'instructor' || user?.role === 'admin'
+  const isInstructor = userIsInstructor
 
   // Core learning items - hidden for instructors when in instructor panel
   const coreNavItems = (isInstructorContext && isInstructor) ? [] : [
@@ -88,9 +97,14 @@ export function Sidebar() {
     }
   }, [pathname, setSidebarOpen])
 
-  // For instructors in the instructor panel, don't render the main sidebar
+  // For instructors in the instructor panel, don't render the main sidebar AT ALL
   // The instructor layout has its own dedicated sidebar
   if (hideMainSidebar) {
+    return null
+  }
+
+  // Also hide if no nav items to show (edge case protection)
+  if (coreNavItems.length === 0 && featureNavItems.length === 0 && userNavItems.length === 0 && !isInstructor) {
     return null
   }
 

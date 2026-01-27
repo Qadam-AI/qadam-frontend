@@ -4,20 +4,16 @@ import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   ArrowLeft, 
   Plus,
   Video,
-  FileText,
   Users,
   Mail,
   MoreVertical,
@@ -28,30 +24,37 @@ import {
   CheckCircle2,
   Clock,
   X,
-  Send,
   BarChart3,
+  Settings as SettingsIcon,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  GitBranch,
+  Upload,
+  ImageIcon,
   UserPlus,
-  BookOpen,
-  TrendingUp
+  Copy,
+  AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { motion, AnimatePresence, Reorder } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
+// Design System
+import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
+import { MetricCard, SurfaceCard, InfoPanel } from '@/design-system/surfaces'
+import { EmptyState, LoadingState } from '@/design-system/feedback'
+import { ModalLayout } from '@/design-system/patterns/modal-layout'
+import { LabelText, HelperText } from '@/design-system/typography'
+import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
 
 interface Course {
   id: string
@@ -82,33 +85,46 @@ interface StudentProgress {
   last_activity?: string
 }
 
-interface CourseAnalytics {
-  total_students: number
-  active_students: number
-  completed_students: number
-  completion_rate: number
-  average_progress: number
-}
+type ViewMode = 'lessons' | 'students' | 'overview' | 'settings'
 
 export default function CourseDetailPage() {
   const params = useParams()
   const router = useRouter()
   const queryClient = useQueryClient()
   const courseId = params.courseId as string
-
+  
+  const [viewMode, setViewMode] = useState<ViewMode>('lessons')
   const [addLessonOpen, setAddLessonOpen] = useState(false)
-  const [inviteOpen, setInviteOpen] = useState(false)
+  const [addStudentOpen, setAddStudentOpen] = useState(false)
+  const [editLessonId, setEditLessonId] = useState<string | null>(null)
+  
   const [lessonTitle, setLessonTitle] = useState('')
   const [lessonDescription, setLessonDescription] = useState('')
   const [lessonVideoUrl, setLessonVideoUrl] = useState('')
-  const [emailInput, setEmailInput] = useState('')
-  const [emails, setEmails] = useState<string[]>([])
+  
+  // Student creation form
+  const [studentFirstName, setStudentFirstName] = useState('')
+  const [studentLastName, setStudentLastName] = useState('')
+  const [studentEmail, setStudentEmail] = useState('')
+  const [studentPhone, setStudentPhone] = useState('')
+  const [createdCredentials, setCreatedCredentials] = useState<{username: string, password: string} | null>(null)
+  
+  const [courseTitle, setCourseTitle] = useState('')
+  const [courseDescription, setCourseDescription] = useState('')
+  const [isPublished, setIsPublished] = useState(false)
+  const [coverImageUrl, setCoverImageUrl] = useState('')
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
 
   // Fetch course details
   const { data: course, isLoading: loadingCourse } = useQuery({
     queryKey: ['instructor-course', courseId],
     queryFn: async () => {
       const res = await api.get<Course>(`/instructor/courses/${courseId}`)
+      setCourseTitle(res.data.title)
+      setCourseDescription(res.data.description || '')
+      setIsPublished(res.data.is_published)
+      setCoverImageUrl((res.data as any).cover_image_url || '')
       return res.data
     }
   })
@@ -131,15 +147,6 @@ export default function CourseDetailPage() {
     }
   })
 
-  // Fetch analytics
-  const { data: analytics } = useQuery({
-    queryKey: ['course-analytics', courseId],
-    queryFn: async () => {
-      const res = await api.get<CourseAnalytics>(`/instructor/courses/${courseId}/analytics`)
-      return res.data
-    }
-  })
-
   // Add lesson mutation
   const addLessonMutation = useMutation({
     mutationFn: async () => {
@@ -153,7 +160,7 @@ export default function CourseDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] })
-      toast.success('Lesson added! 🎉')
+      toast.success('Lesson added!')
       setAddLessonOpen(false)
       setLessonTitle('')
       setLessonDescription('')
@@ -178,31 +185,99 @@ export default function CourseDetailPage() {
     }
   })
 
-  // Invite students mutation
-  const inviteMutation = useMutation({
+  // Update course mutation
+  const updateCourseMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/instructor/courses/${courseId}/invite`, {
-        emails
+      await api.patch(`/instructor/courses/${courseId}`, {
+        title: courseTitle,
+        description: courseDescription,
+        is_published: isPublished,
+        cover_image_url: coverImageUrl || undefined
       })
-      return res.data
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['course-students', courseId] })
-      toast.success(`${data.sent} invitation(s) sent! 📧`)
-      setInviteOpen(false)
-      setEmails([])
-      setEmailInput('')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['instructor-course', courseId] })
+      queryClient.invalidateQueries({ queryKey: ['instructor-courses'] })
+      toast.success('Course updated')
     },
     onError: () => {
-      toast.error('Failed to send invitations')
+      toast.error('Failed to update course')
     }
   })
 
-  const addEmail = () => {
-    const email = emailInput.trim().toLowerCase()
-    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !emails.includes(email)) {
-      setEmails([...emails, email])
-      setEmailInput('')
+  // Delete course mutation
+  const deleteCourseMutation = useMutation({
+    mutationFn: async () => {
+      await api.delete(`/instructor/courses/${courseId}`)
+    },
+    onSuccess: () => {
+      toast.success('Course deleted successfully')
+      router.push('/instructor/courses')
+    },
+    onError: () => {
+      toast.error('Failed to delete course')
+    }
+  })
+
+  // Remove student from course mutation
+  const removeStudentMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      await api.delete(`/instructor/courses/${courseId}/students/${userId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-students', courseId] })
+      queryClient.invalidateQueries({ queryKey: ['instructor-course', courseId] })
+      toast.success('Student removed from course')
+    },
+    onError: () => {
+      toast.error('Failed to remove student')
+    }
+  })
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please upload a valid image file (JPEG, PNG, WebP, or GIF)')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB')
+      return
+    }
+
+    // Show preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setCoverPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+
+    // Upload to server
+    setUploadingCover(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await api.post(`/instructor/courses/${courseId}/upload-cover`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      setCoverImageUrl(res.data.cover_image_url)
+      toast.success('Cover image uploaded successfully')
+      queryClient.invalidateQueries({ queryKey: ['instructor-course', courseId] })
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to upload cover image')
+      setCoverPreview(null)
+    } finally {
+      setUploadingCover(false)
     }
   }
 
@@ -213,423 +288,519 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <Link href="/instructor/courses">
-            <Button variant="ghost" size="icon" className="rounded-full mt-1">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            {loadingCourse ? (
-              <>
-                <Skeleton className="h-9 w-64 mb-2" />
-                <Skeleton className="h-5 w-48" />
-              </>
-            ) : (
-              <>
-                <h1 className="text-3xl font-bold tracking-tight">{course?.title}</h1>
-                <p className="text-muted-foreground mt-1">
-                  {course?.description || 'No description'}
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setInviteOpen(true)} className="gap-2">
-            <UserPlus className="h-4 w-4" />
-            Invite Students
+    <PageShell maxWidth="2xl">
+      <div className="flex items-center gap-3 mb-6">
+        <Link href="/instructor/courses">
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <Button onClick={() => setAddLessonOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Lesson
-          </Button>
-        </div>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-200 dark:bg-blue-800">
-                <Video className="h-4 w-4 text-blue-600 dark:text-blue-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                  {lessons?.length || 0}
-                </p>
-                <p className="text-xs text-blue-600/70 dark:text-blue-400/70">Lessons</p>
-              </div>
+        </Link>
+        <div className="flex-1">
+          {loadingCourse ? (
+            <div className="space-y-2">
+              <div className="h-8 w-64 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-48 bg-muted rounded animate-pulse" />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-200 dark:bg-green-800">
-                <Users className="h-4 w-4 text-green-600 dark:text-green-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                  {analytics?.total_students || 0}
-                </p>
-                <p className="text-xs text-green-600/70 dark:text-green-400/70">Students</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-200 dark:bg-purple-800">
-                <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                  {Math.round(analytics?.average_progress || 0)}%
-                </p>
-                <p className="text-xs text-purple-600/70 dark:text-purple-400/70">Avg Progress</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-200 dark:bg-orange-800">
-                <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-                  {analytics?.completed_students || 0}
-                </p>
-                <p className="text-xs text-orange-600/70 dark:text-orange-400/70">Completed</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabs */}
-      <Tabs defaultValue="lessons" className="space-y-6">
-        <TabsList className="bg-muted/50 p-1">
-          <TabsTrigger value="lessons" className="gap-2">
-            <Video className="h-4 w-4" />
-            Lessons
-          </TabsTrigger>
-          <TabsTrigger value="students" className="gap-2">
-            <Users className="h-4 w-4" />
-            Students
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Lessons Tab */}
-        <TabsContent value="lessons" className="space-y-4">
-          {loadingLessons ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <Skeleton key={i} className="h-20 w-full" />
-              ))}
-            </div>
-          ) : lessons?.length === 0 ? (
-            <Card className="border-dashed border-2">
-              <CardContent className="py-16 text-center">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                >
-                  <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Video className="h-8 w-8 text-primary" />
-                  </div>
-                </motion.div>
-                <h3 className="text-lg font-semibold mb-2">No lessons yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Start building your course by adding your first lesson
-                </p>
-                <Button onClick={() => setAddLessonOpen(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add First Lesson
-                </Button>
-              </CardContent>
-            </Card>
           ) : (
-            <div className="space-y-3">
+            <>
+              <h1 className="text-3xl font-bold tracking-tight">{course?.title}</h1>
+              <p className="text-muted-foreground mt-1">
+                {course?.description || 'No description'}
+              </p>
+            </>
+          )}
+        </div>
+        
+        {/* Primary Action: Concept Map */}
+        <Link href={`/instructor/courses/${courseId}/concept-map`}>
+          <Button size="lg" className="gap-2">
+            <GitBranch className="h-5 w-5" />
+            View Concept Map
+          </Button>
+        </Link>
+      </div>
+
+      {/* KPI Metrics */}
+      <Section>
+        <Grid cols={4} gap="md">
+          <MetricCard
+            label="Lessons"
+            value={lessons?.length || 0}
+            icon={Video}
+            variant="info"
+          />
+          <MetricCard
+            label="Students"
+            value={course?.student_count || 0}
+            icon={Users}
+            variant="success"
+          />
+          <MetricCard
+            label="Avg Progress"
+            value={`${Math.round((students?.reduce((sum, s) => sum + s.progress_percent, 0) || 0) / (students?.length || 1))}%`}
+            icon={BarChart3}
+            variant="default"
+          />
+          <MetricCard
+            label="Completed"
+            value={students?.filter(s => s.progress_percent === 100).length || 0}
+            icon={CheckCircle2}
+            variant="success"
+          />
+        </Grid>
+      </Section>
+
+      {/* Segmented Navigation */}
+      <div className="flex items-center gap-1 p-1 bg-muted/30 rounded-lg w-fit">
+        <Button
+          variant={viewMode === 'lessons' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => setViewMode('lessons')}
+          className="gap-2"
+        >
+          <Video className="h-4 w-4" />
+          Lessons ({lessons?.length || 0})
+        </Button>
+        <Button
+          variant={viewMode === 'students' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => setViewMode('students')}
+          className="gap-2"
+        >
+          <Users className="h-4 w-4" />
+          Students ({course?.student_count || 0})
+        </Button>
+        <Button
+          variant={viewMode === 'settings' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => setViewMode('settings')}
+          className="gap-2"
+        >
+          <SettingsIcon className="h-4 w-4" />
+          Settings
+        </Button>
+      </div>
+
+      {/* Lessons View */}
+      {viewMode === 'lessons' && (
+        <Section
+          title="Course Lessons"
+          description="Organize and manage your lesson content"
+          action={
+            <Button onClick={() => setAddLessonOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Lesson
+            </Button>
+          }
+        >
+          {loadingLessons ? (
+            <LoadingState message="Loading lessons..." />
+          ) : lessons?.length === 0 ? (
+            <SurfaceCard variant="muted" className="py-12">
+              <EmptyState
+                icon={Video}
+                title="No lessons yet"
+                description="Start building your course by adding your first lesson"
+                action={{
+                  label: 'Add First Lesson',
+                  onClick: () => setAddLessonOpen(true)
+                }}
+              />
+            </SurfaceCard>
+          ) : (
+            <Stack gap="md">
               {lessons?.map((lesson, index) => (
                 <motion.div
                   key={lesson.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ delay: index * 0.03 }}
                 >
-                  <Card className="group hover:shadow-md hover:border-primary/30 transition-all">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                          <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" />
-                        </div>
-                        
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-semibold">
-                          {lesson.position}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate">{lesson.title}</h3>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                            {lesson.video_url ? (
-                              <span className="flex items-center gap-1">
-                                <Video className="h-3.5 w-3.5" />
-                                Video
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1">
-                                <FileText className="h-3.5 w-3.5" />
-                                Text
-                              </span>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5" />
-                              {formatDuration(lesson.duration_seconds)}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="gap-2">
-                              <Edit2 className="h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="gap-2 text-destructive"
-                              onClick={() => deleteLessonMutation.mutate(lesson.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  <SurfaceCard className="group hover:shadow-md hover:border-primary/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary cursor-grab">
+                        <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                    </CardContent>
-                  </Card>
+                      
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-semibold">
+                        {lesson.position}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold truncate">{lesson.title}</h3>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            {lesson.video_url ? <Video className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
+                            {lesson.video_url ? 'Video' : 'Content'}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5" />
+                            {formatDuration(lesson.duration_seconds)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem className="gap-2">
+                            <Edit2 className="h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="gap-2 text-destructive"
+                            onClick={() => {
+                              if (confirm('Delete this lesson?')) {
+                                deleteLessonMutation.mutate(lesson.id)
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </SurfaceCard>
                 </motion.div>
               ))}
-              
-              {/* Add more button */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: (lessons?.length || 0) * 0.05 }}
-              >
-                <Card 
-                  className="border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
-                  onClick={() => setAddLessonOpen(true)}
-                >
-                  <CardContent className="py-6 text-center">
-                    <Plus className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Add another lesson</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
+            </Stack>
           )}
-        </TabsContent>
+        </Section>
+      )}
 
-        {/* Students Tab */}
-        <TabsContent value="students" className="space-y-4">
+      {/* Students View */}
+      {viewMode === 'students' && (
+        <Section
+          title="Enrolled Students"
+          description="Manage student enrollments and track progress"
+          action={
+            <Button onClick={() => setAddStudentOpen(true)} variant="outline" className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add Student
+            </Button>
+          }
+        >
           {students?.length === 0 ? (
-            <Card className="border-dashed border-2">
-              <CardContent className="py-16 text-center">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                >
-                  <div className="mx-auto w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-                    <Users className="h-8 w-8 text-green-500" />
-                  </div>
-                </motion.div>
-                <h3 className="text-lg font-semibold mb-2">No students yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Invite students to start learning from your course
-                </p>
-                <Button onClick={() => setInviteOpen(true)} className="gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  Invite Students
-                </Button>
-              </CardContent>
-            </Card>
+            <SurfaceCard variant="muted" className="py-12">
+              <EmptyState
+                icon={Users}
+                title="No students yet"
+                description="Students will appear here once they enroll in the course"
+              />
+            </SurfaceCard>
           ) : (
-            <div className="space-y-3">
+            <Stack gap="md">
               {students?.map((student, index) => (
                 <motion.div
                   key={student.user_id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ delay: index * 0.03 }}
                 >
-                  <Card className="hover:shadow-sm transition-all">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-semibold uppercase">
-                          {(student.user_name || student.user_email)[0]}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">
-                            {student.user_name || 'Unknown'}
-                          </h3>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {student.user_email}
-                          </p>
-                        </div>
-                        
-                        <div className="text-right">
-                          <p className="font-semibold">{Math.round(student.progress_percent)}%</p>
-                          <p className="text-xs text-muted-foreground">
-                            {student.lessons_completed}/{student.total_lessons} lessons
-                          </p>
-                        </div>
-                        
-                        <div className="w-24">
-                          <Progress value={student.progress_percent} className="h-2" />
-                        </div>
+                  <SurfaceCard 
+                    className="cursor-pointer hover:shadow-md hover:border-primary/50 transition-all"
+                    onClick={() => router.push(`/instructor/students/${student.user_id}`)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-semibold uppercase shrink-0">
+                        {(student.user_name || student.user_email)[0]}
                       </div>
-                    </CardContent>
-                  </Card>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">
+                          {student.user_name || 'Unknown'}
+                        </h3>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {student.user_email}
+                        </p>
+                      </div>
+                      
+                      <div className="text-right shrink-0">
+                        <p className="font-semibold">{Math.round(student.progress_percent)}%</p>
+                        <p className="text-xs text-muted-foreground">
+                          {student.lessons_completed}/{student.total_lessons} lessons
+                        </p>
+                      </div>
+                      
+                      <div className="w-24 shrink-0">
+                        <Progress value={student.progress_percent} className="h-2" />
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="shrink-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              router.push(`/instructor/students/${student.user_id}`)
+                            }}
+                            className="gap-2"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="gap-2 text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (window.confirm(`Remove ${student.user_name || student.user_email} from this course?\n\nTheir progress will be deleted.`)) {
+                                removeStudentMutation.mutate(student.user_id)
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Remove from Course
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </SurfaceCard>
                 </motion.div>
               ))}
-            </div>
+            </Stack>
           )}
-        </TabsContent>
+        </Section>
+      )}
 
-        {/* Analytics Tab */}
-        <TabsContent value="analytics">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Completion Rate</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="relative inline-flex">
-                    <svg className="w-32 h-32">
-                      <circle
-                        className="text-muted stroke-current"
-                        strokeWidth="8"
-                        fill="transparent"
-                        r="56"
-                        cx="64"
-                        cy="64"
-                      />
-                      <circle
-                        className="text-primary stroke-current"
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        fill="transparent"
-                        r="56"
-                        cx="64"
-                        cy="64"
-                        strokeDasharray={`${(analytics?.completion_rate || 0) * 3.52} 352`}
-                        transform="rotate(-90 64 64)"
-                      />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold">
-                      {Math.round(analytics?.completion_rate || 0)}%
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground mt-4">
-                    {analytics?.completed_students || 0} of {analytics?.total_students || 0} students completed
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Overview */}
+      {viewMode === 'overview' && (
+        <Section title="Class Overview" description="Summary of course performance">
+          <Grid cols={2} gap="lg">
+            <SurfaceCard>
+              <h3 className="font-semibold mb-4">Quick Links</h3>
+              <Stack gap="sm">
+                <Link href="/instructor/students">
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <Users className="h-4 w-4" />
+                    View All Students
+                  </Button>
+                </Link>
+                <Link href="/instructor/mastery">
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    Understanding Overview
+                  </Button>
+                </Link>
+                <Link href="/instructor/ai-tools">
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <Video className="h-4 w-4" />
+                    Extract Concepts
+                  </Button>
+                </Link>
+                <Link href={`/instructor/courses/${courseId}/concept-map`}>
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <GitBranch className="h-4 w-4" />
+                    Concept Map
+                  </Button>
+                </Link>
+              </Stack>
+            </SurfaceCard>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Activity</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-green-50 dark:bg-green-950/30">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    <span>Active Students</span>
-                  </div>
-                  <span className="font-bold text-lg">{analytics?.active_students || 0}</span>
+            <SurfaceCard>
+              <h3 className="font-semibold mb-4">Course Status</h3>
+              <Stack gap="md">
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Total Lessons</div>
+                  <div className="text-2xl font-bold">{lessons?.length || 0}</div>
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30">
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                    <span>Average Progress</span>
-                  </div>
-                  <span className="font-bold text-lg">{Math.round(analytics?.average_progress || 0)}%</span>
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Enrolled Students</div>
+                  <div className="text-2xl font-bold">{students?.length || 0}</div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Visibility</div>
+                  <Badge variant={course?.is_published ? "default" : "secondary"}>
+                    {course?.is_published ? 'Published' : 'Draft'}
+                  </Badge>
+                </div>
+              </Stack>
+            </SurfaceCard>
+          </Grid>
+        </Section>
+      )}
 
-      {/* Add Lesson Dialog */}
-      <Dialog open={addLessonOpen} onOpenChange={setAddLessonOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Video className="h-5 w-5 text-primary" />
-              Add New Lesson
-            </DialogTitle>
-            <DialogDescription>
-              Add a new lesson to your course
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="lessonTitle">Lesson Title *</Label>
-              <Input
-                id="lessonTitle"
-                value={lessonTitle}
-                onChange={(e) => setLessonTitle(e.target.value)}
-                placeholder="e.g., Introduction to Variables"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lessonDesc">Description</Label>
-              <Textarea
-                id="lessonDesc"
-                value={lessonDescription}
-                onChange={(e) => setLessonDescription(e.target.value)}
-                placeholder="What will students learn in this lesson?"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="videoUrl">Video URL</Label>
-              <Input
-                id="videoUrl"
-                value={lessonVideoUrl}
-                onChange={(e) => setLessonVideoUrl(e.target.value)}
-                placeholder="https://youtube.com/watch?v=..."
-              />
-              <p className="text-xs text-muted-foreground">
-                YouTube, Vimeo, or direct video links
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
+      {/* Settings */}
+      {viewMode === 'settings' && (
+        <Section title="Course Settings" description="Manage course details and visibility">
+          <SurfaceCard>
+            <Stack gap="lg">
+              <div className="space-y-2">
+                <LabelText required>Course Title</LabelText>
+                <Input
+                  value={courseTitle}
+                  onChange={(e) => setCourseTitle(e.target.value)}
+                  placeholder="Enter course title"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <LabelText>Description</LabelText>
+                <Textarea
+                  value={courseDescription}
+                  onChange={(e) => setCourseDescription(e.target.value)}
+                  placeholder="Describe what students will learn"
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <LabelText>Cover Image</LabelText>
+                
+                {/* Preview */}
+                {(coverPreview || coverImageUrl) && (
+                  <div className="relative w-full h-48 rounded-lg border border-border overflow-hidden bg-muted">
+                    <img 
+                      src={coverPreview || coverImageUrl} 
+                      alt="Course cover preview" 
+                      className="w-full h-full object-cover"
+                    />
+                    {uploadingCover && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-white" />
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Upload Button */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingCover}
+                    onClick={() => document.getElementById('cover-upload')?.click()}
+                    className="gap-2"
+                  >
+                    {uploadingCover ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4" />
+                        {coverImageUrl ? 'Change Cover' : 'Upload Cover'}
+                      </>
+                    )}
+                  </Button>
+                  
+                  {coverImageUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setCoverImageUrl('')
+                        setCoverPreview(null)
+                      }}
+                      className="gap-2 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                
+                <input
+                  id="cover-upload"
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                  onChange={handleCoverUpload}
+                  className="hidden"
+                />
+                
+                <HelperText>Upload a cover image for your course (JPEG, PNG, WebP, or GIF, max 5MB)</HelperText>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <LabelText>Publish Course</LabelText>
+                  <HelperText>Make this course visible to students</HelperText>
+                </div>
+                <Switch
+                  checked={isPublished}
+                  onCheckedChange={setIsPublished}
+                />
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button 
+                  onClick={() => updateCourseMutation.mutate()}
+                  disabled={updateCourseMutation.isPending || !courseTitle.trim()}
+                >
+                  {updateCourseMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </div>
+
+              <Separator />
+
+              <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-destructive mb-1">Danger Zone</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Deleting this course will permanently remove all lessons, concepts, student enrollments, and progress data.
+                    </p>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => {
+                        if (window.confirm(`Are you absolutely sure you want to delete "${course?.title}"?\n\nThis will:\n- Delete ${lessons?.length || 0} lessons\n- Remove ${course?.student_count || 0} student enrollments\n- Permanently erase all progress data\n\nThis action CANNOT be undone.`)) {
+                          deleteCourseMutation.mutate()
+                        }
+                      }}
+                      disabled={deleteCourseMutation.isPending}
+                      className="gap-2"
+                    >
+                      {deleteCourseMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4" />
+                          Delete Course Permanently
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Stack>
+          </SurfaceCard>
+        </Section>
+      )}
+
+      {/* Add Lesson Modal */}
+      <ModalLayout
+        open={addLessonOpen}
+        onClose={() => setAddLessonOpen(false)}
+        title="Add New Lesson"
+        description="Create a new lesson for your course"
+        size="lg"
+        footer={
+          <>
             <Button variant="outline" onClick={() => setAddLessonOpen(false)}>
               Cancel
             </Button>
@@ -641,74 +812,163 @@ export default function CourseDetailPage() {
               {addLessonMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Add Lesson
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Invite Students Dialog */}
-      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-primary" />
-              Invite Students
-            </DialogTitle>
-            <DialogDescription>
-              Send email invitations to students
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="flex gap-2">
-              <Input
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ',') {
-                    e.preventDefault()
-                    addEmail()
-                  }
-                }}
-                placeholder="student@example.com"
-                type="email"
-              />
-              <Button variant="outline" onClick={addEmail}>
-                Add
-              </Button>
-            </div>
-            
-            {emails.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {emails.map((email) => (
-                  <Badge key={email} variant="secondary" className="gap-1 py-1.5">
-                    {email}
-                    <button onClick={() => setEmails(emails.filter(e => e !== email))}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-            
-            <p className="text-sm text-muted-foreground">
-              Students will receive an email with a link to join your course.
-            </p>
+          </>
+        }
+      >
+        <Stack gap="md">
+          <div className="space-y-2">
+            <LabelText required>Lesson Title</LabelText>
+            <Input
+              value={lessonTitle}
+              onChange={(e) => setLessonTitle(e.target.value)}
+              placeholder="e.g., Introduction to Variables"
+            />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setInviteOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => inviteMutation.mutate()}
-              disabled={emails.length === 0 || inviteMutation.isPending}
-              className="gap-2"
-            >
-              {inviteMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              <Send className="h-4 w-4" />
-              Send {emails.length} Invitation{emails.length !== 1 ? 's' : ''}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <div className="space-y-2">
+            <LabelText>Description</LabelText>
+            <Textarea
+              value={lessonDescription}
+              onChange={(e) => setLessonDescription(e.target.value)}
+              placeholder="What will students learn in this lesson?"
+              rows={3}
+            />
+          </div>
+          <div className="space-y-2">
+            <LabelText>Video URL</LabelText>
+            <Input
+              value={lessonVideoUrl}
+              onChange={(e) => setLessonVideoUrl(e.target.value)}
+              placeholder="https://youtube.com/watch?v=..."
+            />
+            <HelperText>YouTube, Vimeo, or direct video links</HelperText>
+          </div>
+        </Stack>
+      </ModalLayout>
+
+      {/* Add Student Modal */}
+      <ModalLayout
+        open={addStudentOpen}
+        onClose={() => {
+          setAddStudentOpen(false)
+          setCreatedCredentials(null)
+        }}
+        title={createdCredentials ? "Student Created Successfully" : "Add New Student"}
+        description={createdCredentials ? "Share these credentials with the student" : "Create a new student account and enroll in this course"}
+        size="lg"
+        footer={
+          createdCredentials ? (
+            <>
+              <Button variant="outline" onClick={() => {
+                setAddStudentOpen(false)
+                setCreatedCredentials(null)
+              }}>
+                Close
+              </Button>
+              <Button onClick={() => {
+                navigator.clipboard.writeText(`Username: ${createdCredentials.username}\nPassword: ${createdCredentials.password}`)
+                toast.success('Credentials copied to clipboard!')
+              }} className="gap-2">
+                <Copy className="h-4 w-4" />
+                Copy Credentials
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => setAddStudentOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => createStudentMutation.mutate()}
+                disabled={!studentFirstName.trim() || !studentLastName.trim() || createStudentMutation.isPending}
+                className="gap-2"
+              >
+                {createStudentMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Create Student
+              </Button>
+            </>
+          )
+        }
+      >
+        {createdCredentials ? (
+          <Stack gap="md">
+            <InfoPanel
+              icon={CheckCircle2}
+              variant="success"
+              title="Student Account Created"
+              description="Save these credentials - they won't be shown again!"
+            />
+            <SurfaceCard className="bg-muted">
+              <Stack gap="sm">
+                <div>
+                  <LabelText>Username (for login)</LabelText>
+                  <div className="font-mono text-lg font-semibold">{createdCredentials.username}</div>
+                </div>
+                <div>
+                  <LabelText>Password (temporary)</LabelText>
+                  <div className="font-mono text-lg font-semibold">{createdCredentials.password}</div>
+                </div>
+              </Stack>
+            </SurfaceCard>
+            <InfoPanel
+              icon={AlertTriangle}
+              variant="warning"
+              title="Important"
+              description="Make sure to save these credentials. Students should change their password after first login."
+            />
+          </Stack>
+        ) : (
+          <Stack gap="md">
+            <Grid cols={2} gap="md">
+              <div className="space-y-2">
+                <LabelText required>First Name</LabelText>
+                <Input
+                  value={studentFirstName}
+                  onChange={(e) => setStudentFirstName(e.target.value)}
+                  placeholder="John"
+                />
+              </div>
+              <div className="space-y-2">
+                <LabelText required>Last Name</LabelText>
+                <Input
+                  value={studentLastName}
+                  onChange={(e) => setStudentLastName(e.target.value)}
+                  placeholder="Doe"
+                />
+              </div>
+            </Grid>
+            
+            <div className="space-y-2">
+              <LabelText>Email (Optional)</LabelText>
+              <Input
+                type="email"
+                value={studentEmail}
+                onChange={(e) => setStudentEmail(e.target.value)}
+                placeholder="student@example.com"
+              />
+              <HelperText>If provided, student can use email for password recovery</HelperText>
+            </div>
+
+            <div className="space-y-2">
+              <LabelText>Phone Number (Optional)</LabelText>
+              <Input
+                type="tel"
+                value={studentPhone}
+                onChange={(e) => setStudentPhone(e.target.value)}
+                placeholder="+1 234 567 8900"
+              />
+              <HelperText>For contact purposes only</HelperText>
+            </div>
+
+            <InfoPanel
+              icon={AlertCircle}
+              variant="info"
+              title="Auto-Generated Credentials"
+              description="Username and password will be automatically generated. Make sure to save them after creation!"
+            />
+          </Stack>
+        )}
+      </ModalLayout>
+
+    </PageShell>
   )
 }

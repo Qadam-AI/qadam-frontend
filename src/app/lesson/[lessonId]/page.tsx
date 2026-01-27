@@ -2,25 +2,35 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from '@/lib/i18n'
 import api from '@/lib/api'
 import { lessonSchema } from '@/lib/validation'
 import { Navbar } from '../../_components/navbar'
 import { Sidebar } from '../../_components/sidebar'
-import { Footer } from '../../_components/footer'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ErrorState } from '../../_components/empty-states'
-import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, BookOpen, Play, Pause, Volume2, VolumeX, Maximize, ChevronLeft, ChevronRight, ArrowLeft, FileText, Link as LinkIcon, Download, ExternalLink } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { 
+  CheckCircle2, 
+  BookOpen, 
+  Play, 
+  Pause, 
+  Volume2, 
+  VolumeX, 
+  Maximize, 
+  ChevronLeft, 
+  ChevronRight, 
+  ArrowLeft, 
+  FileText, 
+  Link as LinkIcon, 
+  Download, 
+  ExternalLink,
+  Sparkles,
+  ArrowRight
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { AuthGuard } from '../../_components/auth-guard'
 import Link from 'next/link'
-import { AIAssistant } from '@/components/ai-assistant'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import {
@@ -29,6 +39,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
+// Design System
+import { PageShell, Stack } from '@/design-system/layout'
+import { SurfaceCard, InfoPanel } from '@/design-system/surfaces'
+import { LoadingState, EmptyState } from '@/design-system/feedback'
+import { Heading, Text, LabelText } from '@/design-system/typography'
 
 interface CourseLessons {
   id: string
@@ -51,9 +67,7 @@ function VideoPlayer({
   const [isMuted, setIsMuted] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
   const [showControls, setShowControls] = useState(true)
-  const [isFullscreen, setIsFullscreen] = useState(false)
   const [hasWatched80Percent, setHasWatched80Percent] = useState(false)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
 
   const formatTime = (time: number) => {
@@ -79,7 +93,6 @@ function VideoPlayer({
       const dur = videoRef.current.duration
       setCurrentTime(current)
       
-      // Check if 80% watched
       const progress = (current / dur) * 100
       if (progress >= 80 && !hasWatched80Percent) {
         setHasWatched80Percent(true)
@@ -94,69 +107,21 @@ function VideoPlayer({
     }
   }
 
-  const handleVolumeToggle = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted
-      setIsMuted(!isMuted)
-    }
-  }
-
-  const handlePlaybackRateChange = (rate: number) => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = rate
-      setPlaybackRate(rate)
-    }
-  }
-
-  const handleFullscreen = () => {
-    if (containerRef.current) {
-      if (!isFullscreen) {
-        if (containerRef.current.requestFullscreen) {
-          containerRef.current.requestFullscreen()
-        }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen()
-        }
-      }
-      setIsFullscreen(!isFullscreen)
-    }
-  }
-
   const handleMouseMove = () => {
     setShowControls(true)
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current)
     }
-    // Don't hide controls if dropdown is open
-    if (!isDropdownOpen) {
-      controlsTimeoutRef.current = setTimeout(() => {
-        if (isPlaying) setShowControls(false)
-      }, 3000)
-    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (isPlaying) setShowControls(false)
+    }, 3000)
   }
-
-  // Also prevent hiding when dropdown is open
-  const handleMouseLeave = () => {
-    if (isPlaying && !isDropdownOpen) {
-      setShowControls(false)
-    }
-  }
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
-    }
-    document.addEventListener('fullscreenchange', handleFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  }, [])
 
   return (
     <div 
       ref={containerRef}
       className="relative aspect-video bg-black rounded-xl overflow-hidden"
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
     >
       <video
         ref={videoRef}
@@ -166,102 +131,84 @@ function VideoPlayer({
         onLoadedMetadata={handleLoadedMetadata}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
         onClick={handlePlayPause}
       />
 
-      {/* Play button overlay when paused */}
-      <AnimatePresence>
-        {!isPlaying && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
-            onClick={handlePlayPause}
-          >
-            <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
-              <Play className="w-10 h-10 text-primary ml-1" fill="currentColor" />
+      {/* Play button overlay */}
+      {!isPlaying && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
+          onClick={handlePlayPause}
+        >
+          <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+            <Play className="w-10 h-10 text-primary ml-1" fill="currentColor" />
+          </div>
+        </motion.div>
+      )}
+
+      {/* Controls */}
+      {showControls && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button onClick={handlePlayPause} className="text-white hover:text-primary transition-colors">
+                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+              </button>
+              <button 
+                onClick={() => {
+                  if (videoRef.current) {
+                    videoRef.current.muted = !isMuted
+                    setIsMuted(!isMuted)
+                  }
+                }}
+                className="text-white hover:text-primary transition-colors"
+              >
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+              <span className="text-white text-sm font-mono">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Minimal controls overlay - no progress bar, no seeking */}
-      <AnimatePresence>
-        {showControls && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {/* Play/Pause */}
-                <button 
-                  onClick={handlePlayPause}
-                  className="text-white hover:text-primary transition-colors"
-                >
-                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                </button>
-
-                {/* Volume */}
-                <button 
-                  onClick={handleVolumeToggle}
-                  className="text-white hover:text-primary transition-colors"
-                >
-                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                </button>
-
-                {/* Time display only */}
-                <span className="text-white text-sm font-mono">
-                  {formatTime(currentTime)} / {formatTime(duration)}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-4">
-                {/* Playback speed - max 1.5x */}
-                <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <button className="text-white hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded bg-white/10">
-                      {playbackRate}x
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" sideOffset={8}>
-                    {[0.5, 0.75, 1, 1.25, 1.5].map((rate) => (
-                      <DropdownMenuItem 
-                        key={rate}
-                        onClick={() => handlePlaybackRateChange(rate)}
-                        className={playbackRate === rate ? 'bg-primary/10' : ''}
-                      >
-                        {rate}x {rate === 1.5 && '(max)'}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Fullscreen */}
-                <button 
-                  onClick={handleFullscreen}
-                  className="text-white hover:text-primary transition-colors"
-                >
-                  <Maximize className="w-5 h-5" />
-                </button>
-              </div>
+            <div className="flex items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="text-white hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded bg-white/10">
+                    {playbackRate}x
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {[0.5, 0.75, 1, 1.25, 1.5].map((rate) => (
+                    <DropdownMenuItem 
+                      key={rate}
+                      onClick={() => {
+                        if (videoRef.current) {
+                          videoRef.current.playbackRate = rate
+                          setPlaybackRate(rate)
+                        }
+                      }}
+                    >
+                      {rate}x
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
     </div>
   )
 }
 
 function LessonContent() {
   const params = useParams()
-  const router = useRouter()
   const queryClient = useQueryClient()
-  const t = useTranslations('lessonDetail')
   const lessonId = params.lessonId as string
 
   const [canComplete, setCanComplete] = useState(false)
@@ -276,7 +223,7 @@ function LessonContent() {
     },
   })
 
-  // Fetch completed lessons to check if this one is done
+  // Fetch completed lessons
   const { data: completedLessons } = useQuery<string[]>({
     queryKey: ['completed-lessons'],
     queryFn: async () => {
@@ -287,7 +234,7 @@ function LessonContent() {
 
   const isCompleted = completedLessons?.includes(lessonId) ?? false
 
-  // Fetch course with all lessons for navigation
+  // Fetch course for navigation
   const { data: courseData } = useQuery<CourseLessons | null>({
     queryKey: ['course-lessons', lesson?.courseId],
     queryFn: async () => {
@@ -304,7 +251,7 @@ function LessonContent() {
     enabled: !!lesson?.courseId,
   })
 
-  // Find prev/next lessons
+  // Navigation
   const lessons = courseData?.lessons ?? []
   const currentIndex = lessons.findIndex(l => l.id === lessonId)
   const prevLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null
@@ -320,15 +267,13 @@ function LessonContent() {
       })
       return response.data
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mastery'] })
       queryClient.invalidateQueries({ queryKey: ['completed-lessons'] })
-      toast.success(t('lessonCompleted'), {
-        description: nextLesson ? t('continueToNext') : t('greatJobFinishing'),
-      })
+      toast.success('Lesson completed!')
     },
     onError: () => {
-      toast.error(t('failedToComplete'))
+      toast.error('Failed to mark as complete')
     },
   })
 
@@ -340,128 +285,106 @@ function LessonContent() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-12 w-96" />
-        <Skeleton className="aspect-video w-full rounded-xl" />
-      </div>
+      <PageShell maxWidth="2xl">
+        <LoadingState message="Loading lesson..." />
+      </PageShell>
     )
   }
 
   if (error || !lesson) {
-    return <ErrorState error="Failed to load lesson" />
+    return (
+      <PageShell maxWidth="2xl">
+        <EmptyState 
+          icon={BookOpen}
+          title="Lesson not found"
+          description="The lesson you're looking for doesn't exist or has been removed."
+          action={{
+            label: 'Back to Lessons',
+            onClick: () => window.location.href = '/lessons'
+          }}
+        />
+      </PageShell>
+    )
   }
 
+  const progressText = courseData && currentIndex >= 0 
+    ? `Lesson ${currentIndex + 1} of ${courseData.lessons.length}`
+    : ''
+
   return (
-    <div className="space-y-6">
-      {/* Back & Course Navigation */}
+    <PageShell maxWidth="2xl">
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="flex items-center gap-4"
+        className="space-y-8"
       >
-        <Link href="/lessons">
-          <Button variant="ghost" size="sm" className="gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            {t('allLessons')}
-          </Button>
-        </Link>
-        {courseData && (
-          <>
-            <span className="text-muted-foreground">/</span>
-            <Badge variant="secondary">{courseData.title}</Badge>
-            <span className="text-muted-foreground text-sm">
-              {t('lessonOf', { current: currentIndex + 1, total: courseData.lessons.length })}
-            </span>
-          </>
-        )}
-      </motion.div>
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link href="/lessons">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              All Lessons
+            </Button>
+          </Link>
+          {courseData && (
+            <>
+              <Text variant="muted">/</Text>
+              <Badge variant="secondary">{courseData.title}</Badge>
+              {progressText && (
+                <Text size="sm" variant="muted">{progressText}</Text>
+              )}
+            </>
+          )}
+        </div>
 
-      {/* Lesson Title */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.05 }}
-        className="flex items-center gap-3"
-      >
-        <h1 className="text-3xl font-bold tracking-tight">{lesson.title}</h1>
-        {isCompleted && (
-          <Badge variant="default" className="bg-green-500 gap-1">
-            <CheckCircle2 className="w-3 h-3" />
-            {t('completed')}
-          </Badge>
-        )}
-      </motion.div>
+        {/* Title */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <Heading level={1} className="mb-2">{lesson.title}</Heading>
+            {lesson.description && (
+              <Text variant="muted" className="text-lg">{lesson.description}</Text>
+            )}
+          </div>
+          {isCompleted && (
+            <Badge variant="default" className="bg-green-600 gap-1 shrink-0">
+              <CheckCircle2 className="w-3 h-3" />
+              Completed
+            </Badge>
+          )}
+        </div>
 
-      {/* Video Player */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-      >
-        {lesson.videoUrl ? (
+        {/* Video */}
+        {lesson.videoUrl && (
           <VideoPlayer 
             src={lesson.videoUrl} 
             onComplete={handleVideoComplete}
           />
-        ) : (
-          <Card>
-            <CardContent className="p-0">
-              <div className="aspect-video bg-muted rounded-xl flex items-center justify-center">
-                <div className="text-center">
-                  <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No video available for this lesson</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         )}
-      </motion.div>
 
-      {/* Lesson Description */}
-      {lesson.description && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.12 }}
-        >
-          <p className="text-muted-foreground text-lg">{lesson.description}</p>
-        </motion.div>
-      )}
-
-      {/* Lesson Content (Markdown) */}
-      {lesson.content && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.13 }}
-        >
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="h-5 w-5" />
+        {/* Content */}
+        {lesson.content && (
+          <SurfaceCard>
+            <Stack gap="md">
+              <LabelText className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
                 Lesson Content
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="prose prose-sm dark:prose-invert max-w-none">
+              </LabelText>
+              <div className="prose prose-lg dark:prose-invert max-w-none">
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
                   components={{
                     code: ({ className, children, ...props }) => {
                       const match = /language-(\w+)/.exec(className || '')
-                      const isInline = !match
-                      return isInline ? (
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props}>
-                          {children}
-                        </code>
-                      ) : (
+                      return match ? (
                         <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
                           <code className={`language-${match[1]}`} {...props}>
                             {children}
                           </code>
                         </pre>
+                      ) : (
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props}>
+                          {children}
+                        </code>
                       )
                     },
                     a: ({ href, children }) => (
@@ -474,26 +397,18 @@ function LessonContent() {
                   {lesson.content}
                 </ReactMarkdown>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+            </Stack>
+          </SurfaceCard>
+        )}
 
-      {/* Resources & Attachments */}
-      {((lesson.resources && lesson.resources.length > 0) || (lesson.attachments && lesson.attachments.length > 0)) && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.14 }}
-        >
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <LinkIcon className="h-5 w-5" />
-                {t('additionalResources')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Resources */}
+        {((lesson.resources && lesson.resources.length > 0) || (lesson.attachments && lesson.attachments.length > 0)) && (
+          <SurfaceCard>
+            <Stack gap="md">
+              <LabelText className="flex items-center gap-2">
+                <LinkIcon className="h-4 w-4" />
+                Additional Resources
+              </LabelText>
               <div className="space-y-2">
                 {lesson.resources?.map((resource, i) => (
                   <a
@@ -501,10 +416,10 @@ function LessonContent() {
                     href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group"
                   >
-                    <Badge variant="outline" className="shrink-0">{resource.type}</Badge>
-                    <span className="flex-1 font-medium group-hover:text-primary transition-colors">
+                    <Badge variant="outline">{resource.type}</Badge>
+                    <span className="flex-1 font-medium group-hover:text-primary">
                       {resource.title || resource.name || resource.url}
                     </span>
                     <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
@@ -516,98 +431,99 @@ function LessonContent() {
                     href={attachment.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group"
                   >
-                    <Badge variant="secondary" className="shrink-0">{attachment.type}</Badge>
-                    <span className="flex-1 font-medium group-hover:text-primary transition-colors">
+                    <Badge variant="secondary">{attachment.type}</Badge>
+                    <span className="flex-1 font-medium group-hover:text-primary">
                       {attachment.name || attachment.title || 'Attachment'}
                     </span>
                     <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
                   </a>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+            </Stack>
+          </SurfaceCard>
+        )}
 
-      {/* Concepts Covered */}
-      {lesson.concepts && lesson.concepts.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-        >
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{t('conceptsCovered')}</CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Key Concepts */}
+        {lesson.concepts && lesson.concepts.length > 0 && (
+          <SurfaceCard variant="muted">
+            <Stack gap="md">
+              <LabelText>Key Concepts</LabelText>
               <div className="flex flex-wrap gap-2">
                 {lesson.concepts.map((concept) => (
-                  <Badge key={concept.id} variant="secondary" className="capitalize">
+                  <Badge key={concept.id} variant="secondary" className="text-sm px-3 py-1.5">
                     {concept.name}
                   </Badge>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+            </Stack>
+          </SurfaceCard>
+        )}
 
-      {/* Navigation & Complete */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-        className="flex items-center justify-between pt-4 border-t"
-      >
-        {/* Previous */}
-        <div>
+        {/* What's Next */}
+        {(canComplete || !lesson.videoUrl) && !isCompleted && (
+          <InfoPanel icon={Sparkles} title="Ready to Practice?" variant="info">
+            <Text size="sm">
+              Complete this lesson and start practicing to reinforce what you've learned.
+            </Text>
+          </InfoPanel>
+        )}
+
+        {/* Navigation & Complete */}
+        <div className="flex items-center justify-between pt-6 border-t">
           {prevLesson ? (
             <Link href={`/lesson/${prevLesson.id}`}>
               <Button variant="outline" className="gap-2">
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-4 w-4" />
                 <span className="hidden sm:inline">{prevLesson.title}</span>
-                <span className="sm:hidden">{t('previous')}</span>
+                <span className="sm:hidden">Previous</span>
               </Button>
             </Link>
           ) : (
             <div />
           )}
-        </div>
 
-        {/* Complete & Next */}
-        <div className="flex items-center gap-3">
-          {isCompleted ? (
-            <Badge variant="outline" className="gap-1 text-green-600 border-green-300">
-              <CheckCircle2 className="w-3 h-3" />
-              {t('alreadyCompleted')}
-            </Badge>
-          ) : (canComplete || !lesson.videoUrl) && (
-            <Button
-              onClick={() => completeLessonMutation.mutate()}
-              disabled={completeLessonMutation.isPending}
-              variant="default"
-              className="gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              {completeLessonMutation.isPending ? t('saving') : t('complete')}
-            </Button>
-          )}
-          
-          {nextLesson && (
-            <Link href={`/lesson/${nextLesson.id}`}>
-              <Button variant={canComplete ? "outline" : "secondary"} className="gap-2">
-                <span className="hidden sm:inline">{nextLesson.title}</span>
-                <span className="sm:hidden">{t('next')}</span>
-                <ChevronRight className="w-4 h-4" />
+          <div className="flex items-center gap-3">
+            {isCompleted ? (
+              <Badge variant="outline" className="gap-1 text-green-600 border-green-300">
+                <CheckCircle2 className="w-3 h-3" />
+                Completed
+              </Badge>
+            ) : (canComplete || !lesson.videoUrl) && (
+              <Button
+                onClick={() => completeLessonMutation.mutate()}
+                disabled={completeLessonMutation.isPending}
+                size="lg"
+                className="gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                {completeLessonMutation.isPending ? 'Saving...' : 'Complete Lesson'}
               </Button>
-            </Link>
-          )}
+            )}
+            
+            {nextLesson && (
+              <Link href={`/lesson/${nextLesson.id}`}>
+                <Button variant={canComplete ? "default" : "outline"} size="lg" className="gap-2">
+                  <span className="hidden sm:inline">{nextLesson.title}</span>
+                  <span className="sm:hidden">Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            )}
+
+            {!nextLesson && isCompleted && (
+              <Link href="/practice">
+                <Button size="lg" className="gap-2">
+                  Start Practice
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </motion.div>
-    </div>
+    </PageShell>
   )
 }
 
@@ -618,17 +534,11 @@ export default function LessonPage() {
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
-          <main className="flex-1 p-6 lg:p-8 lg:ml-64">
-            <div className="container max-w-4xl mx-auto">
-              <LessonContent />
-            </div>
+          <main className="flex-1 lg:ml-64">
+            <LessonContent />
           </main>
         </div>
-        <Footer />
-        {/* AI Assistant for lesson Q&A */}
-        <AIAssistant context="Learning Python programming with video lessons" />
       </div>
     </AuthGuard>
   )
 }
-

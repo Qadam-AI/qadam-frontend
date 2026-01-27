@@ -2,24 +2,29 @@
 
 import { useAuth } from '@/hooks/useAuth'
 import { useMastery } from '@/hooks/useMastery'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Navbar } from '../_components/navbar'
 import { Sidebar } from '../_components/sidebar'
-import { Footer } from '../_components/footer'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
   User, Mail, Calendar, BookOpen, Code, Trophy, Target, 
-  CheckCircle2, Flame, GraduationCap, TrendingUp 
+  CheckCircle2, Flame, TrendingUp, Upload, Camera
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { AuthGuard } from '../_components/auth-guard'
-import { useTranslations } from '@/lib/i18n'
+import { toast } from 'sonner'
+import Link from 'next/link'
+import { useRef } from 'react'
+
+// Design System
+import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
+import { MetricCard, SurfaceCard } from '@/design-system/surfaces'
+import { LoadingState } from '@/design-system/feedback'
+import { Heading, Text, LabelText } from '@/design-system/typography'
 
 interface ProfileStats {
   totalLessons: number
@@ -33,14 +38,51 @@ interface ProfileStats {
 
 function ProfileContent() {
   const { user } = useAuth()
-  const t = useTranslations('profile')
+  const queryClient = useQueryClient()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { data: masteryData, isLoading: masteryLoading } = useMastery(user?.id)
 
-  // Fetch profile stats
+  const uploadAvatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await api.post('/instructor/upload-avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      return res.data
+    },
+    onSuccess: (data) => {
+      toast.success('Avatar uploaded successfully!')
+      queryClient.invalidateQueries({ queryKey: ['current-user'] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to upload avatar')
+    }
+  })
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload a JPEG, PNG, WebP, or GIF image.')
+      return
+    }
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File size must be less than 2MB')
+      return
+    }
+
+    uploadAvatarMutation.mutate(file)
+  }
+
   const { data: stats, isLoading: statsLoading } = useQuery<ProfileStats>({
     queryKey: ['profile-stats', user?.id],
     queryFn: async () => {
-      // Fetch all necessary data
       const [coursesRes, completedRes, attemptsRes] = await Promise.all([
         api.get('/courses'),
         api.get('/lessons/progress'),
@@ -78,249 +120,206 @@ function ProfileContent() {
     enabled: !!user && !masteryLoading,
   })
 
-  const isLoading = masteryLoading || statsLoading
-
-  if (isLoading) {
+  if (masteryLoading || statsLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Skeleton className="h-40" />
-          <Skeleton className="h-40" />
-          <Skeleton className="h-40" />
-        </div>
-      </div>
+      <PageShell maxWidth="2xl">
+        <LoadingState message="Loading your profile..." />
+      </PageShell>
     )
   }
 
-  const initials = user?.name
-    ?.split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || 'U'
-
-  const passRate = stats && stats.totalAttempts > 0 
-    ? Math.round((stats.passedAttempts / stats.totalAttempts) * 100)
-    : 0
-
-  const lessonProgress = stats && stats.totalLessons > 0
-    ? Math.round((stats.completedLessons / stats.totalLessons) * 100)
-    : 0
+  const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'
+  const successRate = stats?.totalAttempts ? Math.round((stats.passedAttempts / stats.totalAttempts) * 100) : 0
 
   return (
-    <div className="space-y-8">
-      {/* Page Header - Clean style */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <h1 className="text-4xl font-bold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
-      </motion.div>
-
-      {/* Profile Card */}
+    <PageShell maxWidth="2xl">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.05 }}
+        className="space-y-8"
       >
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <Avatar className="h-24 w-24 text-2xl">
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+        {/* Profile Header */}
+        <SurfaceCard variant="elevated">
+          <div className="flex items-start gap-6">
+            <div className="relative group">
+              <Avatar className="h-20 w-20 text-2xl">
+                {user?.avatarUrl && (
+                  <AvatarImage src={user.avatarUrl} alt={user.name || 'User'} />
+                )}
+                <AvatarFallback className="bg-primary/20 text-primary font-semibold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="text-center sm:text-left flex-1">
-                <h2 className="text-2xl font-bold">{user?.name}</h2>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 text-muted-foreground">
-                  <span className="flex items-center gap-1 justify-center sm:justify-start">
-                    <Mail className="h-4 w-4" />
-                    {user?.email}
-                  </span>
-                  {user?.role && (
-                    <Badge variant="secondary" className="w-fit mx-auto sm:mx-0">
-                      {user.role}
-                    </Badge>
-                  )}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadAvatarMutation.isPending}
+                className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer disabled:cursor-not-allowed"
+                title="Change avatar"
+              >
+                <Camera className="h-6 w-6 text-white" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            </div>
+            <div className="flex-1">
+              <Heading level={2} className="mb-2">{user?.name || 'Student'}</Heading>
+              <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  {user?.email || 'No email set'}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Member since {new Date(user?.created_at || Date.now()).toLocaleDateString()}
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            <Link href="/settings">
+              <Button variant="outline" size="sm" className="gap-2">
+                <User className="h-4 w-4" />
+                Edit Profile
+              </Button>
+            </Link>
+          </div>
+        </SurfaceCard>
 
-      {/* Stats Grid */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">{t('statistics')}</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.05 }}
-          >
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <BookOpen className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                <p className="text-3xl font-bold">{stats?.completedLessons ?? 0}</p>
-                <p className="text-sm text-muted-foreground">{t('lessonsCompleted')}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
+        {/* Stats Overview */}
+        <Section title="Learning Stats">
+          <Grid cols={4} gap="md">
+            <MetricCard
+              label="Lessons Completed"
+              value={stats?.completedLessons || 0}
+              icon={CheckCircle2}
+              variant="success"
+              trend={stats?.totalLessons ? { value: `of ${stats.totalLessons}`, positive: true } : undefined}
+            />
+            <MetricCard
+              label="Practice Attempts"
+              value={stats?.totalAttempts || 0}
+              icon={Code}
+              variant="default"
+            />
+            <MetricCard
+              label="Success Rate"
+              value={`${successRate}%`}
+              icon={Target}
+              variant={successRate >= 70 ? 'success' : 'warning'}
+            />
+            <MetricCard
+              label="Concepts Mastered"
+              value={stats?.conceptsMastered || 0}
+              icon={Trophy}
+              variant="info"
+              trend={stats?.totalConcepts ? { value: `of ${stats.totalConcepts}`, positive: true } : undefined}
+            />
+          </Grid>
+        </Section>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <Code className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <p className="text-3xl font-bold">{stats?.totalAttempts ?? 0}</p>
-                <p className="text-sm text-muted-foreground">{t('practiceAttempts')}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.15 }}
-          >
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-                <p className="text-3xl font-bold">{stats?.conceptsMastered ?? 0}</p>
-                <p className="text-sm text-muted-foreground">{t('conceptsMastered')}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <Target className="h-8 w-8 mx-auto mb-2 text-purple-500" />
-                <p className="text-3xl font-bold">{passRate}%</p>
-                <p className="text-sm text-muted-foreground">{t('passRate')}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Progress Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.25 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-primary" />
-                {t('lessonProgress')}
-              </CardTitle>
-              <CardDescription>
-                {t('lessonProgressDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span>{t('lessonsCompleted')}</span>
-                <span className="font-medium">
-                  {stats?.completedLessons ?? 0} / {stats?.totalLessons ?? 0}
-                </span>
-              </div>
-              <Progress value={lessonProgress} className="h-3" />
-              <p className="text-sm text-muted-foreground">
-                {lessonProgress}%
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                {t('avgMastery')}
-              </CardTitle>
-              <CardDescription>
-                {t('avgMasteryDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span>{t('avgMastery')}</span>
-                <span className="font-medium">
-                  {stats?.avgMastery ?? 0}%
-                </span>
-              </div>
-              <Progress value={stats?.avgMastery ?? 0} className="h-3" />
-              <p className="text-sm text-muted-foreground">
-                {stats?.conceptsMastered ?? 0} / {stats?.totalConcepts ?? 0} at 80%+
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Mastery Breakdown */}
-      {masteryData && masteryData.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.35 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('masteryBreakdown')}</CardTitle>
-              <CardDescription>
-                {t('masteryBreakdownDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {masteryData
-                  .sort((a, b) => b.mastery - a.mastery)
-                  .map((item) => (
-                    <div key={item.conceptId} className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="font-medium capitalize">{item.conceptName}</span>
-                        <div className="flex items-center gap-2">
-                          {item.mastery >= 80 && (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          )}
-                          <span className={item.mastery >= 80 ? 'text-green-600 font-medium' : ''}>
-                            {Math.round(item.mastery)}%
-                          </span>
+        {/* Understanding Breakdown */}
+        <Section title="Understanding Breakdown" description="Your mastery across concepts">
+          {masteryData && masteryData.length > 0 ? (
+            <Grid cols={1} gap="sm">
+              {masteryData.slice(0, 10).map((item, index) => (
+                <motion.div
+                  key={item.conceptId}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                >
+                  <SurfaceCard>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <Text className="font-medium">{item.conceptName}</Text>
+                          <div className="flex items-center gap-2">
+                            <Text size="sm" className="font-semibold text-primary">
+                              {Math.round(item.mastery)}%
+                            </Text>
+                            {item.mastery >= 80 ? (
+                              <Badge variant="default" className="bg-green-600">Strong</Badge>
+                            ) : item.mastery >= 50 ? (
+                              <Badge variant="default" className="bg-yellow-600">Developing</Badge>
+                            ) : (
+                              <Badge variant="secondary">Needs Practice</Badge>
+                            )}
+                          </div>
                         </div>
+                        <Progress value={item.mastery} className="h-2" />
                       </div>
-                      <Progress 
-                        value={item.mastery} 
-                        className={`h-2 ${item.mastery >= 80 ? '[&>div]:bg-green-500' : ''}`}
-                      />
                     </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-    </div>
+                  </SurfaceCard>
+                </motion.div>
+              ))}
+              {masteryData.length > 10 && (
+                <div className="flex justify-center pt-4">
+                  <Link href="/analytics">
+                    <Button variant="outline">View All Concepts</Button>
+                  </Link>
+                </div>
+              )}
+            </Grid>
+          ) : (
+            <SurfaceCard variant="muted" className="text-center py-12">
+              <Text variant="muted">
+                No understanding data yet. Start practicing to build your profile!
+              </Text>
+              <Link href="/practice">
+                <Button className="mt-4">Start Practice</Button>
+              </Link>
+            </SurfaceCard>
+          )}
+        </Section>
+
+        {/* Quick Actions */}
+        <Section title="Quick Actions">
+          <Grid cols={3} gap="md">
+            <Link href="/practice">
+              <SurfaceCard className="cursor-pointer hover:shadow-md transition-all group">
+                <Stack gap="sm">
+                  <div className="p-3 rounded-lg bg-primary/10 w-fit">
+                    <Target className="h-6 w-6 text-primary" />
+                  </div>
+                  <Text className="font-semibold group-hover:text-primary transition-colors">
+                    Practice What Needs Attention
+                  </Text>
+                </Stack>
+              </SurfaceCard>
+            </Link>
+
+            <Link href="/attempts">
+              <SurfaceCard className="cursor-pointer hover:shadow-md transition-all group">
+                <Stack gap="sm">
+                  <div className="p-3 rounded-lg bg-primary/10 w-fit">
+                    <TrendingUp className="h-6 w-6 text-primary" />
+                  </div>
+                  <Text className="font-semibold group-hover:text-primary transition-colors">
+                    View Practice History
+                  </Text>
+                </Stack>
+              </SurfaceCard>
+            </Link>
+
+            <Link href="/analytics">
+              <SurfaceCard className="cursor-pointer hover:shadow-md transition-all group">
+                <Stack gap="sm">
+                  <div className="p-3 rounded-lg bg-primary/10 w-fit">
+                    <TrendingUp className="h-6 w-6 text-primary" />
+                  </div>
+                  <Text className="font-semibold group-hover:text-primary transition-colors">
+                    View Full Progress
+                  </Text>
+                </Stack>
+              </SurfaceCard>
+            </Link>
+          </Grid>
+        </Section>
+      </motion.div>
+    </PageShell>
   )
 }
 
@@ -331,13 +330,10 @@ export default function ProfilePage() {
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
-          <main className="flex-1 p-6 lg:p-8 lg:ml-64">
-            <div className="container max-w-4xl mx-auto">
-              <ProfileContent />
-            </div>
+          <main className="flex-1 lg:ml-64">
+            <ProfileContent />
           </main>
         </div>
-        <Footer />
       </div>
     </AuthGuard>
   )
