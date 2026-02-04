@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import '@fontsource/inter/400.css'
+import '@fontsource/inter/600.css'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import { QueryProvider } from './_components/query-provider'
 import { I18nProvider } from '@/lib/i18n'
 import { Toaster } from 'sonner'
-
-const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
   title: 'Edusistent - Personalized Learning',
@@ -20,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.variable}>
+      <body className="font-sans">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

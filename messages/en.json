@@ -40,6 +40,107 @@
     "signUp": "Sign Up",
     "tagline": "Track what students actually understand, not just completion."
   },
+  "pilotNav": {
+    "panelTitle": "Instructor",
+    "modesLabel": "Mode",
+    "selectCourseHint": "Select a course to open concepts",
+    "modes": {
+      "prepare": "Prepare course",
+      "teach": "Teach & assess",
+      "review": "Review class"
+    },
+    "modeDescriptions": {
+      "prepare": "Upload materials, extract concepts, and prepare your question bank.",
+      "teach": "Create practice sets, publish runs to students, and grade submissions.",
+      "review": "See what students understand and where they need help."
+    },
+    "items": {
+      "courses": "Courses",
+      "contentWorkspace": "Content workspace",
+      "concepts": "Concepts",
+      "conceptMap": "Concept map",
+      "questionBank": "Question bank",
+      "practiceSets": "Practice sets",
+      "gradebook": "Gradebook",
+      "practiceLinks": "Practice links",
+      "students": "Students",
+      "understanding": "Understanding",
+      "questionAnalytics": "Question analytics"
+    },
+    "actions": {
+      "uploadMaterials": "Upload materials",
+      "createPracticeSet": "Create practice set",
+      "viewUnderstanding": "View understanding",
+      "extractKeyConcepts": "Extract key concepts",
+      "extractKeyConceptsHint": "Turn materials into an editable concept list",
+      "openQuestionBank": "Open question bank",
+      "openQuestionBankHint": "Review, edit, and manage questions",
+      "openGradebook": "Open gradebook",
+      "openGradebookHint": "Grade submissions and track results"
+    },
+    "details": {
+      "show": "Show details",
+      "hide": "Hide details"
+    }
+  },
+  "pilotContent": {
+    "title": "Content workspace",
+    "description": "Extract key concepts from your materials. Review and refine them before generating practice questions.",
+    "steps": {
+      "input": { "label": "Add material", "description": "Paste or upload content" },
+      "review": { "label": "Review concepts", "description": "Edit AI suggestions" },
+      "done": { "label": "Complete", "description": "Concepts saved" }
+    },
+    "course": {
+      "label": "Target course",
+      "placeholder": "Select a course",
+      "loading": "Loading courses...",
+      "helper": "Choose which course these concepts belong to",
+      "create": "Create course"
+    },
+    "input": {
+      "title": "Add lesson material",
+      "subtitle": "Paste text, upload a file, or link to a resource. We'll identify key concepts for you.",
+      "lessonTitleLabel": "Lesson title (optional)",
+      "lessonTitlePlaceholder": "e.g., Introduction to React Hooks",
+      "textPlaceholder": "Paste your lesson content, notes, or transcript here...",
+      "textHint": "Plain text, Markdown supported",
+      "dragDropFile": "Drag and drop your file",
+      "dropFile": "Drop file here",
+      "chooseFile": "Choose file"
+    },
+    "actions": {
+      "extractKeyConcepts": "Extract key concepts",
+      "analyzing": "Extracting..."
+    },
+    "gated": {
+      "title": "Feature not enabled",
+      "uploadsDescription": "File uploads are disabled in this environment.",
+      "urlDescription": "URL imports are disabled in this environment.",
+      "contactAdmin": "Ask admin to enable"
+    }
+  },
+  "pilotQuestionBank": {
+    "title": "Question bank",
+    "description": "Browse, edit, and manage your auto-generated practice questions",
+    "showStats": "Show stats",
+    "hideStats": "Hide stats",
+    "activeUsedInPracticeSets": "Active (used in practice sets)"
+  },
+  "pilotUnderstanding": {
+    "title": "Understanding",
+    "description": "See where the class is confident vs. struggling, by concept",
+    "confidentConcepts": "Confident concepts"
+  },
+  "pilotPracticeLinks": {
+    "title": "Practice links",
+    "description": "Create shareable links for students to practice. No registration required.",
+    "createLink": "Create link",
+    "telegramTopicLine": "\nTopic: {topic}",
+    "telegramTimePart": " • {minutes} min",
+    "telegramMessage": "📚 Practice set\n\n{title}{topicLine}\n\n🔗 Open: {url}\n\n{questions} questions{timePart}\nNo registration needed — just enter your name.",
+    "telegramCopiedToast": "Message copied for Telegram"
+  },
   "landing": {
     "hero": {
       "badge": "Early Access — Instructor Tools",

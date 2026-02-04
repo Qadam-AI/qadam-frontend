@@ -28,6 +28,7 @@ import {
   Minus
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useTranslations } from '@/lib/i18n'
 
 // Design System
 import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
@@ -64,6 +65,7 @@ interface ConceptAnalytics {
 }
 
 export default function MasteryOverviewPage() {
+  const tPilot = useTranslations('pilotUnderstanding')
   const [activeTab, setActiveTab] = useState('concepts')
   const [selectedCourse, setSelectedCourse] = useState<string>('all')
   const [selectedStudent, setSelectedStudent] = useState<string>('')
@@ -130,15 +132,15 @@ export default function MasteryOverviewPage() {
   return (
     <PageShell maxWidth="full">
       <PageHeader
-        title="Understanding Overview"
-        description="Visualize student performance across concepts and identify areas that need attention"
+        title={tPilot('title')}
+        description={tPilot('description')}
       />
 
       {/* KPI Metrics */}
       <Section>
         <Grid cols={4} gap="md">
           <MetricCard
-            label="Concepts Mastered"
+            label={tPilot('confidentConcepts')}
             value={stats.confident}
             icon={CheckCircle2}
             variant="success"

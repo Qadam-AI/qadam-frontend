@@ -30,7 +30,7 @@ interface Concept {
   name: string
 }
 
-export default function NewTemplatePage() {
+export default function NewPracticeSetPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const courseId = searchParams.get('course_id')
@@ -158,11 +158,11 @@ export default function NewTemplatePage() {
       return res.data
     },
     onSuccess: () => {
-      toast.success('Template created successfully')
-      router.push('/instructor/assessments-hub')
+      toast.success('Practice set created successfully')
+      router.push('/instructor/assessments-hub?tab=templates')
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Failed to create template')
+      toast.error(error.response?.data?.detail || 'Failed to create practice set')
     }
   })
 
@@ -186,15 +186,15 @@ export default function NewTemplatePage() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <Link href="/instructor/assessments-hub">
+          <Link href="/instructor/assessments-hub?tab=templates">
             <Button variant="ghost" size="sm" className="gap-2 mb-4">
               <ArrowLeft className="h-4 w-4" />
-              Back to Assessments
+              Back to Practice sets
             </Button>
           </Link>
-          <Heading level={1}>Create Assessment Template</Heading>
+          <Heading level={1}>Create practice set</Heading>
           <Text variant="muted" className="mt-2">
-            Define the blueprint for your assessment. You'll create a run from this template to publish it to students.
+            Set up a practice set. When you’re ready, publish it to students to start collecting grades.
           </Text>
         </div>
 
@@ -234,14 +234,14 @@ export default function NewTemplatePage() {
                   <Textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Optional description of what this assessment covers"
+                    placeholder="Optional description of what this practice set covers"
                     rows={3}
                   />
                 </div>
 
                 <Grid cols={2} gap="md">
                   <div>
-                    <LabelText required>Assessment Type</LabelText>
+                    <LabelText required>Practice set type</LabelText>
                     <Select value={type} onValueChange={setType}>
                       <SelectTrigger>
                         <SelectValue />
@@ -558,7 +558,7 @@ export default function NewTemplatePage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="immediate">Immediately after submission</SelectItem>
-                        <SelectItem value="after_close">After assessment closes</SelectItem>
+                        <SelectItem value="after_close">After practice set closes</SelectItem>
                         <SelectItem value="manual_release">Manual release only</SelectItem>
                       </SelectContent>
                     </Select>
@@ -616,7 +616,7 @@ export default function NewTemplatePage() {
               className="gap-2"
             >
               <Save className="h-4 w-4" />
-              {createMutation.isPending ? 'Creating...' : 'Create Template'}
+              {createMutation.isPending ? 'Creating...' : 'Create practice set'}
             </Button>
           </div>
         </form>

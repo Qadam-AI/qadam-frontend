@@ -125,7 +125,7 @@ export default function RunDetailPage() {
       await api.post(`/instructor/assessments/runs/${runId}/publish`)
     },
     onSuccess: () => {
-      toast.success('Assessment published')
+      toast.success('Session published')
       queryClient.invalidateQueries({ queryKey: ['assessment-run', runId] })
     }
   })
@@ -136,7 +136,7 @@ export default function RunDetailPage() {
       await api.post(`/instructor/assessments/runs/${runId}/close`)
     },
     onSuccess: () => {
-      toast.success('Assessment closed')
+      toast.success('Session closed')
       queryClient.invalidateQueries({ queryKey: ['assessment-run', runId] })
     }
   })
@@ -182,7 +182,7 @@ export default function RunDetailPage() {
   if (isLoading) {
     return (
       <PageShell maxWidth="2xl">
-        <LoadingState message="Loading assessment..." />
+        <LoadingState message="Loading session..." />
       </PageShell>
     )
   }
@@ -190,7 +190,7 @@ export default function RunDetailPage() {
   if (!run) {
     return (
       <PageShell maxWidth="lg">
-        <EmptyState icon={FileText} title="Assessment not found" />
+        <EmptyState icon={FileText} title="Session not found" />
       </PageShell>
     )
   }
@@ -218,7 +218,7 @@ export default function RunDetailPage() {
   const copyTelegramMessage = () => {
     if (run.public_code) {
       const link = `${window.location.origin}/exam/${run.public_code}`
-      const message = `📝 New Assessment Available!\n\n${run.title_override || 'Assessment'}\nCode: ${run.public_code}\nLink: ${link}`
+      const message = `📝 New Practice Set Available!\n\n${run.title_override || 'Practice set'}\nCode: ${run.public_code}\nLink: ${link}`
       navigator.clipboard.writeText(message)
       toast.success('Message copied to clipboard')
     }
@@ -241,13 +241,13 @@ export default function RunDetailPage() {
           <Link href="/instructor/assessments-hub?tab=runs">
             <Button variant="ghost" size="sm" className="gap-2 mb-4">
               <ArrowLeft className="h-4 w-4" />
-              Back to Runs
+              Back to Gradebook
             </Button>
           </Link>
           
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <Heading level={1}>{run.title_override || 'Assessment Run'}</Heading>
+              <Heading level={1}>{run.title_override || 'Practice set session'}</Heading>
               <div className="flex items-center gap-2 mt-2">
                 {getStatusBadge(run.status)}
                 {run.access_mode === 'public_link' && run.public_code && (
@@ -308,7 +308,7 @@ export default function RunDetailPage() {
             <Stack gap="md">
               <SurfaceCard>
                 <Stack gap="md">
-                  <Heading level={3}>Assessment Details</Heading>
+                  <Heading level={3}>Session details</Heading>
                   
                   {run.starts_at && (
                     <div className="flex items-center gap-2 text-sm">
@@ -347,7 +347,7 @@ export default function RunDetailPage() {
                       </Button>
                       <Button size="sm" variant="outline" onClick={copyTelegramMessage} className="gap-2">
                         <Send className="h-3.5 w-3.5" />
-                        Copy for Telegram
+                        Copy message for Telegram
                       </Button>
                     </div>
                   </Stack>
@@ -371,7 +371,7 @@ export default function RunDetailPage() {
                 </div>
 
                 {run.access_mode === 'public_link' ? (
-                  <Text variant="muted">This is a public link assessment. Anyone with the link can join.</Text>
+                  <Text variant="muted">This is a public link practice set. Anyone with the link can join.</Text>
                 ) : (
                   <Text variant="muted">{gradebook?.entries.length || 0} students assigned</Text>
                 )}

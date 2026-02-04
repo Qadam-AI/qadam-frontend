@@ -40,6 +40,107 @@
     "signUp": "Ro'yxatdan o'tish",
     "tagline": "Haqiqiy mahorat hosil qilish uchun shaxsiy mashqlar."
   },
+  "pilotNav": {
+    "panelTitle": "O‘qituvchi",
+    "modesLabel": "Rejim",
+    "selectCourseHint": "Konseptlarni ko‘rish uchun kursni tanlang",
+    "modes": {
+      "prepare": "Tayyorlash",
+      "teach": "O‘qitish va baholash",
+      "review": "Tahlil"
+    },
+    "modeDescriptions": {
+      "prepare": "Material yuklang, konseptlarni ajrating va savollar bankini tayyorlang.",
+      "teach": "Mashq to‘plamlarini yarating, e’lon qiling va baholang.",
+      "review": "Talabalar nimani tushunganini ko‘ring va qayerda yordam kerakligini aniqlang."
+    },
+    "items": {
+      "courses": "Kurslar",
+      "contentWorkspace": "Kontent bilan ishlash",
+      "concepts": "Konseptlar",
+      "conceptMap": "Konsept xaritasi",
+      "questionBank": "Savollar banki",
+      "practiceSets": "Mashq to‘plamlari",
+      "gradebook": "Baholar jurnali",
+      "practiceLinks": "Mashq havolalari",
+      "students": "Talabalar",
+      "understanding": "Tushunish",
+      "questionAnalytics": "Savol tahlili"
+    },
+    "actions": {
+      "uploadMaterials": "Material yuklash",
+      "createPracticeSet": "Mashq to‘plami yaratish",
+      "viewUnderstanding": "Tushunishni ko‘rish",
+      "extractKeyConcepts": "Asosiy konseptlarni ajratish",
+      "extractKeyConceptsHint": "Materialdan → konseptlar ro‘yxati",
+      "openQuestionBank": "Savollar banki",
+      "openQuestionBankHint": "Savollarni tahrirlang va boshqaring",
+      "openGradebook": "Jurnal",
+      "openGradebookHint": "Urinishlarni tekshirish va baholash"
+    },
+    "details": {
+      "show": "Tafsilotlar",
+      "hide": "Yopish"
+    }
+  },
+  "pilotContent": {
+    "title": "Kontent bilan ishlash",
+    "description": "Materiallardan asosiy konseptlarni ajrating. Amaliy savollar yaratishdan oldin ularni ko‘rib chiqing va tahrirlang.",
+    "steps": {
+      "input": { "label": "Material qo‘shish", "description": "Matn kiriting yoki fayl yuklang" },
+      "review": { "label": "Konseptlarni ko‘rish", "description": "AI takliflarini tahrirlang" },
+      "done": { "label": "Tayyor", "description": "Konseptlar saqlandi" }
+    },
+    "course": {
+      "label": "Maqsad kurs",
+      "placeholder": "Kursni tanlang",
+      "loading": "Kurslar yuklanmoqda...",
+      "helper": "Bu konseptlar qaysi kursga tegishli ekanini tanlang",
+      "create": "Kurs yaratish"
+    },
+    "input": {
+      "title": "Dars materiali",
+      "subtitle": "Matn kiriting, fayl yuklang yoki havola qo‘ying — biz asosiy konseptlarni ajratamiz.",
+      "lessonTitleLabel": "Dars nomi (ixtiyoriy)",
+      "lessonTitlePlaceholder": "masalan: React Hooksga kirish",
+      "textPlaceholder": "Dars matni, konspekt yoki transkriptni shu yerga joylang...",
+      "textHint": "Oddiy matn va Markdown qo‘llanadi",
+      "dragDropFile": "Faylni sudrab tashlang",
+      "dropFile": "Faylni shu yerga tashlang",
+      "chooseFile": "Fayl tanlash"
+    },
+    "actions": {
+      "extractKeyConcepts": "Asosiy konseptlarni ajratish",
+      "analyzing": "Ajratilmoqda..."
+    },
+    "gated": {
+      "title": "Funksiya yoqilmagan",
+      "uploadsDescription": "Bu muhitda fayl yuklash o‘chirilgan.",
+      "urlDescription": "Bu muhitda havola orqali import o‘chirilgan.",
+      "contactAdmin": "Admin’dan yoqishni so‘rang"
+    }
+  },
+  "pilotQuestionBank": {
+    "title": "Savollar banki",
+    "description": "Avtomatik yaratilgan mashq savollarini ko‘rib chiqing, tahrirlang va boshqaring",
+    "showStats": "Statistikani ko‘rsatish",
+    "hideStats": "Statistikani yashirish",
+    "activeUsedInPracticeSets": "Faol (mashq to‘plamlarida ishlatiladi)"
+  },
+  "pilotUnderstanding": {
+    "title": "Tushunish",
+    "description": "Guruh qaysi mavzularda ishonchli yoki qiynalayotganini ko‘ring",
+    "confidentConcepts": "Ishonchli mavzular"
+  },
+  "pilotPracticeLinks": {
+    "title": "Mashq havolalari",
+    "description": "Talabalar uchun mashq havolalarini yarating. Ro‘yxatdan o‘tish shart emas.",
+    "createLink": "Havola yaratish",
+    "telegramTopicLine": "\nMavzu: {topic}",
+    "telegramTimePart": " • {minutes} daq",
+    "telegramMessage": "📚 Mashq to‘plami\n\n{title}{topicLine}\n\n🔗 Ochish: {url}\n\n{questions} ta savol{timePart}\nRo‘yxatdan o‘tish shart emas — faqat ismingizni kiriting.",
+    "telegramCopiedToast": "Telegram uchun xabar nusxalandi"
+  },
   "landing": {
     "hero": {
       "badge": "Yangi avlod AI ta'lim platformasi",

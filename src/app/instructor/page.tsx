@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { useUIStore } from '@/stores/ui-store'
+import { useTranslations } from '@/lib/i18n'
 import { 
   BookOpen, 
   Users, 
@@ -24,7 +27,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { PilotBanner } from '@/components/feature-gate'
+import { PilotBanner } from '@/components/FeatureGate'
 
 // Design System
 import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
@@ -112,13 +115,27 @@ interface StudentActivity {
 
 export default function InstructorDashboard() {
   const { user } = useAuth()
+  const { instructorMode } = useUIStore()
+  const tNav = useTranslations('pilotNav')
+  const [showDetails, setShowDetails] = useState(false)
+
+  const modeTitle = tNav(`modes.${instructorMode}`)
+  const modeDescription = tNav(`modeDescriptions.${instructorMode}`)
+
+  const primaryAction =
+    instructorMode === 'prepare'
+      ? { href: '/instructor/ai-tools', label: tNav('actions.uploadMaterials') }
+      : instructorMode === 'teach'
+        ? { href: '/instructor/assessments-hub/templates/new', label: tNav('actions.createPracticeSet') }
+        : { href: '/instructor/mastery', label: tNav('actions.viewUnderstanding') }
 
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ['instructor-dashboard'],
     queryFn: async () => {
       const res = await api.get<DashboardStats>('/instructor/dashboard')
       return res.data
-    }
+    },
+    enabled: showDetails,
   })
 
   const { data: courses, isLoading: loadingCourses } = useQuery({
@@ -139,7 +156,8 @@ export default function InstructorDashboard() {
       return data.filter((c: ConceptAnalytics) => c.struggling_percentage > 30)
         .sort((a: ConceptAnalytics, b: ConceptAnalytics) => b.struggling_percentage - a.struggling_percentage)
         .slice(0, 5)
-    }
+    },
+    enabled: showDetails,
   })
 
   // Fetch at-risk students
@@ -150,7 +168,8 @@ export default function InstructorDashboard() {
       const data = res.data || []
       return data.filter((s: StudentActivity) => s.status === 'at-risk' || s.status === 'inactive')
         .slice(0, 5)
-    }
+    },
+    enabled: showDetails,
   })
 
   // Calculate actionable metrics
@@ -162,57 +181,123 @@ export default function InstructorDashboard() {
       <PilotBanner />
 
       <PageHeader
-        title={`Welcome back, ${user?.name?.split(' ')[0] || 'Instructor'}!`}
-        description="Your teaching dashboard - track student progress and identify where to focus your attention"
+        title={modeTitle}
+        description={modeDescription}
         action={
-          <Link href="/instructor/courses/new">
+          <Link href={primaryAction.href}>
             <Button size="lg" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Course
+              <ArrowRight className="h-4 w-4" />
+              {primaryAction.label}
             </Button>
           </Link>
         }
       />
 
-      {/* Actionable Teaching Metrics */}
       <Section>
-        <Grid cols={4} gap="md">
-          <MetricCard
-            label="Needs Attention"
-            value={needsAttention}
-            icon={AlertTriangle}
-            variant={needsAttention > 0 ? "warning" : "success"}
-            trend={
-              needsAttention > 0
-                ? { value: 'Students + concepts', positive: false }
-                : { value: 'All on track', positive: true }
-            }
-          />
-          <MetricCard
-            label="Active Students"
-            value={loadingStats ? '...' : stats?.total_students || 0}
-            icon={Users}
-            variant="info"
-            trend={
-              stats?.recent_enrollments
-                ? { value: `+${stats.recent_enrollments} this week`, positive: true }
-                : undefined
-            }
-          />
-          <MetricCard
-            label="Total Courses"
-            value={loadingStats ? '...' : stats?.total_courses || 0}
-            icon={BookOpen}
-            variant="default"
-          />
-          <MetricCard
-            label="Lessons Created"
-            value={loadingStats ? '...' : stats?.total_lessons || 0}
-            icon={Video}
-            variant="default"
-          />
+        <Grid cols={3} gap="md">
+          <Link href="/instructor/ai-tools">
+            <SurfaceCard className="group cursor-pointer hover:shadow-md transition-all">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10 shrink-0">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Text className="font-semibold mb-1 group-hover:text-primary transition-colors">
+                    {tNav('actions.extractKeyConcepts')}
+                  </Text>
+                  <Text size="sm" variant="muted">
+                    {tNav('actions.extractKeyConceptsHint')}
+                  </Text>
+                </div>
+              </div>
+            </SurfaceCard>
+          </Link>
+
+          <Link href="/instructor/question-bank">
+            <SurfaceCard className="group cursor-pointer hover:shadow-md transition-all">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10 shrink-0">
+                  <BookOpen className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Text className="font-semibold mb-1 group-hover:text-primary transition-colors">
+                    {tNav('actions.openQuestionBank')}
+                  </Text>
+                  <Text size="sm" variant="muted">
+                    {tNav('actions.openQuestionBankHint')}
+                  </Text>
+                </div>
+              </div>
+            </SurfaceCard>
+          </Link>
+
+          <Link href="/instructor/assessments-hub?tab=runs">
+            <SurfaceCard className="group cursor-pointer hover:shadow-md transition-all">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10 shrink-0">
+                  <BarChart3 className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Text className="font-semibold mb-1 group-hover:text-primary transition-colors">
+                    {tNav('actions.openGradebook')}
+                  </Text>
+                  <Text size="sm" variant="muted">
+                    {tNav('actions.openGradebookHint')}
+                  </Text>
+                </div>
+              </div>
+            </SurfaceCard>
+          </Link>
         </Grid>
+
+        <div className="flex justify-end mt-4">
+          <Button variant="outline" size="sm" onClick={() => setShowDetails((v) => !v)}>
+            {showDetails ? tNav('details.hide') : tNav('details.show')}
+          </Button>
+        </div>
       </Section>
+
+      {showDetails && (
+        <>
+          {/* Actionable Teaching Metrics */}
+          <Section>
+            <Grid cols={4} gap="md">
+              <MetricCard
+                label="Needs Attention"
+                value={needsAttention}
+                icon={AlertTriangle}
+                variant={needsAttention > 0 ? "warning" : "success"}
+                trend={
+                  needsAttention > 0
+                    ? { value: 'Students + concepts', positive: false }
+                    : { value: 'All on track', positive: true }
+                }
+              />
+              <MetricCard
+                label="Active Students"
+                value={loadingStats ? '...' : stats?.total_students || 0}
+                icon={Users}
+                variant="info"
+                trend={
+                  stats?.recent_enrollments
+                    ? { value: `+${stats.recent_enrollments} this week`, positive: true }
+                    : undefined
+                }
+              />
+              <MetricCard
+                label="Total Courses"
+                value={loadingStats ? '...' : stats?.total_courses || 0}
+                icon={BookOpen}
+                variant="default"
+              />
+              <MetricCard
+                label="Lessons Created"
+                value={loadingStats ? '...' : stats?.total_lessons || 0}
+                icon={Video}
+                variant="default"
+              />
+            </Grid>
+          </Section>
 
       {/* Critical Alerts - Students & Concepts Needing Attention */}
       {(strugglingConcepts && strugglingConcepts.length > 0) || (atRiskStudents && atRiskStudents.length > 0) ? (
@@ -413,10 +498,10 @@ export default function InstructorDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <Text className="font-semibold mb-1 group-hover:text-primary transition-colors">
-                    Extract Concepts
+                    Extract key concepts
                   </Text>
                   <Text size="sm" variant="muted">
-                    Analyze lesson content with AI
+                    Turn materials into an editable concept list
                   </Text>
                 </div>
               </div>
@@ -431,10 +516,10 @@ export default function InstructorDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <Text className="font-semibold mb-1 group-hover:text-primary transition-colors">
-                    Understanding Overview
+                    Understanding
                   </Text>
                   <Text size="sm" variant="muted">
-                    See student performance visually
+                    See which concepts need attention
                   </Text>
                 </div>
               </div>
@@ -449,10 +534,10 @@ export default function InstructorDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <Text className="font-semibold mb-1 group-hover:text-primary transition-colors">
-                    Create Assessment
+                    Create practice set
                   </Text>
                   <Text size="sm" variant="muted">
-                    Quizzes, exams, and tests
+                    Publish runs and grade submissions
                   </Text>
                 </div>
               </div>
@@ -460,6 +545,8 @@ export default function InstructorDashboard() {
           </Link>
         </Grid>
       </Section>
+        </>
+      )}
     </PageShell>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import api from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -50,9 +50,22 @@ interface AssessmentRun {
 
 export default function AssessmentsHubPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<'templates' | 'runs'>('templates')
   const [showCreateTemplate, setShowCreateTemplate] = useState(false)
+
+  const setTab = (tab: 'templates' | 'runs') => {
+    setActiveTab(tab)
+    router.replace(`/instructor/assessments-hub?tab=${tab}`)
+  }
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab === 'templates' || tab === 'runs') {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
 
   // Fetch templates
   const { data: templates, isLoading: templatesLoading } = useQuery({
@@ -105,34 +118,34 @@ export default function AssessmentsHubPage() {
         className="space-y-8"
       >
         <PageHeader
-          title="Assessments & Exams"
-          description="Create, manage, and grade quizzes, midterms, finals, and custom assessments"
+          title="Practice sets"
+          description="Create practice sets, publish them to students, and grade submissions"
           action={
             <Button onClick={() => setShowCreateTemplate(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              Create Assessment
+              Create practice set
             </Button>
           }
         />
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'templates' | 'runs')}>
+        <Tabs value={activeTab} onValueChange={(v) => setTab(v as 'templates' | 'runs')}>
           <TabsList className="grid w-fit grid-cols-2">
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="runs">Runs</TabsTrigger>
+            <TabsTrigger value="templates">Practice sets</TabsTrigger>
+            <TabsTrigger value="runs">Gradebook</TabsTrigger>
           </TabsList>
 
           {/* Templates Tab */}
           <TabsContent value="templates" className="mt-6">
             {templatesLoading ? (
-              <LoadingState message="Loading templates..." />
+              <LoadingState message="Loading practice sets..." />
             ) : !templates || templates.length === 0 ? (
               <EmptyState
                 icon={FileText}
-                title="No Assessment Templates"
-                description="Create your first assessment template to get started. Templates define the structure and rules for your assessments."
+                title="No practice sets yet"
+                description="Create your first practice set. Publish it to students and grade submissions in Gradebook."
                 action={{
-                  label: 'Create Template',
+                  label: 'Create practice set',
                   onClick: () => setShowCreateTemplate(true)
                 }}
               />
@@ -180,7 +193,7 @@ export default function AssessmentsHubPage() {
                             </div>
                           </div>
                           <Button variant="outline" size="sm" className="gap-2">
-                            Create Run
+                            Publish
                             <Play className="h-4 w-4" />
                           </Button>
                         </div>
@@ -195,15 +208,15 @@ export default function AssessmentsHubPage() {
           {/* Runs Tab */}
           <TabsContent value="runs" className="mt-6">
             {runsLoading ? (
-              <LoadingState message="Loading runs..." />
+              <LoadingState message="Loading gradebook..." />
             ) : !runs || runs.length === 0 ? (
               <EmptyState
                 icon={Play}
-                title="No Assessment Runs"
-                description="Create a run from an existing template to publish it to students."
+                title="No published runs"
+                description="Publish a practice set to students to start collecting submissions and grading."
                 action={{
-                  label: 'View Templates',
-                  onClick: () => setActiveTab('templates')
+                  label: 'View practice sets',
+                  onClick: () => setTab('templates')
                 }}
               />
             ) : (
@@ -221,13 +234,13 @@ export default function AssessmentsHubPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-2">
                               <Heading level={4} className="truncate">
-                                {run.title_override || 'Assessment'}
+                                {run.title_override || 'Practice set run'}
                               </Heading>
                               {getStatusBadge(run.status)}
                               {run.access_mode === 'public_link' && (
                                 <Badge variant="secondary" className="gap-1">
                                   <Copy className="h-3 w-3" />
-                                  Public Link
+                                  Public link
                                 </Badge>
                               )}
                             </div>
@@ -254,7 +267,7 @@ export default function AssessmentsHubPage() {
                           <div className="flex items-center gap-2">
                             <Button variant="outline" size="sm" className="gap-2">
                               <Users className="h-4 w-4" />
-                              Submissions
+                              Grade
                             </Button>
                             <Button variant="outline" size="sm">
                               <MoreVertical className="h-4 w-4" />
@@ -275,15 +288,15 @@ export default function AssessmentsHubPage() {
       <ModalLayout
         open={showCreateTemplate}
         onClose={() => setShowCreateTemplate(false)}
-        title="Create Assessment Template"
+        title="Create practice set"
         size="lg"
       >
         <div className="space-y-4">
           <Text variant="muted">
-            Template builder coming soon. For now, use the API or continue building out the full template builder component.
+            Use the builder to define the question selection and grading rules for this practice set.
           </Text>
           <Button onClick={() => router.push('/instructor/assessments-hub/templates/new')}>
-            Open Template Builder
+            Open builder
           </Button>
         </div>
       </ModalLayout>

@@ -1,6 +1,2 @@
-'use client'
-
-export function ThemeToggle() {
-  return null
-}
-
+export * from './ThemeToggle'
+export { default } from './ThemeToggle'

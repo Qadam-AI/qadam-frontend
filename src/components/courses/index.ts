@@ -1,2 +1,2 @@
 // Course components
-export * from './course-discovery'
+export * from './CourseDiscovery'

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
+import { useTranslations } from '@/lib/i18n'
 
 // Design System
 import { PageShell, PageHeader, Section, Stack, Grid } from '@/design-system/layout'
@@ -61,6 +62,7 @@ interface QuestionStats {
 }
 
 export default function QuestionBankPage() {
+  const tPilot = useTranslations('pilotQuestionBank')
   const queryClient = useQueryClient()
   
   // Filters
@@ -214,12 +216,12 @@ export default function QuestionBankPage() {
         className="space-y-8"
       >
         <PageHeader
-          title="Question Bank"
-          description="Browse, edit, and manage your auto-generated practice questions"
+          title={tPilot('title')}
+          description={tPilot('description')}
           action={
             <Button variant="outline" onClick={() => setShowStats(!showStats)} className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              {showStats ? 'Hide' : 'Show'} Analytics
+              {showStats ? tPilot('hideStats') : tPilot('showStats')}
             </Button>
           }
         />
@@ -682,7 +684,7 @@ export default function QuestionBankPage() {
                     setEditingQuestion({ ...editingQuestion, is_active: checked })
                   }
                 />
-                <Text size="sm">Active (used in practice & exams)</Text>
+                <Text size="sm">{tPilot('activeUsedInPracticeSets')}</Text>
               </div>
             </div>
 

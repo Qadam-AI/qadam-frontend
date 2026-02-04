@@ -126,13 +126,13 @@ export default function TemplateDetailPage() {
       })
     },
     onSuccess: () => {
-      toast.success('Template updated')
+      toast.success('Practice set updated')
       queryClient.invalidateQueries({ queryKey: ['assessment-template', templateId] })
       queryClient.invalidateQueries({ queryKey: ['assessment-templates'] })
       setEditMode(false)
     },
     onError: () => {
-      toast.error('Failed to update template')
+      toast.error('Failed to update practice set')
     }
   })
 
@@ -142,11 +142,11 @@ export default function TemplateDetailPage() {
       await api.delete(`/instructor/assessments/templates/${templateId}`)
     },
     onSuccess: () => {
-      toast.success('Template deleted')
-      router.push('/instructor/assessments-hub')
+      toast.success('Practice set deleted')
+      router.push('/instructor/assessments-hub?tab=templates')
     },
     onError: () => {
-      toast.error('Failed to delete template')
+      toast.error('Failed to delete practice set')
     }
   })
 
@@ -172,7 +172,7 @@ export default function TemplateDetailPage() {
       return res.data
     },
     onSuccess: (data) => {
-      toast.success('Assessment run created')
+      toast.success('Session created')
       queryClient.invalidateQueries({ queryKey: ['template-runs', templateId] })
       setShowCreateRun(false)
       // Reset form
@@ -188,7 +188,7 @@ export default function TemplateDetailPage() {
       router.push(`/instructor/assessments-hub/runs/${data.id}`)
     },
     onError: () => {
-      toast.error('Failed to create run')
+      toast.error('Failed to create session')
     }
   })
 
@@ -217,7 +217,7 @@ export default function TemplateDetailPage() {
   if (isLoading) {
     return (
       <PageShell maxWidth="2xl">
-        <LoadingState message="Loading template..." />
+        <LoadingState message="Loading practice set..." />
       </PageShell>
     )
   }
@@ -227,8 +227,8 @@ export default function TemplateDetailPage() {
       <PageShell maxWidth="2xl">
         <EmptyState
           icon={AlertCircle}
-          title="Template Not Found"
-          description="This assessment template does not exist or you don't have access to it."
+          title="Practice set not found"
+          description="This practice set does not exist or you don't have access to it."
         />
       </PageShell>
     )
@@ -242,7 +242,7 @@ export default function TemplateDetailPage() {
         className="space-y-8"
       >
         <PageHeader
-          backHref="/instructor/assessments-hub"
+          backHref="/instructor/assessments-hub?tab=templates"
           title={template.title}
           description={template.description}
           action={
@@ -269,7 +269,7 @@ export default function TemplateDetailPage() {
               </Button>
               <Button onClick={() => setShowCreateRun(true)} className="gap-2">
                 <Play className="h-4 w-4" />
-                Create Run
+                Create session
               </Button>
             </div>
           }
@@ -298,14 +298,14 @@ export default function TemplateDetailPage() {
         {editMode && (
           <SurfaceCard>
             <Stack gap="lg">
-              <Heading level={3}>Edit Template</Heading>
+              <Heading level={3}>Edit practice set</Heading>
 
               <div className="space-y-2">
                 <LabelText required>Title</LabelText>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter template title"
+                  placeholder="Enter practice set title"
                 />
               </div>
 
@@ -314,7 +314,7 @@ export default function TemplateDetailPage() {
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe this assessment template"
+                  placeholder="Describe this practice set"
                   rows={3}
                 />
               </div>
@@ -418,22 +418,22 @@ export default function TemplateDetailPage() {
 
         {/* Runs */}
         <Section 
-          title="Assessment Runs"
-          description={`${runs.length} run(s) created from this template`}
+          title="Sessions"
+          description={`${runs.length} session(s) created from this practice set`}
           action={
             <Button onClick={() => setShowCreateRun(true)} size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              Create Run
+              Create session
             </Button>
           }
         >
           {runs.length === 0 ? (
             <EmptyState
               icon={Play}
-              title="No Runs Yet"
-              description="Create a run to deploy this assessment template to students."
+              title="No sessions yet"
+              description="Create a session to publish this practice set to students."
               action={{
-                label: 'Create Run',
+                label: 'Create session',
                 onClick: () => setShowCreateRun(true)
               }}
             />
@@ -463,9 +463,9 @@ export default function TemplateDetailPage() {
           <SurfaceCard variant="destructive">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <Text className="font-semibold text-destructive mb-1">Delete Template</Text>
+                <Text className="font-semibold text-destructive mb-1">Delete practice set</Text>
                 <Text size="sm" variant="muted">
-                  This will permanently delete the template and all associated runs.
+                  This will permanently delete the practice set and all associated sessions.
                 </Text>
               </div>
               <Button
@@ -485,8 +485,8 @@ export default function TemplateDetailPage() {
       <ModalLayout
         open={showCreateRun}
         onClose={() => setShowCreateRun(false)}
-        title="Create Assessment Run"
-        description="Deploy this template to students"
+        title="Create session"
+        description="Publish this practice set to students"
         size="lg"
       >
         <div className="p-6 space-y-6">
@@ -500,7 +500,7 @@ export default function TemplateDetailPage() {
                 placeholder={template.title}
               />
               <Text size="xs" variant="muted">
-                Leave blank to use template title: "{template.title}"
+                Leave blank to use practice set title: "{template.title}"
               </Text>
             </div>
 
@@ -551,7 +551,7 @@ export default function TemplateDetailPage() {
                 placeholder={template.time_limit_minutes?.toString() || 'Untimed'}
               />
               <Text size="xs" variant="muted">
-                Override template time limit of {template.time_limit_minutes || 'unlimited'} minutes
+                Override practice set time limit of {template.time_limit_minutes || 'unlimited'} minutes
               </Text>
             </div>
 
@@ -569,7 +569,7 @@ export default function TemplateDetailPage() {
               </Select>
               <Text size="xs" variant="muted">
                 {accessMode === 'assigned' 
-                  ? 'You can assign students after creating the run'
+                  ? 'You can assign students after creating the session'
                   : 'A unique code will be generated for sharing'}
               </Text>
             </div>
@@ -627,7 +627,7 @@ export default function TemplateDetailPage() {
               ) : (
                 <>
                   <Play className="h-4 w-4" />
-                  Create Run
+                  Create session
                 </>
               )}
             </Button>
@@ -639,15 +639,15 @@ export default function TemplateDetailPage() {
       <ModalLayout
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Delete Template"
-        description="Are you sure you want to delete this template?"
+        title="Delete practice set"
+        description="Are you sure you want to delete this practice set?"
       >
         <div className="p-6">
           <InfoPanel
             icon={AlertCircle}
             variant="destructive"
             title="This action cannot be undone"
-            description={`This will permanently delete "${template.title}" and all ${runs.length} associated runs.`}
+            description={`This will permanently delete "${template.title}" and all ${runs.length} associated sessions.`}
           />
           <div className="flex justify-end gap-2 mt-6">
             <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
@@ -658,7 +658,7 @@ export default function TemplateDetailPage() {
               onClick={() => deleteMutation.mutate()}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete Template'}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete practice set'}
             </Button>
           </div>
         </div>

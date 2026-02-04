@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { ContactForm } from '@/components/contact-form'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { ContactForm } from '@/components/ContactForm'
 import { 
   Mail,
   MapPin,

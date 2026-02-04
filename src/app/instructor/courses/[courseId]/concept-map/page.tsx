@@ -97,12 +97,23 @@ function buildGraphData(
   searchTerm: string,
   filterMode: string
 ) {
+  const filterModeConcepts = (() => {
+    switch (filterMode) {
+      case 'prereqs':
+        return concepts.filter((c) => c.prereq_ids.length > 0)
+      case 'isolated':
+        return concepts.filter((c) => c.prereq_ids.length === 0)
+      default:
+        return concepts
+    }
+  })()
+
   // Filter concepts by search
   const filteredConcepts = searchTerm
-    ? concepts.filter((c) =>
+    ? filterModeConcepts.filter((c) =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
-    : concepts
+    : filterModeConcepts
 
   // Build nodes
   const nodes: Node[] = []
@@ -541,6 +552,7 @@ function ConceptMapContent() {
           lessons={mapData.lessons}
           allConcepts={mapData.concepts}
           isEditMode={isEditMode}
+          courseId={courseId}
           onClose={() => setSelectedConceptId(null)}
           onEdit={() => setEditingConceptId(selectedConcept.id)}
           onRemoveFromLesson={(lessonId) => {

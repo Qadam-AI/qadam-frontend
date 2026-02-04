@@ -120,11 +120,6 @@ export default function LoginPage() {
                   {isLoggingIn ? tCommon('loading') : tAuth('login.submit')}
                 </Button>
               </form>
-
-              <div className="mt-6 p-4 rounded-lg bg-muted/50 text-sm">
-                <p className="font-medium mb-2">Demo Credentials:</p>
-                <code className="block text-xs">learner@qadam.dev / demo123</code>
-              </div>
             </CardContent>
           </Card>
         </motion.div>

@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AuthGuard } from '../_components/auth-guard'
-import { HintButton } from '@/components/hint-button'
+import { HintButton } from '@/components/HintButton'
 import Link from 'next/link'
 
 // Design System

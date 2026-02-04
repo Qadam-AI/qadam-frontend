@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +21,7 @@ import {
   ChevronUp
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import {
   Select,
@@ -77,6 +78,24 @@ interface Course {
 }
 
 export default function InstructorAssessments() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const legacy = searchParams.get('legacy') === '1'
+
+  useEffect(() => {
+    if (!legacy) {
+      router.replace('/instructor/assessments-hub?tab=templates')
+    }
+  }, [legacy, router])
+
+  if (!legacy) {
+    return (
+      <PageShell maxWidth="lg">
+        <LoadingState message="Redirecting to Practice sets..." />
+      </PageShell>
+    )
+  }
+
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [topic, setTopic] = useState('')
@@ -143,7 +162,7 @@ export default function InstructorAssessments() {
     })
     
     navigator.clipboard.writeText(text)
-    toast.success('Assessment copied to clipboard!')
+    toast.success('AI assessment copied to clipboard!')
   }
 
   const handleDownload = (assessment: Assessment) => {
@@ -158,7 +177,7 @@ export default function InstructorAssessments() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    toast.success('Assessment downloaded!')
+    toast.success('AI assessment downloaded!')
   }
 
   const generateAssessment = useMutation({
@@ -175,14 +194,14 @@ export default function InstructorAssessments() {
       return res.data
     },
     onSuccess: () => {
-      toast.success('Assessment generation started!')
+      toast.success('AI assessment generation started!')
       setCreateModalOpen(false)
       setTopic('')
       setContent('')
       queryClient.invalidateQueries({ queryKey: ['instructor-assessments'] })
     },
     onError: () => {
-      toast.error('Failed to generate assessment')
+      toast.error('Failed to generate AI assessment')
     },
   })
 
@@ -191,12 +210,12 @@ export default function InstructorAssessments() {
   return (
     <PageShell maxWidth="2xl">
       <PageHeader
-        title="Assessments"
+        title="AI assessments"
         description="Generate practice questions from your lesson content using AI"
         action={
           <Button onClick={() => setCreateModalOpen(true)} className="gap-2">
             <Sparkles className="h-4 w-4" />
-            Generate Assessment
+            Generate AI assessment
           </Button>
         }
       />
@@ -205,7 +224,7 @@ export default function InstructorAssessments() {
       <Section>
         <Grid cols={3} gap="md">
           <MetricCard
-            label="Total Assessments"
+            label="Total AI assessments"
             value={allAssessments.length}
             icon={FileText}
             variant="default"
@@ -228,15 +247,15 @@ export default function InstructorAssessments() {
       {/* Assessments List */}
       <Section>
         {isLoading ? (
-          <LoadingState message="Loading assessments..." />
+          <LoadingState message="Loading AI assessments..." />
         ) : allAssessments.length === 0 ? (
           <SurfaceCard variant="muted" className="py-12">
             <EmptyState
               icon={FileText}
-              title="No assessments yet"
-              description="Generate your first assessment from lesson content using AI"
+              title="No AI assessments yet"
+              description="Generate your first AI assessment from lesson content"
               action={{
-                label: 'Generate Assessment',
+                label: 'Generate AI assessment',
                 onClick: () => setCreateModalOpen(true)
               }}
             />
@@ -429,7 +448,7 @@ export default function InstructorAssessments() {
       <DrawerLayout
         open={!!previewAssessment}
         onClose={() => setPreviewAssessment(null)}
-        title={previewAssessment?.title || previewAssessment?.topic || 'Assessment Preview'}
+        title={previewAssessment?.title || previewAssessment?.topic || 'AI assessment preview'}
         description={`${previewAssessment?.question_count} questions • Difficulty ${previewAssessment?.difficulty}/10`}
         size="xl"
       >

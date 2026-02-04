@@ -41,6 +41,7 @@ import {
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
+import { useTranslations } from '@/lib/i18n'
 
 // Design System
 import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
@@ -82,6 +83,7 @@ interface PracticeLink {
 }
 
 export default function PracticeLinksPage() {
+  const tPilot = useTranslations('pilotPracticeLinks')
   const queryClient = useQueryClient()
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
@@ -199,10 +201,19 @@ export default function PracticeLinksPage() {
 
   const copyTelegramMessage = (link: PracticeLink) => {
     const courseName = courses.find(c => c.id === link.course_id)?.title || 'Course'
-    const message = `📚 Practice Time!\n\n${link.title || courseName}${link.concept_name ? `\nTopic: ${link.concept_name}` : ''}\n\n🔗 Join here: ${link.url}\n\n${link.questions_count} questions${link.time_limit_minutes ? ` • ${link.time_limit_minutes} min` : ''}\nNo registration needed - just enter your name!`
+    const title = link.title || courseName
+    const topicLine = link.concept_name ? tPilot('telegramTopicLine', { topic: link.concept_name }) : ''
+    const timePart = link.time_limit_minutes ? tPilot('telegramTimePart', { minutes: link.time_limit_minutes }) : ''
+    const message = tPilot('telegramMessage', {
+      title,
+      topicLine,
+      url: link.url,
+      questions: link.questions_count,
+      timePart,
+    })
     
     navigator.clipboard.writeText(message)
-    toast.success('Message copied! Paste in Telegram.')
+    toast.success(tPilot('telegramCopiedToast'))
   }
 
   // Auto-select first course if only one
@@ -213,8 +224,8 @@ export default function PracticeLinksPage() {
   return (
     <PageShell maxWidth="xl">
       <PageHeader
-        title="Practice Links"
-        description="Create shareable links for students to practice. No registration required."
+        title={tPilot('title')}
+        description={tPilot('description')}
         action={
           <Button 
             className="gap-2" 
@@ -222,7 +233,7 @@ export default function PracticeLinksPage() {
             onClick={() => setCreateModalOpen(true)}
           >
             <Plus className="h-4 w-4" />
-            Create Link
+            {tPilot('createLink')}
           </Button>
         }
       />
@@ -273,7 +284,7 @@ export default function PracticeLinksPage() {
                 title="Ready to share practice!"
                 description="Create your first link and share it with students via messaging apps"
                 action={{
-                  label: 'Create Practice Link',
+                  label: tPilot('createLink'),
                   onClick: () => setCreateModalOpen(true)
                 }}
               />

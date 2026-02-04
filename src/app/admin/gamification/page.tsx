@@ -46,7 +46,7 @@ import {
   Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { IconPicker } from '@/components/icon-picker'
+import { IconPicker } from '@/components/IconPicker'
 
 interface LeaderboardEntry {
   user_id: string

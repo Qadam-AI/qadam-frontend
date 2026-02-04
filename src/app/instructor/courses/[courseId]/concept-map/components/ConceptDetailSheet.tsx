@@ -21,6 +21,7 @@ interface ConceptDetailSheetProps {
   lessons: LessonMapLane[]
   allConcepts: ConceptMapNode[]
   isEditMode: boolean
+  courseId?: string
   onClose: () => void
   onEdit: () => void
   onRemoveFromLesson: (lessonId: string) => void
@@ -42,6 +43,7 @@ export function ConceptDetailSheet({
   lessons,
   allConcepts,
   isEditMode,
+  courseId,
   onClose,
   onEdit,
   onRemoveFromLesson,
@@ -154,7 +156,10 @@ export function ConceptDetailSheet({
                 className="gap-2"
                 onClick={() => {
                   // Navigate to question bank filtered by this concept
-                  window.location.href = `/instructor/question-bank?concept=${concept.id}`
+                  const params = new URLSearchParams()
+                  if (courseId) params.set('course_id', courseId)
+                  params.set('concept_id', concept.id)
+                  window.location.href = `/instructor/question-bank?${params.toString()}`
                 }}
               >
                 <BarChart3 className="h-4 w-4" />

@@ -4,7 +4,7 @@ import { Navbar } from '@/app/_components/navbar'
 import { Sidebar } from '@/app/_components/sidebar'
 import { Footer } from '@/app/_components/footer'
 import { AuthGuard } from '@/app/_components/auth-guard'
-import { CourseDiscovery } from '@/components/courses/course-discovery'
+import { CourseDiscovery } from '@/components/courses/CourseDiscovery'
 
 export default function DiscoverPage() {
   return (

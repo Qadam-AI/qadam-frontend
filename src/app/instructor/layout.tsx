@@ -1,10 +1,8 @@
 'use client'
 
 import { useAuth } from '@/hooks/useAuth'
-import { useRouter, usePathname } from 'next/navigation'
-import { useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import api from '@/lib/api'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, type ComponentType } from 'react'
 import { Navbar } from '../_components/navbar'
 import { Footer } from '../_components/footer'
 import { useUIStore } from '@/stores/ui-store'
@@ -13,62 +11,113 @@ import Link from 'next/link'
 import { 
   BookOpen, 
   Users, 
-  LayoutDashboard, 
-  Settings,
   Link2,
   FileText,
   Target,
   Sparkles,
-  Crown,
+  ClipboardCheck,
+  LibraryBig,
+  ListChecks,
+  GitBranch,
+  BarChart3,
   X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from '@/lib/i18n'
 
-// Core instructor navigation (Path B flow)
-const instructorNavItems = [
-  { href: '/instructor', icon: LayoutDashboard, label: 'Teaching Studio', exact: true },
-  { href: '/instructor/courses', icon: BookOpen, label: 'My Courses' },
-  { href: '/instructor/ai-tools', icon: Sparkles, label: 'Content Structuring' },
-  { href: '/instructor/students', icon: Users, label: 'Students' },
-  { href: '/instructor/mastery', icon: Target, label: 'Understanding' },
-  { href: '/instructor/assessments-hub', icon: FileText, label: 'Exams & Quizzes' },
-  { href: '/instructor/practice-links', icon: Link2, label: 'Practice Links' },
-]
-
-const settingsNavItems = [
-  { href: '/instructor/settings', icon: Settings, label: 'Settings' },
-]
+type NavItem = {
+  key: string
+  href: string
+  icon: ComponentType<{ className?: string }>
+  requiresCourse?: boolean
+}
 
 function InstructorSidebar() {
   const pathname = usePathname()
-  const { sidebarOpen, setSidebarOpen } = useUIStore()
+  const searchParams = useSearchParams()
+  const tNav = useTranslations('pilotNav')
+  const {
+    sidebarOpen,
+    setSidebarOpen,
+    instructorMode,
+    setInstructorMode,
+    activeCourseId,
+    setActiveCourseId,
+  } = useUIStore()
   
-  // Fetch current subscription
-  const { data: subscription } = useQuery({
-    queryKey: ['my-subscription'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/subscriptions/my')
-        return res.data
-      } catch {
-        return null
-      }
-    },
-  })
-  
-  const isActive = (href: string, exact?: boolean) => {
-    if (exact) return pathname === href
-    return pathname === href || pathname.startsWith(href + '/')
-  }
-  
-  const getPlanColor = (planName: string) => {
-    switch (planName) {
-      case 'free': return 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900'
-      case 'pro': return 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900'
-      case 'team': return 'bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900'
-      case 'enterprise': return 'bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900'
-      default: return 'bg-muted text-muted-foreground'
+  const courseIdFromPath = useMemo(() => {
+    const match = pathname.match(/^\/instructor\/courses\/([^/]+)$/) || pathname.match(/^\/instructor\/courses\/([^/]+)\//)
+    return match?.[1] ?? null
+  }, [pathname])
+
+  useEffect(() => {
+    if (courseIdFromPath) {
+      setActiveCourseId(courseIdFromPath)
     }
+  }, [courseIdFromPath, setActiveCourseId])
+
+  useEffect(() => {
+    const nextMode = pathname.startsWith('/instructor/assessments-hub') || pathname.startsWith('/instructor/practice-links')
+      ? 'teach'
+      : pathname.startsWith('/instructor/mastery') || pathname.startsWith('/instructor/students') || pathname.startsWith('/instructor/question-analytics')
+        ? 'review'
+        : 'prepare'
+
+    if (nextMode !== instructorMode) {
+      setInstructorMode(nextMode)
+    }
+  }, [instructorMode, pathname, setInstructorMode])
+
+  const navItems: NavItem[] = useMemo(() => {
+    const conceptsHref = activeCourseId
+      ? `/instructor/courses/${activeCourseId}/concept-map?view=list`
+      : '/instructor/courses'
+
+    const conceptMapHref = activeCourseId
+      ? `/instructor/courses/${activeCourseId}/concept-map`
+      : '/instructor/courses'
+
+    if (instructorMode === 'prepare') {
+      return [
+        { key: 'courses', href: '/instructor/courses', icon: BookOpen },
+        { key: 'contentWorkspace', href: '/instructor/ai-tools', icon: Sparkles },
+        { key: 'concepts', href: conceptsHref, icon: ListChecks, requiresCourse: true },
+        { key: 'conceptMap', href: conceptMapHref, icon: GitBranch, requiresCourse: true },
+        { key: 'questionBank', href: '/instructor/question-bank', icon: LibraryBig },
+      ]
+    }
+
+    if (instructorMode === 'teach') {
+      return [
+        { key: 'practiceSets', href: '/instructor/assessments-hub?tab=templates', icon: FileText },
+        { key: 'gradebook', href: '/instructor/assessments-hub?tab=runs', icon: ClipboardCheck },
+        { key: 'practiceLinks', href: '/instructor/practice-links', icon: Link2 },
+      ]
+    }
+
+    return [
+      { key: 'students', href: '/instructor/students', icon: Users },
+      { key: 'understanding', href: '/instructor/mastery', icon: Target },
+      { key: 'questionAnalytics', href: '/instructor/question-analytics', icon: BarChart3 },
+    ]
+  }, [activeCourseId, instructorMode])
+
+  const isActive = (item: NavItem) => {
+    // Special-case assessments hub to support ?tab=templates|runs and detail routes.
+    if (pathname.startsWith('/instructor/assessments-hub')) {
+      if (pathname.startsWith('/instructor/assessments-hub/templates')) {
+        return item.key === 'practiceSets'
+      }
+      if (pathname.startsWith('/instructor/assessments-hub/runs')) {
+        return item.key === 'gradebook'
+      }
+      if (pathname === '/instructor/assessments-hub') {
+        const tab = searchParams.get('tab') || 'templates'
+        return (tab === 'runs' && item.key === 'gradebook') || (tab !== 'runs' && item.key === 'practiceSets')
+      }
+    }
+
+    return pathname === item.href || pathname.startsWith(item.href + '/')
   }
   
   // Close sidebar on mobile when route changes
@@ -96,74 +145,71 @@ function InstructorSidebar() {
       <div className="p-5 flex flex-col h-full">
         {/* Mobile header */}
         <div className="flex items-center justify-between mb-4 lg:hidden">
-          <span className="text-lg font-semibold">Instructor Panel</span>
+          <span className="text-lg font-semibold">{tNav('panelTitle')}</span>
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
             <X className="h-5 w-5" />
           </Button>
         </div>
+
+        {/* Mode switcher */}
+        <div className="mb-4">
+          <div className="text-xs font-semibold text-muted-foreground mb-2">{tNav('modesLabel')}</div>
+          <div className="grid grid-cols-3 gap-1 p-1 rounded-lg bg-muted/40">
+            {(['prepare', 'teach', 'review'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setInstructorMode(mode)}
+                className={cn(
+                  'px-2 py-1.5 rounded-md text-xs font-semibold transition-colors',
+                  instructorMode === mode
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {tNav(`modes.${mode}`)}
+              </button>
+            ))}
+          </div>
+
+          {instructorMode === 'prepare' && !activeCourseId && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              <Link href="/instructor/courses" className="hover:underline">
+                {tNav('selectCourseHint')}
+              </Link>
+            </div>
+          )}
+        </div>
         
         {/* Main Navigation */}
         <nav className="space-y-0.5">
-          {instructorNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all",
-                isActive(item.href, item.exact)
-                  ? "bg-primary/10 text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              )}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-        
-        {/* Settings Section */}
-        <div className="mt-8 pt-4 border-t border-border/40">
-          <nav className="space-y-0.5">
-            {settingsNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all",
-                  isActive(item.href)
-                    ? "bg-primary/10 text-primary shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                <span className="truncate">{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
-        
-        {/* Current Plan - at bottom */}
-        <div className="mt-auto pt-5 border-t border-border/40">
-          <Link href="/pricing" className="block group">
-            <div className={cn(
-              "px-3 py-3 rounded-md border transition-all group-hover:shadow-sm",
-              subscription?.plan ? getPlanColor(subscription.plan.name) : 'bg-muted'
-            )}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <Crown className="h-3.5 w-3.5" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Plan</span>
-              </div>
-              <div className="text-sm font-semibold">
-                {subscription?.plan?.display_name || 'Starter'}
-              </div>
-              {subscription?.plan?.name !== 'enterprise' && (
-                <div className="text-xs mt-1 opacity-60">
-                  Upgrade available
+          {navItems.map((item) => {
+            const disabled = Boolean(item.requiresCourse && !activeCourseId)
+            const className = cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all',
+              isActive(item)
+                ? 'bg-primary/10 text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+              disabled && 'opacity-60 cursor-not-allowed hover:bg-transparent hover:text-muted-foreground'
+            )
+
+            if (disabled) {
+              return (
+                <div key={item.key} className={className} aria-disabled="true">
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{tNav(`items.${item.key}`)}</span>
                 </div>
-              )}
-            </div>
-          </Link>
-        </div>
+              )
+            }
+
+            return (
+              <Link key={item.key} href={item.href} className={className}>
+                <item.icon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{tNav(`items.${item.key}`)}</span>
+              </Link>
+            )
+          })}
+        </nav>
       </div>
     </aside>
     </>

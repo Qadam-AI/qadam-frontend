@@ -27,6 +27,7 @@ import {
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useTranslations } from '@/lib/i18n'
 
 // Design System
 import { 
@@ -124,7 +125,8 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export default function ContentStructuringPage() {
+export default function ContentWorkspacePage() {
+  const t = useTranslations('pilotContent')
   const { isAvailable: llmAvailable, isChecking: llmChecking, refresh: refreshLLM, message: llmStatusMessage } = useLLMService()
   const { hasUploadAccess, maxSizeBytes, isLoading: uploadAccessLoading } = useUploadAccess()
   
@@ -324,9 +326,9 @@ export default function ContentStructuringPage() {
 
   // Stepper configuration
   const steps: Step[] = [
-    { id: 'input', label: 'Add Material', description: 'Paste or upload content' },
-    { id: 'review', label: 'Review Concepts', description: 'Edit AI suggestions' },
-    { id: 'done', label: 'Complete', description: 'Concepts saved' },
+    { id: 'input', label: t('steps.input.label'), description: t('steps.input.description') },
+    { id: 'review', label: t('steps.review.label'), description: t('steps.review.description') },
+    { id: 'done', label: t('steps.done.label'), description: t('steps.done.description') },
   ]
 
   const completedSteps = currentStepId === 'review' ? ['input'] : currentStepId === 'done' ? ['input', 'review'] : []
@@ -334,18 +336,18 @@ export default function ContentStructuringPage() {
   return (
     <PageShell maxWidth="xl">
       <PageHeader
-        title="Content Structuring"
-        description="Extract key concepts from your lesson materials. Review and refine them before generating practice questions."
+        title={t('title')}
+        description={t('description')}
       />
 
       {/* Course Selection */}
       <SurfaceCard variant="muted">
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            <LabelText className="mb-2">Target Course</LabelText>
+            <LabelText className="mb-2">{t('course.label')}</LabelText>
             <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
               <SelectTrigger className="bg-background">
-                <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course"} />
+                <SelectValue placeholder={coursesLoading ? t('course.loading') : t('course.placeholder')} />
               </SelectTrigger>
               <SelectContent>
                 {courses.map((course) => (
@@ -356,12 +358,12 @@ export default function ContentStructuringPage() {
               </SelectContent>
             </Select>
             {!selectedCourseId && (
-              <HelperText className="mt-1.5">Choose which course these concepts belong to</HelperText>
+              <HelperText className="mt-1.5">{t('course.helper')}</HelperText>
             )}
           </div>
           {courses.length === 0 && !coursesLoading && (
             <Link href="/instructor/courses/new">
-              <Button variant="outline" size="sm">Create Course</Button>
+              <Button variant="outline" size="sm">{t('course.create')}</Button>
             </Link>
           )}
         </div>
@@ -402,16 +404,16 @@ export default function ContentStructuringPage() {
             <SurfaceCard>
               <Stack gap="lg">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Add Lesson Material</h3>
+                  <h3 className="text-lg font-semibold mb-1">{t('input.title')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Paste text, upload a file, or link to a resource. We'll identify key concepts for you.
+                    {t('input.subtitle')}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <LabelText>Lesson Title (Optional)</LabelText>
+                  <LabelText>{t('input.lessonTitleLabel')}</LabelText>
                   <Input
-                    placeholder="e.g., Introduction to React Hooks"
+                    placeholder={t('input.lessonTitlePlaceholder')}
                     value={contentTitle}
                     onChange={(e) => setContentTitle(e.target.value)}
                   />
@@ -446,14 +448,14 @@ export default function ContentStructuringPage() {
                   {/* Text Input */}
                   <TabsContent value="text" className="space-y-3 mt-6">
                     <Textarea
-                      placeholder="Paste your lesson content, notes, or transcript here..."
+                      placeholder={t('input.textPlaceholder')}
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
                       rows={16}
                       className="font-mono text-sm resize-none"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Plain text, Markdown supported</span>
+                      <span>{t('input.textHint')}</span>
                       <span>{content.length > 0 ? `${content.length} characters` : ''}</span>
                     </div>
                   </TabsContent>
@@ -463,16 +465,14 @@ export default function ContentStructuringPage() {
                     {!hasUploadAccess && !uploadAccessLoading ? (
                       <div className="border-2 border-dashed border-amber-300 dark:border-amber-700 rounded-lg p-8 text-center bg-amber-50/50 dark:bg-amber-950/20">
                         <Crown className="h-12 w-12 mx-auto text-amber-500 mb-4" />
-                        <h3 className="font-semibold text-lg mb-2">Pro Feature</h3>
+                        <h3 className="font-semibold text-lg mb-2">{t('gated.title')}</h3>
                         <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                          Upload PDF, PPTX, and DOCX files to extract content automatically.
+                          {t('gated.uploadsDescription')}
                         </p>
-                        <Link href="/pricing">
-                          <Button className="gap-2">
-                            <Crown className="h-4 w-4" />
-                            Upgrade to Pro
-                          </Button>
-                        </Link>
+                        <Button className="gap-2" disabled>
+                          <Info className="h-4 w-4" />
+                          {t('gated.contactAdmin')}
+                        </Button>
                       </div>
                     ) : (
                       <div
@@ -501,7 +501,7 @@ export default function ContentStructuringPage() {
                           <>
                             <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                             <p className="font-medium mb-1">
-                              {isDragging ? 'Drop file here' : 'Drag and drop your file'}
+                              {isDragging ? t('input.dropFile') : t('input.dragDropFile')}
                             </p>
                             <p className="text-sm text-muted-foreground mb-4">or</p>
                             <input
@@ -518,7 +518,7 @@ export default function ContentStructuringPage() {
                               <Button variant="outline" className="cursor-pointer" asChild>
                                 <span>
                                   <File className="h-4 w-4 mr-2" />
-                                  Choose File
+                                  {t('input.chooseFile')}
                                 </span>
                               </Button>
                             </label>
@@ -601,16 +601,14 @@ export default function ContentStructuringPage() {
                     {!hasUploadAccess && !uploadAccessLoading ? (
                       <div className="border-2 border-dashed border-amber-300 dark:border-amber-700 rounded-lg p-8 text-center bg-amber-50/50 dark:bg-amber-950/20">
                         <Crown className="h-12 w-12 mx-auto text-amber-500 mb-4" />
-                        <h3 className="font-semibold text-lg mb-2">Pro Feature</h3>
+                        <h3 className="font-semibold text-lg mb-2">{t('gated.title')}</h3>
                         <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                          Import content from YouTube, Google Docs, and other online resources.
+                          {t('gated.urlDescription')}
                         </p>
-                        <Link href="/pricing">
-                          <Button className="gap-2">
-                            <Crown className="h-4 w-4" />
-                            Upgrade to Pro
-                          </Button>
-                        </Link>
+                        <Button className="gap-2" disabled>
+                          <Info className="h-4 w-4" />
+                          {t('gated.contactAdmin')}
+                        </Button>
                       </div>
                     ) : (
                       <>
@@ -640,11 +638,11 @@ export default function ContentStructuringPage() {
                     {analyzeContentMutation.isPending ? (
                       <>
                         <Wand2 className="h-4 w-4 animate-pulse mr-2" />
-                        Analyzing...
+                        {t('actions.analyzing')}
                       </>
                     ) : (
                       <>
-                        Extract Concepts
+                        {t('actions.extractKeyConcepts')}
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </>
                     )}

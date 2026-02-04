@@ -26,7 +26,7 @@ import {
   Home
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ThemeToggle } from '@/components/theme-toggle'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { useTranslations } from '@/lib/i18n'
 
 interface NavItem {
