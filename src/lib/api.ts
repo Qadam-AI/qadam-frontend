@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { toast } from 'sonner'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/v1', // Update with your backend URL
+  baseURL: 'http://qadam-backend-production.up.railway.app/api/v1', // Update with your backend URL
   headers: {
     'Content-Type': 'application/json',
   },
