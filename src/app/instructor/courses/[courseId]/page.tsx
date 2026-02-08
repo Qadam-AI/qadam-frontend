@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '@/lib/api'
+import api, { getImageUrl, getVideoUrl } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -53,7 +53,8 @@ import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/lay
 import { MetricCard, SurfaceCard, InfoPanel } from '@/design-system/surfaces'
 import { EmptyState, LoadingState } from '@/design-system/feedback'
 import { ModalLayout } from '@/design-system/patterns/modal-layout'
-import { LabelText, HelperText } from '@/design-system/typography'
+import { DrawerLayout } from '@/design-system/patterns/drawer-layout'
+import { LabelText, HelperText, Text } from '@/design-system/typography'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 
@@ -72,9 +73,11 @@ interface Lesson {
   id: string
   title: string
   description?: string
+  content?: string
   video_url?: string
   position: number
   duration_seconds?: number
+  attachments?: Array<{ url: string; name: string; type: string; size_bytes?: number }>
 }
 
 interface StudentProgress {
@@ -99,6 +102,17 @@ export default function CourseDetailPage() {
   const [addLessonOpen, setAddLessonOpen] = useState(false)
   const [addStudentOpen, setAddStudentOpen] = useState(false)
   const [editLessonId, setEditLessonId] = useState<string | null>(null)
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
+  const [editMode, setEditMode] = useState(false)
+
+  // Edit lesson state
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editContent, setEditContent] = useState('')
+  const [editVideoFile, setEditVideoFile] = useState<globalThis.File | null>(null)
+  const [editMaterialFiles, setEditMaterialFiles] = useState<globalThis.File[]>([]
+  )
+  const [editUploading, setEditUploading] = useState(false)
   
   const [lessonTitle, setLessonTitle] = useState('')
   const [lessonDescription, setLessonDescription] = useState('')
@@ -230,6 +244,73 @@ export default function CourseDetailPage() {
       toast.error('Failed to delete lesson')
     }
   })
+
+  // Update lesson mutation
+  const updateLessonMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedLesson) return
+      setEditUploading(true)
+      try {
+        let videoUrl = selectedLesson.video_url
+        const existingAttachments = (selectedLesson.attachments || []).filter(a => a.type && !a.type.startsWith('video/'))
+        const attachments = [...existingAttachments]
+
+        // Upload new video if provided
+        if (editVideoFile) {
+          const uploaded = await uploadLessonFile(editVideoFile)
+          if (uploaded) videoUrl = uploaded.url
+        }
+
+        // Upload new materials
+        for (const file of editMaterialFiles) {
+          const uploaded = await uploadLessonFile(file)
+          if (uploaded) attachments.push(uploaded)
+        }
+
+        await api.patch(`/instructor/lessons/${selectedLesson.id}`, {
+          title: editTitle,
+          description: editDescription || undefined,
+          content: editContent || undefined,
+          video_url: videoUrl,
+          attachments,
+        })
+      } finally {
+        setEditUploading(false)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] })
+      toast.success('Lesson updated!')
+      setEditMode(false)
+      setSelectedLesson(null)
+      setEditVideoFile(null)
+      setEditMaterialFiles([])
+    },
+    onError: () => {
+      toast.error('Failed to update lesson')
+    }
+  })
+
+  const openLessonView = (lesson: Lesson) => {
+    setSelectedLesson(lesson)
+    setEditMode(false)
+    setEditTitle(lesson.title)
+    setEditDescription(lesson.description || '')
+    setEditContent(lesson.content || '')
+    setEditVideoFile(null)
+    setEditMaterialFiles([])
+  }
+
+  const startEditing = () => {
+    if (selectedLesson) {
+      setEditTitle(selectedLesson.title)
+      setEditDescription(selectedLesson.description || '')
+      setEditContent(selectedLesson.content || '')
+      setEditVideoFile(null)
+      setEditMaterialFiles([])
+      setEditMode(true)
+    }
+  }
 
   // Update course mutation
   const updateCourseMutation = useMutation({
@@ -493,9 +574,9 @@ export default function CourseDetailPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
                 >
-                  <SurfaceCard className="group hover:shadow-md hover:border-primary/30 transition-all">
+                  <SurfaceCard className="group hover:shadow-md hover:border-primary/30 transition-all cursor-pointer" onClick={() => openLessonView(lesson)}>
                     <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary cursor-grab">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary cursor-grab" onClick={e => e.stopPropagation()}>
                         <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                       
@@ -507,40 +588,48 @@ export default function CourseDetailPage() {
                         <h3 className="font-semibold truncate">{lesson.title}</h3>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            {lesson.video_url ? <Video className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
+                            {lesson.video_url ? <Video className="h-3.5 w-3.5" /> : <File className="h-3.5 w-3.5" />}
                             {lesson.video_url ? 'Video' : 'Content'}
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5" />
                             {formatDuration(lesson.duration_seconds)}
                           </span>
+                          {lesson.attachments && lesson.attachments.filter(a => !a.type?.startsWith('video/')).length > 0 && (
+                            <span className="flex items-center gap-1">
+                              <File className="h-3.5 w-3.5" />
+                              {lesson.attachments.filter(a => !a.type?.startsWith('video/')).length} files
+                            </span>
+                          )}
                         </div>
                       </div>
                       
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="gap-2">
-                            <Edit2 className="h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="gap-2 text-destructive"
-                            onClick={() => {
-                              if (confirm('Delete this lesson?')) {
-                                deleteLessonMutation.mutate(lesson.id)
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div onClick={e => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem className="gap-2" onClick={() => { openLessonView(lesson); setTimeout(startEditing, 100) }}>
+                              <Edit2 className="h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="gap-2 text-destructive"
+                              onClick={() => {
+                                if (confirm('Delete this lesson?')) {
+                                  deleteLessonMutation.mutate(lesson.id)
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </SurfaceCard>
                 </motion.div>
@@ -736,7 +825,7 @@ export default function CourseDetailPage() {
                 {(coverPreview || coverImageUrl) && (
                   <div className="relative w-full h-48 rounded-lg border border-border overflow-hidden bg-muted">
                     <img 
-                      src={coverPreview || coverImageUrl} 
+                      src={coverPreview || getImageUrl(coverImageUrl)} 
                       alt="Course cover preview" 
                       className="w-full h-full object-contain"
                     />
@@ -1011,6 +1100,235 @@ export default function CourseDetailPage() {
           </div>
         </Stack>
       </ModalLayout>
+
+      {/* Lesson View / Edit Drawer */}
+      <DrawerLayout
+        open={!!selectedLesson}
+        onClose={() => { setSelectedLesson(null); setEditMode(false) }}
+        title={editMode ? 'Edit Lesson' : selectedLesson?.title || 'Lesson'}
+        size="lg"
+      >
+        {selectedLesson && !editMode && (
+          <Stack gap="lg">
+            {/* Video Player */}
+            {selectedLesson.video_url && (
+              <div className="rounded-lg overflow-hidden bg-black aspect-video">
+                <video
+                  src={getVideoUrl(selectedLesson.video_url)}
+                  controls
+                  className="w-full h-full"
+                  preload="metadata"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            )}
+
+            {/* Description */}
+            {selectedLesson.description && (
+              <div>
+                <LabelText>Description</LabelText>
+                <Text className="mt-1 text-muted-foreground">{selectedLesson.description}</Text>
+              </div>
+            )}
+
+            {/* Content */}
+            {selectedLesson.content && (
+              <div>
+                <LabelText>Content</LabelText>
+                <div className="mt-2 prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap rounded-lg border p-4 bg-muted/30">
+                  {selectedLesson.content}
+                </div>
+              </div>
+            )}
+
+            {/* Materials */}
+            {selectedLesson.attachments && selectedLesson.attachments.filter(a => !a.type?.startsWith('video/')).length > 0 && (
+              <div>
+                <LabelText>Materials</LabelText>
+                <Stack gap="sm" className="mt-2">
+                  {selectedLesson.attachments.filter(a => !a.type?.startsWith('video/')).map((att, idx) => (
+                    <a 
+                      key={idx} 
+                      href={att.url?.startsWith('http') ? att.url : undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                    >
+                      <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm truncate flex-1">{att.name}</span>
+                      {att.size_bytes && <span className="text-xs text-muted-foreground">{(att.size_bytes / (1024*1024)).toFixed(1)} MB</span>}
+                    </a>
+                  ))}
+                </Stack>
+              </div>
+            )}
+
+            {!selectedLesson.video_url && !selectedLesson.content && (
+              <InfoPanel variant="info" title="No content yet" description="This lesson has no video or text content. Click Edit to add content." />
+            )}
+
+            <div className="flex gap-2 pt-4 border-t">
+              <Button onClick={startEditing} className="gap-2">
+                <Edit2 className="h-4 w-4" />
+                Edit Lesson
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (confirm('Delete this lesson?')) {
+                    deleteLessonMutation.mutate(selectedLesson.id)
+                    setSelectedLesson(null)
+                  }
+                }}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+            </div>
+          </Stack>
+        )}
+
+        {selectedLesson && editMode && (
+          <Stack gap="md">
+            <div className="space-y-2">
+              <LabelText required>Lesson Title</LabelText>
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="e.g., Introduction to Variables"
+              />
+            </div>
+            <div className="space-y-2">
+              <LabelText>Description</LabelText>
+              <Textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="What will students learn?"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <LabelText>Content</LabelText>
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                placeholder="Lesson text content (supports Markdown)..."
+                rows={4}
+                className="font-mono text-sm"
+              />
+            </div>
+
+            {/* Current or new video */}
+            <div className="space-y-2">
+              <LabelText>Video</LabelText>
+              {selectedLesson.video_url && !editVideoFile && (
+                <div className="rounded-lg overflow-hidden bg-black aspect-video mb-2">
+                  <video src={getVideoUrl(selectedLesson.video_url)} controls className="w-full h-full" preload="metadata" />
+                </div>
+              )}
+              {editVideoFile ? (
+                <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30">
+                  <Video className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{editVideoFile.name}</p>
+                    <p className="text-xs text-muted-foreground">{(editVideoFile.size / (1024 * 1024)).toFixed(2)} MB (new)</p>
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => setEditVideoFile(null)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed rounded-lg p-3 text-center hover:border-primary/50 transition-colors">
+                  <Input
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        if (file.size > 50 * 1024 * 1024) { toast.error('Video must be under 50 MB'); return }
+                        setEditVideoFile(file)
+                      }
+                    }}
+                    className="hidden"
+                    id="edit-video-upload"
+                  />
+                  <label htmlFor="edit-video-upload" className="cursor-pointer">
+                    <Video className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">{selectedLesson.video_url ? 'Replace video' : 'Upload video'}</p>
+                  </label>
+                </div>
+              )}
+            </div>
+
+            {/* Existing + new materials */}
+            <div className="space-y-2">
+              <LabelText>Materials</LabelText>
+              {/* Existing attachments */}
+              {selectedLesson.attachments && selectedLesson.attachments.filter(a => !a.type?.startsWith('video/')).length > 0 && (
+                <div className="space-y-1">
+                  {selectedLesson.attachments.filter(a => !a.type?.startsWith('video/')).map((att, idx) => (
+                    <div key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                      <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm truncate flex-1">{att.name}</span>
+                      <Badge variant="secondary" className="text-xs">existing</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* New files to add */}
+              {editMaterialFiles.length > 0 && (
+                <div className="space-y-1">
+                  {editMaterialFiles.map((file, idx) => (
+                    <div key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                      <File className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                      <span className="text-sm truncate flex-1">{file.name}</span>
+                      <Badge className="text-xs bg-blue-100 text-blue-700">new</Badge>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditMaterialFiles(prev => prev.filter((_, i) => i !== idx))}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="border-2 border-dashed rounded-lg p-3 text-center hover:border-primary/50 transition-colors">
+                <Input
+                  type="file"
+                  multiple
+                  accept=".pdf,.pptx,.ppt,.doc,.docx,image/*"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || [])
+                    const valid = files.filter(f => { if (f.size > 50 * 1024 * 1024) { toast.error(`${f.name} exceeds 50 MB`); return false } return true })
+                    setEditMaterialFiles(prev => [...prev, ...valid])
+                    e.target.value = ''
+                  }}
+                  className="hidden"
+                  id="edit-materials-upload"
+                />
+                <label htmlFor="edit-materials-upload" className="cursor-pointer">
+                  <File className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Add more materials</p>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setEditMode(false)} disabled={editUploading}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => updateLessonMutation.mutate()}
+                disabled={!editTitle.trim() || updateLessonMutation.isPending || editUploading}
+                className="gap-2"
+              >
+                {(updateLessonMutation.isPending || editUploading) && <Loader2 className="h-4 w-4 animate-spin" />}
+                {editUploading ? 'Uploading...' : 'Save Changes'}
+              </Button>
+            </div>
+          </Stack>
+        )}
+      </DrawerLayout>
 
       {/* Add Student Modal */}
       <ModalLayout

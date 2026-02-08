@@ -18,7 +18,7 @@ import {
 import { 
   FileText, Edit2, Trash2, Plus, Filter, 
   Search, BarChart3, TrendingUp, TrendingDown,
-  CheckCircle, XCircle, Clock
+  CheckCircle, XCircle, Clock, X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
@@ -99,12 +99,15 @@ export default function QuestionBankPage() {
     enabled: selectedCourse !== 'all'
   })
 
-  // Fetch concepts for selected course (or lesson if specified)
+  // Fetch concepts for selected course (filtered by lesson if specified)
   const { data: concepts = [] } = useQuery({
     queryKey: ['course-concepts', selectedCourse, selectedLesson],
     queryFn: async () => {
       if (selectedCourse === 'all') return []
-      const res = await api.get<Array<{ id: string; name: string; lesson_ids?: string[] }>>(`/instructor/courses/${selectedCourse}/concepts`)
+      const params = new URLSearchParams()
+      if (selectedLesson !== 'all') params.append('lesson_id', selectedLesson)
+      const qs = params.toString()
+      const res = await api.get<Array<{ id: string; name: string; lesson_ids?: string[] }>>(`/instructor/courses/${selectedCourse}/concepts${qs ? `?${qs}` : ''}`)
       return res.data
     },
     enabled: selectedCourse !== 'all'
@@ -264,7 +267,8 @@ export default function QuestionBankPage() {
               <Heading level={4}>Filters</Heading>
             </div>
 
-            <Grid cols={5} gap="md">
+            {/* Row 1: Course, Lesson, Concept */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
                 <LabelText>Course</LabelText>
                 <Select 
@@ -313,7 +317,7 @@ export default function QuestionBankPage() {
                 </Select>
               </div>
 
-              <div>
+              <div className="sm:col-span-2 lg:col-span-1">
                 <LabelText>Concept</LabelText>
                 <Select 
                   value={selectedConcept} 
@@ -325,17 +329,18 @@ export default function QuestionBankPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Concepts</SelectItem>
-                    {concepts
-                      .filter(c => selectedLesson === 'all' || c.lesson_ids?.includes(selectedLesson))
-                      .map(concept => (
-                        <SelectItem key={concept.id} value={concept.id}>
-                          {concept.name}
-                        </SelectItem>
-                      ))}
+                    {concepts.map(concept => (
+                      <SelectItem key={concept.id} value={concept.id}>
+                        {concept.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
+            {/* Row 2: Difficulty, Type, Search, Inactive toggle */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_2fr_auto] gap-3 items-end">
               <div>
                 <LabelText>Difficulty</LabelText>
                 <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
@@ -365,27 +370,26 @@ export default function QuestionBankPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </Grid>
 
-            <div className="flex items-center gap-4 pt-2 border-t">
-              <div className="flex-1">
+              <div>
+                <LabelText className="invisible">Search</LabelText>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search question text..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-background"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pb-0.5">
                 <Switch
                   checked={showInactiveOnly}
                   onCheckedChange={setShowInactiveOnly}
                 />
-                <Text size="sm">Inactive only</Text>
+                <Text size="sm" className="whitespace-nowrap">Inactive only</Text>
               </div>
             </div>
           </Stack>
@@ -644,6 +648,104 @@ export default function QuestionBankPage() {
               />
             </div>
 
+            {/* Options Editor */}
+            {editingQuestion.options && editingQuestion.options.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <LabelText>Answer Options</LabelText>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newOption = { id: crypto.randomUUID(), text: '', is_correct: false }
+                      setEditingQuestion({
+                        ...editingQuestion,
+                        options: [...(editingQuestion.options || []), newOption]
+                      })
+                    }}
+                    className="gap-1"
+                  >
+                    <Plus className="h-3 w-3" />
+                    Add Option
+                  </Button>
+                </div>
+                <Stack gap="sm">
+                  {editingQuestion.options.map((option, idx) => (
+                    <div key={option.id || idx} className="flex items-start gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = editingQuestion.options!.map((o, i) => ({
+                            ...o,
+                            is_correct: i === idx ? !o.is_correct : (editingQuestion.question_type === 'multiple_choice' ? false : o.is_correct)
+                          }))
+                          const correct = updated.find(o => o.is_correct)
+                          setEditingQuestion({
+                            ...editingQuestion,
+                            options: updated,
+                            correct_answer: correct ? correct.text : editingQuestion.correct_answer
+                          })
+                        }}
+                        className={`mt-2.5 flex-shrink-0 w-5 h-5 rounded-full border-2 transition-colors ${
+                          option.is_correct
+                            ? 'bg-green-500 border-green-500'
+                            : 'border-muted-foreground/50 hover:border-green-400'
+                        }`}
+                        title={option.is_correct ? 'Correct answer' : 'Mark as correct'}
+                      />
+                      <Input
+                        value={option.text}
+                        onChange={(e) => {
+                          const updated = editingQuestion.options!.map((o, i) =>
+                            i === idx ? { ...o, text: e.target.value } : o
+                          )
+                          const correct = updated.find(o => o.is_correct)
+                          setEditingQuestion({
+                            ...editingQuestion,
+                            options: updated,
+                            correct_answer: correct ? correct.text : editingQuestion.correct_answer
+                          })
+                        }}
+                        placeholder={`Option ${idx + 1}`}
+                        className="flex-1"
+                      />
+                      {editingQuestion.options!.length > 2 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="mt-0.5 h-8 w-8 flex-shrink-0"
+                          onClick={() => {
+                            const updated = editingQuestion.options!.filter((_, i) => i !== idx)
+                            setEditingQuestion({ ...editingQuestion, options: updated })
+                          }}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </Stack>
+                <HelperText className="mt-1">Click the circle to mark the correct answer</HelperText>
+              </div>
+            )}
+
+            {/* Correct Answer (for non-MCQ types) */}
+            {(!editingQuestion.options || editingQuestion.options.length === 0) && (
+              <div>
+                <LabelText>Correct Answer</LabelText>
+                <Input
+                  value={editingQuestion.correct_answer || ''}
+                  onChange={(e) =>
+                    setEditingQuestion({ ...editingQuestion, correct_answer: e.target.value })
+                  }
+                  className="mt-2"
+                  placeholder="Enter the correct answer"
+                />
+              </div>
+            )}
+
             <div>
               <LabelText>Difficulty Tier</LabelText>
               <Select
@@ -674,6 +776,61 @@ export default function QuestionBankPage() {
                 className="mt-2"
                 placeholder="Explain the correct answer..."
               />
+            </div>
+
+            {/* Hints Editor */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <LabelText>Hints</LabelText>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setEditingQuestion({
+                      ...editingQuestion,
+                      hints: [...(editingQuestion.hints || []), '']
+                    })
+                  }}
+                  className="gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add Hint
+                </Button>
+              </div>
+              {editingQuestion.hints && editingQuestion.hints.length > 0 ? (
+                <Stack gap="sm">
+                  {editingQuestion.hints.map((hint, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <span className="mt-2.5 text-xs text-muted-foreground font-medium flex-shrink-0 w-4">{idx + 1}.</span>
+                      <Input
+                        value={hint}
+                        onChange={(e) => {
+                          const updated = [...editingQuestion.hints!]
+                          updated[idx] = e.target.value
+                          setEditingQuestion({ ...editingQuestion, hints: updated })
+                        }}
+                        placeholder={`Hint ${idx + 1}`}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="mt-0.5 h-8 w-8 flex-shrink-0"
+                        onClick={() => {
+                          const updated = editingQuestion.hints!.filter((_, i) => i !== idx)
+                          setEditingQuestion({ ...editingQuestion, hints: updated })
+                        }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </Stack>
+              ) : (
+                <Text size="sm" variant="muted">No hints yet. Hints help students progressively.</Text>
+              )}
             </div>
 
             <div className="flex items-center justify-between">

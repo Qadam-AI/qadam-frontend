@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '@/lib/api'
+import api, { getImageUrl } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -106,7 +106,7 @@ export default function InstructorSettings() {
                 <div className="relative group">
                   <Avatar className="h-20 w-20 text-2xl">
                     {user?.avatarUrl && (
-                      <AvatarImage src={user.avatarUrl} alt={user.name || 'User'} />
+                      <AvatarImage src={getImageUrl(user.avatarUrl)} alt={user.name || 'User'} />
                     )}
                     <AvatarFallback className="bg-primary/20 text-primary font-semibold">
                       {initials}

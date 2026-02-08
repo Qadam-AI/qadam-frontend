@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import api from '@/lib/api'
+import api, { getImageUrl } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -439,7 +439,7 @@ export default function InstructorDashboard() {
                     <div className="w-[calc(100%+3rem)] aspect-video bg-gradient-to-br from-primary/10 via-indigo-500/10 to-purple-500/10 relative overflow-hidden rounded-t-lg -mt-6 -mx-6 mb-4">
                       {course.cover_image_url ? (
                         <img 
-                          src={course.cover_image_url} 
+                          src={getImageUrl(course.cover_image_url)} 
                           alt={course.title}
                           className="w-full h-full object-contain"
                         />

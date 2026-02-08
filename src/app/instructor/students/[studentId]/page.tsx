@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import api from '@/lib/api'
+import api, { getImageUrl } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -204,7 +204,7 @@ export default function StudentProfilePage() {
         <SurfaceCard className="mb-6">
           <div className="flex items-start gap-6">
             <Avatar className="h-20 w-20 text-2xl">
-              <AvatarImage src={student.avatar_url} />
+              <AvatarImage src={getImageUrl(student.avatar_url)} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
 

@@ -3,7 +3,7 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useMastery } from '@/hooks/useMastery'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '@/lib/api'
+import api, { getImageUrl } from '@/lib/api'
 import { Navbar } from '../_components/navbar'
 import { Sidebar } from '../_components/sidebar'
 import { Button } from '@/components/ui/button'
@@ -145,7 +145,7 @@ function ProfileContent() {
             <div className="relative group">
               <Avatar className="h-20 w-20 text-2xl">
                 {user?.avatarUrl && (
-                  <AvatarImage src={user.avatarUrl} alt={user.name || 'User'} />
+                  <AvatarImage src={getImageUrl(user.avatarUrl)} alt={user.name || 'User'} />
                 )}
                 <AvatarFallback className="bg-primary/20 text-primary font-semibold">
                   {initials}

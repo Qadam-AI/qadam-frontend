@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import api from '@/lib/api'
+import api, { getImageUrl } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -353,7 +353,7 @@ export default function InstructorStudents() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <Avatar className="h-12 w-12 shrink-0">
-                          <AvatarImage src={student.avatar_url} />
+                          <AvatarImage src={getImageUrl(student.avatar_url)} />
                           <AvatarFallback className="text-lg">
                             {student.user_name?.charAt(0) || student.user_email?.charAt(0) || '?'}
                           </AvatarFallback>
@@ -438,7 +438,7 @@ export default function InstructorStudents() {
                 >
                   <div className="flex items-center gap-4">
                     <Avatar className="h-10 w-10 shrink-0">
-                      <AvatarImage src={student.avatar_url} />
+                      <AvatarImage src={getImageUrl(student.avatar_url)} />
                       <AvatarFallback>
                         {student.user_name?.charAt(0) || student.user_email?.charAt(0) || '?'}
                       </AvatarFallback>

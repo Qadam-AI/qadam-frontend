@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuth } from '@/hooks/useAuth'
+import { getImageUrl } from '@/lib/api'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -52,7 +53,7 @@ export function Navbar() {
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar>
                     {user.avatarUrl && (
-                      <AvatarImage src={user.avatarUrl} alt={user.name || 'User'} />
+                      <AvatarImage src={getImageUrl(user.avatarUrl)} alt={user.name || 'User'} />
                     )}
                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                   </Avatar>
