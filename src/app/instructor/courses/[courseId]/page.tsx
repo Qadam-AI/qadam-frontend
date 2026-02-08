@@ -161,7 +161,7 @@ export default function CourseDetailPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 120000,
       })
-      return { url: res.data.public_url, name: file.name, type: file.type, size_bytes: file.size }
+      return { url: res.data.file_key, name: file.name, type: file.type, size_bytes: file.size }
     } catch {
       toast.error(`Failed to upload ${file.name}`)
       return null
@@ -189,15 +189,12 @@ export default function CourseDetailPage() {
           if (uploaded) attachments.push(uploaded)
         }
 
-        const contentType = lessonVideoFile ? 'video' : lessonContent ? 'text' : 'file'
-
         const res = await api.post(`/instructor/courses/${courseId}/lessons`, {
           title: lessonTitle,
           description: lessonDescription || undefined,
           video_url: videoUrl,
           content: lessonContent || undefined,
-          content_type: contentType,
-          order_index: (lessons?.length || 0) + 1,
+          position: (lessons?.length || 0) + 1,
           attachments,
         })
         return res.data

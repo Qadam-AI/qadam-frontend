@@ -37,7 +37,7 @@ interface ProfileStats {
 }
 
 function ProfileContent() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { data: masteryData, isLoading: masteryLoading } = useMastery(user?.id)
@@ -53,6 +53,7 @@ function ProfileContent() {
     },
     onSuccess: (data) => {
       toast.success('Avatar uploaded successfully!')
+      refreshUser()
       queryClient.invalidateQueries({ queryKey: ['current-user'] })
     },
     onError: (error: any) => {

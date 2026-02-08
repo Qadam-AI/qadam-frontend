@@ -28,7 +28,7 @@ import { SurfaceCard } from '@/design-system/surfaces'
 import { LabelText, HelperText } from '@/design-system/typography'
 
 export default function InstructorSettings() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [displayName, setDisplayName] = useState(user?.name || '')
@@ -48,6 +48,7 @@ export default function InstructorSettings() {
     },
     onSuccess: () => {
       toast.success('Avatar updated successfully!')
+      refreshUser()
       queryClient.invalidateQueries({ queryKey: ['current-user'] })
     },
     onError: (error: any) => {

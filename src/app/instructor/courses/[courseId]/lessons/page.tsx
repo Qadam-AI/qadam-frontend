@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Label } from '@/components/ui/label'
 import { 
   ArrowLeft, 
   Plus, 
@@ -21,9 +20,6 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  Eye,
-  EyeOff,
-  Upload,
   X,
   File
 } from 'lucide-react'
@@ -31,26 +27,14 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { motion, Reorder } from 'framer-motion'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { ModalLayout, ConfirmModal } from '@/design-system/patterns/modal-layout'
+import { Stack } from '@/design-system/layout'
+import { LabelText, HelperText } from '@/design-system/typography'
 
 interface LessonAttachment {
   name: string
@@ -63,12 +47,10 @@ interface Lesson {
   id: string
   title: string
   description: string | null
-  content_type: 'video' | 'text' | 'file'
   video_url: string | null
   content: string | null
-  order_index: number
-  duration_minutes: number | null
-  is_published: boolean
+  position: number
+  duration_seconds: number | null
   attachments?: LessonAttachment[]
 }
 
@@ -91,7 +73,6 @@ export default function CourseLessonsPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    content_type: 'video' as 'video' | 'text' | 'file',
     video_url: '',
     content: '',
     duration_minutes: 0
@@ -135,7 +116,7 @@ export default function CourseLessonsPage() {
       })
       
       return {
-        url: res.data.public_url,
+        url: res.data.file_key,
         name: file.name,
         type: file.type,
         size_bytes: file.size
@@ -176,10 +157,12 @@ export default function CourseLessonsPage() {
         }
 
         const res = await api.post(`/instructor/courses/${courseId}/lessons`, {
-          ...data,
-          video_url: data.content_type === 'video' ? finalVideoUrl : null,
-          content: data.content_type !== 'video' ? data.content : null,
-          order_index: (lessons?.length || 0) + 1,
+          title: data.title,
+          description: data.description || undefined,
+          video_url: finalVideoUrl || undefined,
+          content: data.content || undefined,
+          position: (lessons?.length || 0) + 1,
+          duration_seconds: data.duration_minutes ? data.duration_minutes * 60 : undefined,
           attachments
         })
         return res.data
@@ -222,8 +205,11 @@ export default function CourseLessonsPage() {
         }
 
         const res = await api.patch(`/instructor/lessons/${id}`, {
-          ...data,
-          video_url: finalVideoUrl,
+          title: data.title,
+          description: data.description || undefined,
+          video_url: finalVideoUrl || undefined,
+          content: data.content || undefined,
+          duration_seconds: data.duration_minutes ? data.duration_minutes * 60 : undefined,
           attachments
         })
         return res.data
@@ -256,16 +242,6 @@ export default function CourseLessonsPage() {
     }
   })
 
-  const togglePublishMutation = useMutation({
-    mutationFn: async ({ id, is_published }: { id: string; is_published: boolean }) => {
-      await api.patch(`/instructor/lessons/${id}`, { is_published })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] })
-      toast.success('Lesson updated')
-    }
-  })
-
   const reorderMutation = useMutation({
     mutationFn: async (lessonIds: string[]) => {
       await api.post(`/instructor/courses/${courseId}/lessons/reorder`, {
@@ -281,7 +257,6 @@ export default function CourseLessonsPage() {
     setFormData({
       title: '',
       description: '',
-      content_type: 'video',
       video_url: '',
       content: '',
       duration_minutes: 0
@@ -300,10 +275,9 @@ export default function CourseLessonsPage() {
     setFormData({
       title: lesson.title,
       description: lesson.description || '',
-      content_type: lesson.content_type,
       video_url: lesson.video_url || '',
       content: lesson.content || '',
-      duration_minutes: lesson.duration_minutes || 0
+      duration_minutes: lesson.duration_seconds ? Math.round(lesson.duration_seconds / 60) : 0
     })
     setUploadedAttachments(lesson.attachments || [])
     setUploadedVideoUrl(lesson.video_url || null)
@@ -391,7 +365,7 @@ export default function CourseLessonsPage() {
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {lesson.content_type === 'video' ? (
+                      {lesson.video_url ? (
                         <Video className="h-4 w-4 text-blue-500" />
                       ) : (
                         <FileText className="h-4 w-4 text-amber-500" />
@@ -408,9 +382,9 @@ export default function CourseLessonsPage() {
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {lesson.duration_minutes && (
+                      {lesson.duration_seconds && (
                         <Badge variant="outline" className="text-xs">
-                          {lesson.duration_minutes} min
+                          {Math.round(lesson.duration_seconds / 60)} min
                         </Badge>
                       )}
                       {lesson.attachments && lesson.attachments.length > 0 && (
@@ -419,9 +393,6 @@ export default function CourseLessonsPage() {
                           {lesson.attachments.length}
                         </Badge>
                       )}
-                      <Badge variant={lesson.is_published ? 'default' : 'secondary'}>
-                        {lesson.is_published ? 'Published' : 'Draft'}
-                      </Badge>
                     </div>
 
                     <DropdownMenu>
@@ -434,24 +405,6 @@ export default function CourseLessonsPage() {
                         <DropdownMenuItem onClick={() => openEditDialog(lesson)}>
                           <Pencil className="h-4 w-4 mr-2" />
                           Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => togglePublishMutation.mutate({
-                            id: lesson.id,
-                            is_published: !lesson.is_published
-                          })}
-                        >
-                          {lesson.is_published ? (
-                            <>
-                              <EyeOff className="h-4 w-4 mr-2" />
-                              Unpublish
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Publish
-                            </>
-                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive"
@@ -473,311 +426,231 @@ export default function CourseLessonsPage() {
         </CardContent>
       </Card>
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={(open) => !open && resetForm()}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingLesson ? 'Edit Lesson' : 'Add New Lesson'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingLesson 
-                ? 'Update the lesson details below'
-                : 'Create a new lesson for this course'
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Introduction to Python"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief overview of what this lesson covers..."
-                rows={2}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Content Type *</Label>
-                <Select
-                  value={formData.content_type}
-                  onValueChange={(v: 'video' | 'text' | 'file') => 
-                    setFormData({ ...formData, content_type: v })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="video">
-                      <div className="flex items-center gap-2">
-                        <Video className="h-4 w-4" />
-                        Video
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="text">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        Text/Article
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="file">
-                      <div className="flex items-center gap-2">
-                        <Upload className="h-4 w-4" />
-                        File/Document
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="duration">Duration (minutes)</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  min="0"
-                  value={formData.duration_minutes || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    duration_minutes: parseInt(e.target.value) || 0 
-                  })}
-                  placeholder="10"
-                />
-              </div>
-            </div>
-
-            {formData.content_type === 'video' && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Video Upload (Optional)</Label>
-                  <div className="space-y-2">
-                    {!videoFile && !uploadedVideoUrl && (
-                      <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                        <Input
-                          type="file"
-                          accept="video/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) {
-                              // Check file size (50MB limit)
-                              if (file.size > 50 * 1024 * 1024) {
-                                toast.error('File size must be less than 50MB')
-                                return
-                              }
-                              setVideoFile(file)
-                            }
-                          }}
-                          className="hidden"
-                          id="video-upload"
-                        />
-                        <label htmlFor="video-upload" className="cursor-pointer">
-                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">
-                            Click to upload video (MP4, WebM, MOV)
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Max 50MB
-                          </p>
-                        </label>
-                      </div>
-                    )}
-                    
-                    {(videoFile || uploadedVideoUrl) && (
-                      <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30">
-                        <Video className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {videoFile?.name || 'Uploaded video'}
-                          </p>
-                          {videoFile && (
-                            <p className="text-xs text-muted-foreground">
-                              {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setVideoFile(null)
-                            setUploadedVideoUrl(null)
-                            setFormData({ ...formData, video_url: '' })
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {formData.content_type !== 'video' && (
-              <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="Lesson content goes here... (supports Markdown)"
-                  rows={8}
-                  className="font-mono text-sm"
-                />
-              </div>
-            )}
-
-            {/* Materials section — always available */}
-            <div className="space-y-2">
-              <Label>Learning Materials (Optional)</Label>
-              <p className="text-xs text-muted-foreground">
-                Upload PDFs, presentations, images, or other course materials
-              </p>
-              
-              <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
-                <Input
-                  type="file"
-                  multiple
-                  accept=".pdf,.pptx,.ppt,.doc,.docx,image/*"
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files || [])
-                    const validFiles = files.filter(file => {
-                      if (file.size > 50 * 1024 * 1024) {
-                        toast.error(`${file.name} exceeds 50MB limit`)
-                        return false
-                      }
-                      return true
-                    })
-                    setMaterialFiles(prev => [...prev, ...validFiles])
-                    // Reset input value so same file can be re-selected
-                    e.target.value = ''
-                  }}
-                  className="hidden"
-                  id="materials-upload"
-                />
-                <label htmlFor="materials-upload" className="cursor-pointer">
-                  <File className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Click to upload materials
-                  </p>
-                </label>
-              </div>
-
-              {/* Display uploaded attachments from editing */}
-              {uploadedAttachments.length > 0 && (
-                <div className="space-y-2 mt-2">
-                  {uploadedAttachments.map((attachment, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30">
-                      <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">{attachment.name}</p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setUploadedAttachments(prev => 
-                            prev.filter((_, i) => i !== idx)
-                          )
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Display new material files to be uploaded */}
-              {materialFiles.length > 0 && (
-                <div className="space-y-2 mt-2">
-                  {materialFiles.map((file, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30">
-                      <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {(file.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setMaterialFiles(prev => 
-                            prev.filter((_, i) => i !== idx)
-                          )
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <DialogFooter>
+      {/* Create/Edit Modal */}
+      <ModalLayout
+        open={dialogOpen}
+        onClose={resetForm}
+        title={editingLesson ? 'Edit Lesson' : 'Add New Lesson'}
+        description={editingLesson ? 'Update the lesson details below' : 'Create a new lesson for this course'}
+        size="lg"
+        footer={
+          <>
             <Button variant="outline" onClick={resetForm} disabled={uploading}>
               Cancel
             </Button>
             <Button 
               onClick={handleSubmit}
               disabled={!formData.title || createMutation.isPending || updateMutation.isPending || uploading}
+              className="gap-2"
             >
               {(createMutation.isPending || updateMutation.isPending || uploading) && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               )}
               {uploading ? 'Uploading...' : editingLesson ? 'Update Lesson' : 'Create Lesson'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        <Stack gap="md">
+          {/* Title */}
+          <div className="space-y-2">
+            <LabelText required>Lesson Title</LabelText>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="e.g., Introduction to Variables"
+            />
+          </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Lesson</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{lessonToDelete?.title}"? 
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive"
-              onClick={() => lessonToDelete && deleteMutation.mutate(lessonToDelete.id)}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {/* Description */}
+          <div className="space-y-2">
+            <LabelText>Description</LabelText>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="What will students learn in this lesson?"
+              rows={2}
+            />
+          </div>
+
+          {/* Content */}
+          <div className="space-y-2">
+            <LabelText>Content</LabelText>
+            <Textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              placeholder="Lesson text content (supports Markdown)..."
+              rows={4}
+              className="font-mono text-sm"
+            />
+          </div>
+
+          {/* Duration */}
+          <div className="space-y-2">
+            <LabelText>Duration (minutes)</LabelText>
+            <Input
+              type="number"
+              min="0"
+              value={formData.duration_minutes || ''}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                duration_minutes: parseInt(e.target.value) || 0 
+              })}
+              placeholder="10"
+            />
+          </div>
+
+          {/* Video upload */}
+          <div className="space-y-2">
+            <LabelText>Video (Optional)</LabelText>
+            {!videoFile && !uploadedVideoUrl ? (
+              <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                <Input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      if (file.size > 50 * 1024 * 1024) {
+                        toast.error('Video must be under 50 MB')
+                        return
+                      }
+                      setVideoFile(file)
+                    }
+                  }}
+                  className="hidden"
+                  id="video-upload"
+                />
+                <label htmlFor="video-upload" className="cursor-pointer">
+                  <Video className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Click to upload video</p>
+                  <p className="text-xs text-muted-foreground">MP4, WebM — max 50 MB</p>
+                </label>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30">
+                <Video className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {videoFile?.name || 'Uploaded video'}
+                  </p>
+                  {videoFile && (
+                    <p className="text-xs text-muted-foreground">
+                      {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setVideoFile(null)
+                    setUploadedVideoUrl(null)
+                    setFormData({ ...formData, video_url: '' })
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Materials upload */}
+          <div className="space-y-2">
+            <LabelText>Materials (Optional)</LabelText>
+            <HelperText>PDFs, presentations, images, or other course materials</HelperText>
+            <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+              <Input
+                type="file"
+                multiple
+                accept=".pdf,.pptx,.ppt,.doc,.docx,image/*"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || [])
+                  const validFiles = files.filter(file => {
+                    if (file.size > 50 * 1024 * 1024) {
+                      toast.error(`${file.name} exceeds 50 MB limit`)
+                      return false
+                    }
+                    return true
+                  })
+                  setMaterialFiles(prev => [...prev, ...validFiles])
+                  e.target.value = ''
+                }}
+                className="hidden"
+                id="materials-upload"
+              />
+              <label htmlFor="materials-upload" className="cursor-pointer">
+                <File className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Click to upload materials</p>
+              </label>
+            </div>
+
+            {/* Existing attachments (when editing) */}
+            {uploadedAttachments.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {uploadedAttachments.map((attachment, idx) => (
+                  <div key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                    <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm truncate">{attachment.name}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setUploadedAttachments(prev => prev.filter((_, i) => i !== idx))
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* New material files */}
+            {materialFiles.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {materialFiles.map((file, idx) => (
+                  <div key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                    <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm truncate">{file.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setMaterialFiles(prev => prev.filter((_, i) => i !== idx))
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Stack>
+      </ModalLayout>
+
+      {/* Delete Confirmation */}
+      <ConfirmModal
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={() => lessonToDelete && deleteMutation.mutate(lessonToDelete.id)}
+        title="Delete Lesson"
+        description={`Are you sure you want to delete "${lessonToDelete?.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }
