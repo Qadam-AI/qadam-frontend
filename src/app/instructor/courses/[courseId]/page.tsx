@@ -34,7 +34,8 @@ import {
   ImageIcon,
   UserPlus,
   Copy,
-  AlertCircle
+  AlertCircle,
+  File
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -101,7 +102,10 @@ export default function CourseDetailPage() {
   
   const [lessonTitle, setLessonTitle] = useState('')
   const [lessonDescription, setLessonDescription] = useState('')
-  const [lessonVideoUrl, setLessonVideoUrl] = useState('')
+  const [lessonContent, setLessonContent] = useState('')
+  const [lessonVideoFile, setLessonVideoFile] = useState<globalThis.File | null>(null)
+  const [lessonMaterialFiles, setLessonMaterialFiles] = useState<globalThis.File[]>([])
+  const [lessonUploading, setLessonUploading] = useState(false)
   
   // Student creation form
   const [studentFirstName, setStudentFirstName] = useState('')
@@ -148,16 +152,58 @@ export default function CourseDetailPage() {
     }
   })
 
+  // Upload helper
+  const uploadLessonFile = async (file: globalThis.File) => {
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await api.post('/uploads', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000,
+      })
+      return { url: res.data.public_url, name: file.name, type: file.type, size_bytes: file.size }
+    } catch {
+      toast.error(`Failed to upload ${file.name}`)
+      return null
+    }
+  }
+
   // Add lesson mutation
   const addLessonMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/instructor/courses/${courseId}/lessons`, {
-        title: lessonTitle,
-        description: lessonDescription || undefined,
-        video_url: lessonVideoUrl || undefined,
-        position: (lessons?.length || 0) + 1
-      })
-      return res.data
+      setLessonUploading(true)
+      try {
+        let videoUrl: string | undefined
+        const attachments: { url: string; name: string; type: string; size_bytes: number }[] = []
+
+        if (lessonVideoFile) {
+          const uploaded = await uploadLessonFile(lessonVideoFile)
+          if (uploaded) {
+            videoUrl = uploaded.url
+            attachments.push(uploaded)
+          }
+        }
+
+        for (const file of lessonMaterialFiles) {
+          const uploaded = await uploadLessonFile(file)
+          if (uploaded) attachments.push(uploaded)
+        }
+
+        const contentType = lessonVideoFile ? 'video' : lessonContent ? 'text' : 'file'
+
+        const res = await api.post(`/instructor/courses/${courseId}/lessons`, {
+          title: lessonTitle,
+          description: lessonDescription || undefined,
+          video_url: videoUrl,
+          content: lessonContent || undefined,
+          content_type: contentType,
+          order_index: (lessons?.length || 0) + 1,
+          attachments,
+        })
+        return res.data
+      } finally {
+        setLessonUploading(false)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] })
@@ -165,7 +211,9 @@ export default function CourseDetailPage() {
       setAddLessonOpen(false)
       setLessonTitle('')
       setLessonDescription('')
-      setLessonVideoUrl('')
+      setLessonContent('')
+      setLessonVideoFile(null)
+      setLessonMaterialFiles([])
     },
     onError: () => {
       toast.error('Failed to add lesson')
@@ -833,16 +881,16 @@ export default function CourseDetailPage() {
         size="lg"
         footer={
           <>
-            <Button variant="outline" onClick={() => setAddLessonOpen(false)}>
+            <Button variant="outline" onClick={() => setAddLessonOpen(false)} disabled={lessonUploading}>
               Cancel
             </Button>
             <Button 
               onClick={() => addLessonMutation.mutate()}
-              disabled={!lessonTitle.trim() || addLessonMutation.isPending}
+              disabled={!lessonTitle.trim() || addLessonMutation.isPending || lessonUploading}
               className="gap-2"
             >
-              {addLessonMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              Add Lesson
+              {(addLessonMutation.isPending || lessonUploading) && <Loader2 className="h-4 w-4 animate-spin" />}
+              {lessonUploading ? 'Uploading...' : 'Add Lesson'}
             </Button>
           </>
         }
@@ -865,14 +913,104 @@ export default function CourseDetailPage() {
               rows={3}
             />
           </div>
+
           <div className="space-y-2">
-            <LabelText>Video URL</LabelText>
-            <Input
-              value={lessonVideoUrl}
-              onChange={(e) => setLessonVideoUrl(e.target.value)}
-              placeholder="https://youtube.com/watch?v=..."
+            <LabelText>Content</LabelText>
+            <Textarea
+              value={lessonContent}
+              onChange={(e) => setLessonContent(e.target.value)}
+              placeholder="Lesson text content (supports Markdown)..."
+              rows={4}
+              className="font-mono text-sm"
             />
-            <HelperText>YouTube, Vimeo, or direct video links</HelperText>
+          </div>
+
+          {/* Video upload */}
+          <div className="space-y-2">
+            <LabelText>Video (Optional)</LabelText>
+            {!lessonVideoFile ? (
+              <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                <Input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      if (file.size > 50 * 1024 * 1024) {
+                        toast.error('Video must be under 50 MB')
+                        return
+                      }
+                      setLessonVideoFile(file)
+                    }
+                  }}
+                  className="hidden"
+                  id="lesson-video-upload"
+                />
+                <label htmlFor="lesson-video-upload" className="cursor-pointer">
+                  <Video className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Click to upload video</p>
+                  <p className="text-xs text-muted-foreground">MP4, WebM — max 50 MB</p>
+                </label>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30">
+                <Video className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{lessonVideoFile.name}</p>
+                  <p className="text-xs text-muted-foreground">{(lessonVideoFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                </div>
+                <Button type="button" variant="ghost" size="icon" onClick={() => setLessonVideoFile(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Materials upload */}
+          <div className="space-y-2">
+            <LabelText>Materials (Optional)</LabelText>
+            <HelperText>PDFs, presentations, images, or other course materials</HelperText>
+            <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+              <Input
+                type="file"
+                multiple
+                accept=".pdf,.pptx,.ppt,.doc,.docx,image/*"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || [])
+                  const valid = files.filter(f => {
+                    if (f.size > 50 * 1024 * 1024) {
+                      toast.error(`${f.name} exceeds 50 MB limit`)
+                      return false
+                    }
+                    return true
+                  })
+                  setLessonMaterialFiles(prev => [...prev, ...valid])
+                  e.target.value = ''
+                }}
+                className="hidden"
+                id="lesson-materials-upload"
+              />
+              <label htmlFor="lesson-materials-upload" className="cursor-pointer">
+                <File className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Click to upload materials</p>
+              </label>
+            </div>
+            {lessonMaterialFiles.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {lessonMaterialFiles.map((file, idx) => (
+                  <div key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                    <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm truncate">{file.name}</p>
+                      <p className="text-xs text-muted-foreground">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setLessonMaterialFiles(prev => prev.filter((_, i) => i !== idx))}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </Stack>
       </ModalLayout>

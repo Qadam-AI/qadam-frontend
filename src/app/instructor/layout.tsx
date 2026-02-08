@@ -14,10 +14,8 @@ import {
   Link2,
   FileText,
   Target,
-  Sparkles,
   ClipboardCheck,
   LibraryBig,
-  ListChecks,
   GitBranch,
   BarChart3,
   X
@@ -70,10 +68,6 @@ function InstructorSidebar() {
   }, [instructorMode, pathname, setInstructorMode])
 
   const navItems: NavItem[] = useMemo(() => {
-    const conceptsHref = activeCourseId
-      ? `/instructor/courses/${activeCourseId}/concept-map?view=list`
-      : '/instructor/courses'
-
     const conceptMapHref = activeCourseId
       ? `/instructor/courses/${activeCourseId}/concept-map`
       : '/instructor/courses'
@@ -81,8 +75,6 @@ function InstructorSidebar() {
     if (instructorMode === 'prepare') {
       return [
         { key: 'courses', href: '/instructor/courses', icon: BookOpen },
-        { key: 'contentWorkspace', href: '/instructor/ai-tools', icon: Sparkles },
-        { key: 'concepts', href: conceptsHref, icon: ListChecks, requiresCourse: true },
         { key: 'conceptMap', href: conceptMapHref, icon: GitBranch, requiresCourse: true },
         { key: 'questionBank', href: '/instructor/question-bank', icon: LibraryBig },
       ]

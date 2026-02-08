@@ -65,7 +65,7 @@ export default function QuestionAnalyticsPage() {
       const params = new URLSearchParams()
       if (selectedCourse !== 'all') params.append('course_id', selectedCourse)
       
-      const res = await api.get<AnalyticsSummary>(`/instructor/question-analytics?${params.toString()}`)
+      const res = await api.get<AnalyticsSummary>(`/instructor/question-bank/analytics?${params.toString()}`)
       return res.data
     }
   })
