@@ -32,7 +32,7 @@ export function IconPicker({ value, onChange, className, placeholder = "Select i
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedIcon, setSelectedIcon] = useState<Icon | null>(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://qadam-backend-production.up.railway.app/api/v1';
 
   useEffect(() => {
     if (open && icons.length === 0) {

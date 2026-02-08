@@ -6,6 +6,10 @@ export type User = {
   username?: string | null
   name: string | null
   role: string
+  userType?: string
+  user_type?: string
+  avatarUrl?: string | null
+  xp?: number
 }
 
 export type LoginRequest = {

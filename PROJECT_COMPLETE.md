@@ -277,8 +277,7 @@ NEXT_PUBLIC_API_BASE=http://localhost:8000
 4. **Open browser**:
    Navigate to http://localhost:3000
 
-5. **Login**:
-   Use `learner@qadam.dev` / `demo123`
+
 
 ### For Users
 

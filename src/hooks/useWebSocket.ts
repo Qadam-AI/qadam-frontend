@@ -145,7 +145,7 @@ export function useWebSocket({
 
 // Specialized hook for progress updates
 export function useProgressWebSocket(userId: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://qadam-backend-production.up.railway.app";
   const wsUrl = apiUrl.replace(/^http/, "ws") + `/ws/progress/${userId}`;
   
   const [progressUpdates, setProgressUpdates] = useState<WebSocketMessage[]>([]);
@@ -170,7 +170,7 @@ export function useProgressWebSocket(userId: string) {
 
 // Specialized hook for course updates (for instructors)
 export function useCourseWebSocket(courseId: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://qadam-backend-production.up.railway.app";
   const wsUrl = apiUrl.replace(/^http/, "ws") + `/ws/course/${courseId}`;
   
   const [enrollmentUpdates, setEnrollmentUpdates] = useState<WebSocketMessage[]>([]);

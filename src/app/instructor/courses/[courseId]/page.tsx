@@ -64,6 +64,7 @@ interface Course {
   is_published: boolean
   student_count: number
   lesson_count: number
+  cover_image_url?: string | null
 }
 
 interface Lesson {
@@ -124,7 +125,7 @@ export default function CourseDetailPage() {
       setCourseTitle(res.data.title)
       setCourseDescription(res.data.description || '')
       setIsPublished(res.data.is_published)
-      setCoverImageUrl((res.data as any).cover_image_url || '')
+      setCoverImageUrl(res.data.cover_image_url || '')
       return res.data
     }
   })

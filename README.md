@@ -62,16 +62,6 @@
 | Редактор кода | `/practice` | Решение задач |
 | Чат с ИИ | `/chat` | Диалог с тьютором |
 
-**Демо-аккаунт:**
-```
-student:
-    Email: learner@qadam.dev
-    Password: demo123
-
-instructor:
-    Email: instructor@qadam.dev
-    Password: instructor123
-```
 
 ---
 

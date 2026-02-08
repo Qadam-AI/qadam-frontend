@@ -35,6 +35,7 @@ type NavItem = {
 function InstructorSidebar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const tNav = useTranslations('pilotNav')
   const {
     sidebarOpen,
@@ -159,7 +160,17 @@ function InstructorSidebar() {
               <button
                 key={mode}
                 type="button"
-                onClick={() => setInstructorMode(mode)}
+                onClick={() => {
+                  setInstructorMode(mode)
+                  // Navigate to the first route of the selected mode
+                  if (mode === 'prepare') {
+                    router.push('/instructor/courses')
+                  } else if (mode === 'teach') {
+                    router.push('/instructor/assessments-hub?tab=templates')
+                  } else if (mode === 'review') {
+                    router.push('/instructor/students')
+                  }
+                }}
                 className={cn(
                   'px-2 py-1.5 rounded-md text-xs font-semibold transition-colors',
                   instructorMode === mode
