@@ -398,6 +398,7 @@ export interface ConceptMapNode {
   prereq_ids: string[]
   lesson_ids: string[]
   position_in_lessons: Record<string, number>
+  question_count: number
 }
 
 export interface LessonMapLane {
@@ -464,6 +465,90 @@ export async function removeConceptFromLesson(
   conceptId: string
 ): Promise<void> {
   await api.delete(`/instructor/courses/${courseId}/lessons/${lessonId}/concepts/${conceptId}`)
+}
+
+// ===== Concept Details + Question Generation =====
+
+export interface QuestionSummary {
+  id: string
+  question_type: string
+  question_text: string
+  difficulty_tier: string
+  difficulty: number
+  times_shown: number
+  times_correct: number
+  success_rate: number
+}
+
+export interface StrugglingStudent {
+  user_id: string
+  user_name: string
+  user_email: string
+  attempts: number
+  correct: number
+  success_rate: number
+}
+
+export interface ConceptDetailsResponse {
+  concept_id: string
+  name: string
+  description?: string
+  difficulty: string
+  lesson_ids: string[]
+  prereq_ids: string[]
+  question_count: number
+  questions_by_tier: Record<string, number>
+  completion_rate: number
+  total_attempts: number
+  total_correct: number
+  questions: QuestionSummary[]
+  struggling_students: StrugglingStudent[]
+}
+
+export interface QuestionTypeSuggestion {
+  concept_id: string
+  concept_name: string
+  suggested_types: string[]
+  suggested_count_per_tier: number
+  reasoning: string
+}
+
+export interface BulkSuggestResponse {
+  suggestions: QuestionTypeSuggestion[]
+}
+
+export interface GenerateQuestionsResponse {
+  concept_id: string
+  questions_generated: number
+  by_tier: Record<string, number>
+}
+
+export async function getConceptDetails(
+  courseId: string,
+  conceptId: string
+): Promise<ConceptDetailsResponse> {
+  const res = await api.get(`/instructor/courses/${courseId}/concepts/${conceptId}/details`)
+  return res.data
+}
+
+export async function suggestQuestionsForConcepts(
+  courseId: string
+): Promise<BulkSuggestResponse> {
+  const res = await api.post(`/instructor/courses/${courseId}/concepts/suggest-questions`)
+  return res.data
+}
+
+export async function generateQuestionsForConcept(
+  courseId: string,
+  conceptId: string,
+  questionTypes: string[],
+  questionsPerTier: number
+): Promise<GenerateQuestionsResponse> {
+  const res = await api.post(`/instructor/courses/${courseId}/concepts/${conceptId}/generate-questions`, {
+    question_types: questionTypes,
+    questions_per_tier: questionsPerTier,
+  })
+  return res.data
 }
 
 export default api
