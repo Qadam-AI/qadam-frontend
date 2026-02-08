@@ -78,6 +78,58 @@ export default function QuestionBankPage() {
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null)
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
   const [showStats, setShowStats] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+
+  // Create question form state
+  const [newQ, setNewQ] = useState({
+    concept_id: '',
+    question_type: 'multiple_choice',
+    question_text: '',
+    options: [
+      { id: crypto.randomUUID(), text: '', is_correct: true },
+      { id: crypto.randomUUID(), text: '', is_correct: false },
+      { id: crypto.randomUUID(), text: '', is_correct: false },
+      { id: crypto.randomUUID(), text: '', is_correct: false },
+    ] as Array<{ id: string; text: string; is_correct: boolean }>,
+    correct_answer: '',
+    explanation: '',
+    hints: [] as string[],
+    difficulty_tier: 'medium',
+  })
+
+  const resetCreateForm = () => {
+    setNewQ({
+      concept_id: '',
+      question_type: 'multiple_choice',
+      question_text: '',
+      options: [
+        { id: crypto.randomUUID(), text: '', is_correct: true },
+        { id: crypto.randomUUID(), text: '', is_correct: false },
+        { id: crypto.randomUUID(), text: '', is_correct: false },
+        { id: crypto.randomUUID(), text: '', is_correct: false },
+      ],
+      correct_answer: '',
+      explanation: '',
+      hints: [],
+      difficulty_tier: 'medium',
+    })
+  }
+
+  // All concepts across all courses (for create modal)
+  const { data: allConcepts = [] } = useQuery({
+    queryKey: ['all-instructor-concepts'],
+    queryFn: async () => {
+      const result: Array<{ id: string; name: string; course_id: string; course_title: string }> = []
+      for (const course of courses) {
+        try {
+          const res = await api.get<Array<{ id: string; name: string }>>(`/instructor/courses/${course.id}/concepts`)
+          res.data.forEach(c => result.push({ ...c, course_id: course.id, course_title: course.title }))
+        } catch { /* skip */ }
+      }
+      return result
+    },
+    enabled: courses.length > 0,
+  })
 
   // Fetch courses
   const { data: courses = [] } = useQuery({
@@ -189,6 +241,38 @@ export default function QuestionBankPage() {
     }
   })
 
+  // Create question mutation
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const payload: Record<string, unknown> = {
+        concept_id: newQ.concept_id,
+        question_type: newQ.question_type,
+        question_text: newQ.question_text,
+        difficulty_tier: newQ.difficulty_tier,
+        explanation: newQ.explanation || undefined,
+        hints: newQ.hints.filter(h => h.trim()),
+      }
+      if (newQ.question_type === 'multiple_choice') {
+        payload.options = newQ.options
+        const correct = newQ.options.find(o => o.is_correct)
+        payload.correct_answer = correct?.text || ''
+      } else {
+        payload.correct_answer = newQ.correct_answer || undefined
+      }
+      await api.post('/instructor/question-bank', payload)
+    },
+    onSuccess: () => {
+      toast.success('Question created')
+      queryClient.invalidateQueries({ queryKey: ['question-bank'] })
+      queryClient.invalidateQueries({ queryKey: ['question-bank-stats'] })
+      setShowCreateModal(false)
+      resetCreateForm()
+    },
+    onError: () => {
+      toast.error('Failed to create question')
+    }
+  })
+
   // Filtered questions
   const filteredQuestions = questions.filter(q => {
     if (searchQuery) {
@@ -222,10 +306,16 @@ export default function QuestionBankPage() {
           title={tPilot('title')}
           description={tPilot('description')}
           action={
-            <Button variant="outline" onClick={() => setShowStats(!showStats)} className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              {showStats ? tPilot('hideStats') : tPilot('showStats')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setShowStats(!showStats)} className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                {showStats ? tPilot('hideStats') : tPilot('showStats')}
+              </Button>
+              <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Question
+              </Button>
+            </div>
           }
         />
 
@@ -858,6 +948,248 @@ export default function QuestionBankPage() {
             </div>
           </Stack>
         )}
+      </ModalLayout>
+
+      {/* Create Question Modal */}
+      <ModalLayout
+        open={showCreateModal}
+        onClose={() => { setShowCreateModal(false); resetCreateForm() }}
+        title="Create Question"
+        size="xl"
+        footer={
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => { setShowCreateModal(false); resetCreateForm() }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => createMutation.mutate()}
+              disabled={!newQ.concept_id || !newQ.question_text.trim() || createMutation.isPending}
+              className="gap-2"
+            >
+              {createMutation.isPending && <span className="animate-spin">⏳</span>}
+              Create Question
+            </Button>
+          </div>
+        }
+      >
+        <Stack gap="lg">
+          {/* Concept selector */}
+          <div>
+            <LabelText required>Concept</LabelText>
+            <Select value={newQ.concept_id} onValueChange={(v) => setNewQ({ ...newQ, concept_id: v })}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select a concept..." />
+              </SelectTrigger>
+              <SelectContent>
+                {allConcepts.map(c => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name} ({c.course_title})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Question Type */}
+          <div>
+            <LabelText required>Question Type</LabelText>
+            <Select
+              value={newQ.question_type}
+              onValueChange={(v) => {
+                setNewQ({
+                  ...newQ,
+                  question_type: v,
+                  options: v === 'multiple_choice' ? [
+                    { id: crypto.randomUUID(), text: '', is_correct: true },
+                    { id: crypto.randomUUID(), text: '', is_correct: false },
+                    { id: crypto.randomUUID(), text: '', is_correct: false },
+                    { id: crypto.randomUUID(), text: '', is_correct: false },
+                  ] : [],
+                })
+              }}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                <SelectItem value="short_answer">Short Answer</SelectItem>
+                <SelectItem value="true_false">True / False</SelectItem>
+                <SelectItem value="fill_blank">Fill in the Blank</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Question Text */}
+          <div>
+            <LabelText required>Question Text</LabelText>
+            <Textarea
+              value={newQ.question_text}
+              onChange={(e) => setNewQ({ ...newQ, question_text: e.target.value })}
+              rows={4}
+              className="mt-1"
+              placeholder="Enter your question..."
+            />
+          </div>
+
+          {/* Options (for MCQ) */}
+          {newQ.question_type === 'multiple_choice' && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <LabelText>Answer Options</LabelText>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setNewQ({
+                      ...newQ,
+                      options: [...newQ.options, { id: crypto.randomUUID(), text: '', is_correct: false }]
+                    })
+                  }}
+                  className="gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add Option
+                </Button>
+              </div>
+              <Stack gap="sm">
+                {newQ.options.map((option, idx) => (
+                  <div key={option.id} className="flex items-start gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = newQ.options.map((o, i) => ({
+                          ...o,
+                          is_correct: i === idx
+                        }))
+                        setNewQ({ ...newQ, options: updated })
+                      }}
+                      className={`mt-2.5 flex-shrink-0 w-5 h-5 rounded-full border-2 transition-colors ${
+                        option.is_correct
+                          ? 'bg-green-500 border-green-500'
+                          : 'border-muted-foreground/50 hover:border-green-400'
+                      }`}
+                      title={option.is_correct ? 'Correct answer' : 'Mark as correct'}
+                    />
+                    <Input
+                      value={option.text}
+                      onChange={(e) => {
+                        const updated = newQ.options.map((o, i) =>
+                          i === idx ? { ...o, text: e.target.value } : o
+                        )
+                        setNewQ({ ...newQ, options: updated })
+                      }}
+                      placeholder={`Option ${idx + 1}`}
+                      className="flex-1"
+                    />
+                    {newQ.options.length > 2 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="mt-0.5 h-8 w-8 flex-shrink-0"
+                        onClick={() => {
+                          setNewQ({ ...newQ, options: newQ.options.filter((_, i) => i !== idx) })
+                        }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </Stack>
+              <HelperText className="mt-1">Click the circle to mark the correct answer</HelperText>
+            </div>
+          )}
+
+          {/* Correct Answer (for non-MCQ) */}
+          {newQ.question_type !== 'multiple_choice' && (
+            <div>
+              <LabelText>Correct Answer</LabelText>
+              <Input
+                value={newQ.correct_answer}
+                onChange={(e) => setNewQ({ ...newQ, correct_answer: e.target.value })}
+                className="mt-1"
+                placeholder="Enter the correct answer"
+              />
+            </div>
+          )}
+
+          {/* Difficulty */}
+          <div>
+            <LabelText>Difficulty</LabelText>
+            <Select value={newQ.difficulty_tier} onValueChange={(v) => setNewQ({ ...newQ, difficulty_tier: v })}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Explanation */}
+          <div>
+            <LabelText>Explanation</LabelText>
+            <Textarea
+              value={newQ.explanation}
+              onChange={(e) => setNewQ({ ...newQ, explanation: e.target.value })}
+              rows={3}
+              className="mt-1"
+              placeholder="Explain the correct answer..."
+            />
+          </div>
+
+          {/* Hints */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <LabelText>Hints</LabelText>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setNewQ({ ...newQ, hints: [...newQ.hints, ''] })}
+                className="gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                Add Hint
+              </Button>
+            </div>
+            {newQ.hints.length > 0 ? (
+              <Stack gap="sm">
+                {newQ.hints.map((hint, idx) => (
+                  <div key={idx} className="flex items-start gap-2">
+                    <span className="mt-2.5 text-xs text-muted-foreground font-medium flex-shrink-0 w-4">{idx + 1}.</span>
+                    <Input
+                      value={hint}
+                      onChange={(e) => {
+                        const updated = [...newQ.hints]
+                        updated[idx] = e.target.value
+                        setNewQ({ ...newQ, hints: updated })
+                      }}
+                      placeholder={`Hint ${idx + 1}`}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="mt-0.5 h-8 w-8 flex-shrink-0"
+                      onClick={() => setNewQ({ ...newQ, hints: newQ.hints.filter((_, i) => i !== idx) })}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </Stack>
+            ) : (
+              <Text size="sm" variant="muted">No hints yet. Hints help students progressively.</Text>
+            )}
+          </div>
+        </Stack>
       </ModalLayout>
     </PageShell>
   )

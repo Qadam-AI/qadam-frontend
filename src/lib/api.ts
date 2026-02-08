@@ -492,6 +492,21 @@ export async function removeConceptFromLesson(
   await api.delete(`/instructor/courses/${courseId}/lessons/${lessonId}/concepts/${conceptId}`)
 }
 
+export async function createConcept(
+  courseId: string,
+  data: { name: string; description?: string; difficulty?: string; lesson_id?: string }
+): Promise<{ success: boolean; id: string; name: string }> {
+  const res = await api.post(`/instructor/courses/${courseId}/concepts`, data)
+  return res.data
+}
+
+export async function deleteConcept(
+  courseId: string,
+  conceptId: string
+): Promise<void> {
+  await api.delete(`/instructor/courses/${courseId}/concepts/${conceptId}`)
+}
+
 // ===== Concept Details + Question Generation =====
 
 export interface QuestionSummary {

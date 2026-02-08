@@ -61,6 +61,7 @@ function VideoPlayer({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const progressRef = useRef<HTMLDivElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -68,6 +69,8 @@ function VideoPlayer({
   const [playbackRate, setPlaybackRate] = useState(1)
   const [showControls, setShowControls] = useState(true)
   const [hasWatched80Percent, setHasWatched80Percent] = useState(false)
+  const maxWatchedRef = useRef(0)
+  const [maxWatched, setMaxWatched] = useState(0)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
 
   const formatTime = (time: number) => {
@@ -92,11 +95,29 @@ function VideoPlayer({
       const current = videoRef.current.currentTime
       const dur = videoRef.current.duration
       setCurrentTime(current)
+
+      // Track maximum watched position (allow small buffer for buffering jumps)
+      if (current > maxWatchedRef.current) {
+        maxWatchedRef.current = current
+        setMaxWatched(current)
+      }
       
       const progress = (current / dur) * 100
       if (progress >= 80 && !hasWatched80Percent) {
         setHasWatched80Percent(true)
         onComplete()
+      }
+    }
+  }
+
+  // Prevent seeking forward past maxWatched
+  const handleSeeking = () => {
+    if (videoRef.current) {
+      const seekTarget = videoRef.current.currentTime
+      const allowed = maxWatchedRef.current + 2 // 2s tolerance
+      if (seekTarget > allowed) {
+        videoRef.current.currentTime = maxWatchedRef.current
+        setCurrentTime(maxWatchedRef.current)
       }
     }
   }
@@ -117,11 +138,56 @@ function VideoPlayer({
     }, 3000)
   }
 
+  // Prevent right-click
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault()
+    return false
+  }
+
+  // Handle progress bar click — only allow seeking backward
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressRef.current || !videoRef.current || duration === 0) return
+    const rect = progressRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const pct = x / rect.width
+    const targetTime = pct * duration
+    const allowed = maxWatchedRef.current + 2
+    // Only allow seeking to a position already watched
+    if (targetTime <= allowed) {
+      videoRef.current.currentTime = targetTime
+      setCurrentTime(targetTime)
+    }
+  }
+
+  // Prevent keyboard seeking shortcuts
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Block arrow keys for seeking forward
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        if (videoRef.current && videoRef.current.currentTime >= maxWatchedRef.current) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }
+    }
+
+    container.addEventListener('keydown', handleKeyDown)
+    return () => container.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0
+  const maxWatchedPct = duration > 0 ? (maxWatched / duration) * 100 : 0
+
   return (
     <div 
       ref={containerRef}
-      className="relative aspect-video bg-black rounded-xl overflow-hidden"
+      className="relative aspect-video bg-black rounded-xl overflow-hidden select-none"
       onMouseMove={handleMouseMove}
+      onContextMenu={handleContextMenu}
+      tabIndex={0}
     >
       <video
         ref={videoRef}
@@ -129,9 +195,13 @@ function VideoPlayer({
         src={src}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onSeeking={handleSeeking}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onClick={handlePlayPause}
+        onContextMenu={handleContextMenu}
+        controlsList="nodownload nofullscreen"
+        disablePictureInPicture
       />
 
       {/* Play button overlay */}
@@ -155,6 +225,28 @@ function VideoPlayer({
           animate={{ opacity: 1 }}
           className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4"
         >
+          {/* Progress bar */}
+          <div
+            ref={progressRef}
+            className="relative w-full h-2 bg-white/20 rounded-full mb-3 cursor-pointer group"
+            onClick={handleProgressClick}
+          >
+            {/* Max watched indicator */}
+            <div
+              className="absolute top-0 left-0 h-full bg-white/30 rounded-full"
+              style={{ width: `${Math.min(maxWatchedPct, 100)}%` }}
+            />
+            {/* Current position */}
+            <div
+              className="absolute top-0 left-0 h-full bg-primary rounded-full transition-[width] duration-100"
+              style={{ width: `${Math.min(progressPct, 100)}%` }}
+            />
+            {/* Scrubber handle */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ left: `calc(${Math.min(progressPct, 100)}% - 7px)` }}
+            />
+          </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button onClick={handlePlayPause} className="text-white hover:text-primary transition-colors">
@@ -198,6 +290,20 @@ function VideoPlayer({
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+              <button
+                onClick={() => {
+                  if (containerRef.current) {
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen()
+                    } else {
+                      containerRef.current.requestFullscreen()
+                    }
+                  }
+                }}
+                className="text-white hover:text-primary transition-colors"
+              >
+                <Maximize className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </motion.div>

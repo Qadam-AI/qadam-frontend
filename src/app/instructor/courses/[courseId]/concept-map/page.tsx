@@ -17,6 +17,8 @@ import {
   BarChart3,
   AlertTriangle,
   X,
+  Plus,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -27,6 +29,8 @@ import {
   suggestQuestionsForConcepts,
   generateQuestionsForConcept,
   updateConcept,
+  createConcept,
+  deleteConcept,
   type ConceptMapNode,
   type LessonMapLane,
   type QuestionTypeSuggestion,
@@ -37,9 +41,12 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { PageShell, Section } from '@/design-system/layout'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PageShell, Section, Stack } from '@/design-system/layout'
 import { LoadingState, EmptyState } from '@/design-system/feedback'
-import { Heading, Text } from '@/design-system/typography'
+import { Heading, Text, LabelText } from '@/design-system/typography'
+import { ModalLayout } from '@/design-system/patterns/modal-layout'
 import { EditConceptModal } from './components/EditConceptModal'
 
 // ===== Difficulty helpers =====
@@ -211,6 +218,7 @@ function ConceptDetailPanel({
   suggestion,
   onClose,
   onEdit,
+  onDelete,
   onGenerateQuestions,
   isGenerating,
 }: {
@@ -220,6 +228,7 @@ function ConceptDetailPanel({
   suggestion?: QuestionTypeSuggestion
   onClose: () => void
   onEdit: () => void
+  onDelete: (conceptId: string) => void
   onGenerateQuestions: (conceptId: string, types: string[], perTier: number) => void
   isGenerating: boolean
 }) {
@@ -481,6 +490,19 @@ function ConceptDetailPanel({
           <Button variant="outline" size="sm" onClick={onEdit} className="flex-1">
             Edit Concept
           </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              if (confirm(`Delete "${concept.name}" and all its questions? This cannot be undone.`)) {
+                onDelete(conceptId)
+              }
+            }}
+            className="gap-1"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete
+          </Button>
         </div>
       </div>
     </motion.div>
@@ -496,6 +518,10 @@ export default function ConceptMapPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedConceptId, setSelectedConceptId] = useState<string | null>(null)
   const [editingConceptId, setEditingConceptId] = useState<string | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [newConceptName, setNewConceptName] = useState('')
+  const [newConceptDescription, setNewConceptDescription] = useState('')
+  const [newConceptDifficulty, setNewConceptDifficulty] = useState('medium')
 
   // Fetch concept map data
   const { data: mapData, isLoading } = useQuery({
@@ -536,6 +562,37 @@ export default function ConceptMapPage() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || 'Failed to update concept')
+    },
+  })
+
+  // Create concept mutation
+  const createConceptMutation = useMutation({
+    mutationFn: (data: { name: string; description?: string; difficulty?: string }) =>
+      createConcept(courseId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conceptMap', courseId] })
+      toast.success('Concept created')
+      setShowCreateModal(false)
+      setNewConceptName('')
+      setNewConceptDescription('')
+      setNewConceptDifficulty('medium')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to create concept')
+    },
+  })
+
+  // Delete concept mutation
+  const deleteConceptMutation = useMutation({
+    mutationFn: (conceptId: string) => deleteConcept(courseId, conceptId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conceptMap', courseId] })
+      queryClient.invalidateQueries({ queryKey: ['question-bank'] })
+      toast.success('Concept deleted')
+      setSelectedConceptId(null)
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to delete concept')
     },
   })
 
@@ -584,10 +641,10 @@ export default function ConceptMapPage() {
           <EmptyState
             icon={GitBranch}
             title="No concepts yet"
-            description="Create lessons and add content — concepts will be extracted automatically."
+            description="Process lesson materials to extract concepts automatically, or create concepts manually."
             action={{
-              label: 'Go to Lessons',
-              href: `/instructor/courses/${courseId}/lessons`,
+              label: 'Create Concept',
+              onClick: () => setShowCreateModal(true),
             }}
           />
         </Section>
@@ -647,6 +704,16 @@ export default function ConceptMapPage() {
                   <Sparkles className="h-4 w-4" />
                 )}
                 AI Suggest
+              </Button>
+
+              {/* Create Concept button */}
+              <Button
+                size="sm"
+                onClick={() => setShowCreateModal(true)}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                New Concept
               </Button>
             </div>
           </div>
@@ -725,6 +792,7 @@ export default function ConceptMapPage() {
             suggestion={selectedSuggestion}
             onClose={() => setSelectedConceptId(null)}
             onEdit={() => setEditingConceptId(selectedConceptId)}
+            onDelete={(id) => deleteConceptMutation.mutate(id)}
             onGenerateQuestions={(cId, types, perTier) => {
               generateMutation.mutate({ conceptId: cId, types, perTier })
             }}
@@ -745,6 +813,70 @@ export default function ConceptMapPage() {
           isLoading={updateConceptMutation.isPending}
         />
       )}
+
+      {/* Create Concept Modal */}
+      <ModalLayout
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Create New Concept"
+        size="md"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => createConceptMutation.mutate({
+                name: newConceptName,
+                description: newConceptDescription || undefined,
+                difficulty: newConceptDifficulty,
+              })}
+              disabled={!newConceptName.trim() || createConceptMutation.isPending}
+              className="gap-2"
+            >
+              {createConceptMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              Create Concept
+            </Button>
+          </>
+        }
+      >
+        <Stack gap="md">
+          <div>
+            <LabelText required>Concept Name</LabelText>
+            <Input
+              value={newConceptName}
+              onChange={(e) => setNewConceptName(e.target.value)}
+              placeholder="e.g., Variables, Loop Structures"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <LabelText>Description</LabelText>
+            <Textarea
+              value={newConceptDescription}
+              onChange={(e) => setNewConceptDescription(e.target.value)}
+              placeholder="Brief description of this concept..."
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <LabelText>Difficulty</LabelText>
+            <Select value={newConceptDifficulty} onValueChange={setNewConceptDifficulty}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </Stack>
+      </ModalLayout>
+
+
 
       {/* Generating overlay */}
       {generateMutation.isPending && (
