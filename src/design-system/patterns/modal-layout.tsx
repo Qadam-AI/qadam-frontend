@@ -42,18 +42,18 @@ export function ModalLayout({
   
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className={cn(sizeClasses[size], 'max-h-[85vh] flex flex-col')}>
-        <DialogHeader>
+      <DialogContent className={cn(sizeClasses[size])}>
+        <DialogHeader className="shrink-0">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         
-        <div className="py-4 overflow-y-auto flex-1 min-h-0">
+        <div className="overflow-y-auto flex-1 min-h-0">
           {children}
         </div>
         
         {footer && (
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             {footer}
           </DialogFooter>
         )}

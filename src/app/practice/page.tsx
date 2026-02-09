@@ -174,14 +174,23 @@ function PracticeContent() {
 
   // Error state
   if (nextError) {
+    const errorMessage = (nextError as any)?.response?.data?.detail || ''
+    const isNoConceptsError = errorMessage.toLowerCase().includes('no concepts')
+    
     return (
       <PageShell maxWidth="lg">
         <div className="py-12">
           <EmptyState
             icon={Lightbulb}
-            title="Unable to load practice"
-            description="Please try again later or contact support if the problem persists."
-            action={{
+            title={isNoConceptsError ? "No practice content yet" : "Unable to load practice"}
+            description={isNoConceptsError 
+              ? "Your courses don't have practice concepts yet. Ask your instructor to add concepts and questions."
+              : "Please try again later or contact support if the problem persists."
+            }
+            action={isNoConceptsError ? {
+              label: 'Go to My Courses',
+              onClick: () => window.location.href = '/courses'
+            } : {
               label: 'Try Again',
               onClick: () => refetchNext()
             }}

@@ -33,12 +33,12 @@ interface CourseDetails {
   id: string
   title: string
   description?: string
-  instructor_name?: string
-  thumbnail_url?: string
-  total_lessons: number
-  completed_lessons: number
-  progress_percent: number
-  enrolled_at: string
+  instructorName?: string
+  thumbnailUrl?: string
+  totalLessons: number
+  completedLessons: number
+  progressPercent: number
+  enrolledAt: string
   lessons: LessonItem[]
 }
 
@@ -46,12 +46,12 @@ interface LessonItem {
   id: string
   title: string
   description?: string
-  content_type: 'video' | 'text' | 'file'
-  duration_minutes?: number
+  contentType: 'video' | 'text' | 'file'
+  durationMinutes?: number
   position: number
-  is_completed: boolean
-  is_locked: boolean
-  progress_percent?: number
+  isCompleted: boolean
+  isLocked: boolean
+  progressPercent?: number
 }
 
 function CourseDetailContent() {
@@ -92,7 +92,7 @@ function CourseDetailContent() {
     )
   }
 
-  const nextLesson = course.lessons.find(l => !l.is_completed && !l.is_locked)
+  const nextLesson = course.lessons.find(l => !l.isCompleted && !l.isLocked)
 
   return (
     <PageShell maxWidth="2xl">
@@ -112,9 +112,9 @@ function CourseDetailContent() {
         {/* Course Header */}
         <SurfaceCard variant="elevated">
           <div className="flex items-start gap-6">
-            {course.thumbnail_url ? (
+            {course.thumbnailUrl ? (
               <img 
-                src={course.thumbnail_url}
+                src={course.thumbnailUrl}
                 alt={course.title}
                 className="w-32 h-32 rounded-lg object-cover"
               />
@@ -125,10 +125,10 @@ function CourseDetailContent() {
             )}
             <div className="flex-1">
               <Heading level={1} className="mb-2">{course.title}</Heading>
-              {course.instructor_name && (
+              {course.instructorName && (
                 <div className="flex items-center gap-2 text-muted-foreground mb-3">
                   <User className="h-4 w-4" />
-                  <Text variant="muted">by {course.instructor_name}</Text>
+                  <Text variant="muted">by {course.instructorName}</Text>
                 </div>
               )}
               {course.description && (
@@ -144,12 +144,12 @@ function CourseDetailContent() {
             <div className="flex items-center justify-between">
               <LabelText>Course Progress</LabelText>
               <Text className="text-2xl font-bold text-primary">
-                {Math.round(course.progress_percent)}%
+                {Math.round(course.progressPercent)}%
               </Text>
             </div>
-            <Progress value={course.progress_percent} className="h-3" />
+            <Progress value={course.progressPercent} className="h-3" />
             <Text size="sm" variant="muted">
-              {course.completed_lessons} of {course.total_lessons} lessons completed
+              {course.completedLessons} of {course.totalLessons} lessons completed
             </Text>
           </Stack>
         </SurfaceCard>
@@ -170,7 +170,7 @@ function CourseDetailContent() {
         )}
 
         {/* Lessons List */}
-        <Section title="Course Content" description={`${course.total_lessons} lessons`}>
+        <Section title="Course Content" description={`${course.totalLessons} lessons`}>
           <Stack gap="sm">
             {course.lessons.map((lesson, index) => (
               <motion.div
@@ -180,28 +180,28 @@ function CourseDetailContent() {
                 transition={{ delay: index * 0.02 }}
               >
                 <Link 
-                  href={lesson.is_locked ? '#' : `/lesson/${lesson.id}`}
-                  className={lesson.is_locked ? 'pointer-events-none' : ''}
+                  href={lesson.isLocked ? '#' : `/lesson/${lesson.id}`}
+                  className={lesson.isLocked ? 'pointer-events-none' : ''}
                 >
                   <SurfaceCard 
                     className={cn(
                       "transition-all",
-                      lesson.is_locked ? 'opacity-60' : 'hover:shadow-md cursor-pointer'
+                      lesson.isLocked ? 'opacity-60' : 'hover:shadow-md cursor-pointer'
                     )}
                   >
                     <div className="flex items-center gap-4">
                       {/* Number/Icon */}
                       <div className={cn(
                         "w-12 h-12 rounded-lg flex items-center justify-center shrink-0 font-semibold",
-                        lesson.is_completed 
+                        lesson.isCompleted 
                           ? 'bg-green-500/10 text-green-600' 
-                          : lesson.is_locked
+                          : lesson.isLocked
                           ? 'bg-muted text-muted-foreground'
                           : 'bg-primary/10 text-primary'
                       )}>
-                        {lesson.is_completed ? (
+                        {lesson.isCompleted ? (
                           <CheckCircle2 className="h-6 w-6" />
-                        ) : lesson.is_locked ? (
+                        ) : lesson.isLocked ? (
                           <Lock className="h-5 w-5" />
                         ) : (
                           <span>{lesson.position}</span>
@@ -214,16 +214,16 @@ function CourseDetailContent() {
                           {lesson.title}
                         </Text>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          {lesson.duration_minutes && (
+                          {lesson.durationMinutes && (
                             <span className="flex items-center gap-1">
                               <Clock className="h-3.5 w-3.5" />
-                              {lesson.duration_minutes} min
+                              {lesson.durationMinutes} min
                             </span>
                           )}
                           <Badge variant="outline" className="text-xs">
-                            {lesson.content_type}
+                            {lesson.contentType}
                           </Badge>
-                          {lesson.is_locked && (
+                          {lesson.isLocked && (
                             <Badge variant="secondary" className="text-xs">
                               Locked
                             </Badge>
@@ -233,12 +233,12 @@ function CourseDetailContent() {
 
                       {/* Status */}
                       <div className="shrink-0">
-                        {lesson.is_completed ? (
+                        {lesson.isCompleted ? (
                           <Badge variant="default" className="bg-green-600 gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             Done
                           </Badge>
-                        ) : lesson.is_locked ? (
+                        ) : lesson.isLocked ? (
                           <Badge variant="secondary">Locked</Badge>
                         ) : (
                           <Button size="sm" variant="ghost" className="gap-2">
