@@ -285,14 +285,6 @@ export interface StudentProgress {
   last_activity?: string
 }
 
-export interface Invitation {
-  id: string
-  email: string
-  status: string
-  created_at: string
-  expires_at?: string
-}
-
 export interface CourseAnalytics {
   course_id: string
   total_students: number
@@ -318,16 +310,6 @@ export interface CreateLessonRequest {
   content?: string
   order_index: number
   duration_minutes?: number
-}
-
-export interface InviteStudentsRequest {
-  emails: string[]
-}
-
-export interface InviteResponse {
-  sent: number
-  already_enrolled: string[]
-  invalid_emails: string[]
 }
 
 // Course management
@@ -381,25 +363,9 @@ export async function getCourseStudents(courseId: string): Promise<StudentProgre
   return response.data
 }
 
-export async function getCourseInvitations(courseId: string): Promise<Invitation[]> {
-  const response = await api.get<Invitation[]>(`/instructor/courses/${courseId}/invitations`)
-  return response.data
-}
-
 export async function getCourseAnalytics(courseId: string): Promise<CourseAnalytics> {
   const response = await api.get<CourseAnalytics>(`/instructor/courses/${courseId}/analytics`)
   return response.data
-}
-
-export async function inviteStudents(courseId: string, emails: string[]): Promise<InviteResponse> {
-  const response = await api.post<InviteResponse>(`/instructor/courses/${courseId}/invite`, {
-    emails
-  })
-  return response.data
-}
-
-export async function cancelInvitation(invitationId: string): Promise<void> {
-  await api.delete(`/instructor/invitations/${invitationId}`)
 }
 
 // Dashboard overview

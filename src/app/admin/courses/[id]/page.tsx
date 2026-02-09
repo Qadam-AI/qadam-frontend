@@ -43,12 +43,10 @@ import {
   GraduationCap,
   GripVertical,
   Link as LinkIcon,
-  Mail,
   MoreVertical,
   Pencil,
   Play,
   Plus,
-  Send,
   Trash2,
   Upload,
   UserPlus,
@@ -57,8 +55,6 @@ import {
   X,
   Eye,
   EyeOff,
-  CheckCircle2,
-  XCircle,
   Loader2,
   File,
 } from 'lucide-react'
@@ -100,14 +96,6 @@ interface Student {
   total_lessons: number
 }
 
-interface Invitation {
-  id: string
-  email: string
-  status: string
-  created_at: string
-  expires_at: string | null
-}
-
 interface User {
   id: string
   name: string
@@ -133,13 +121,11 @@ export default function CourseDetailPage() {
 
   // Dialog states
   const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false)
-  const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [isEnrollOpen, setIsEnrollOpen] = useState(false)
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null)
 
   // Form states
   const [lessonForm, setLessonForm] = useState(emptyLessonForm)
-  const [inviteEmails, setInviteEmails] = useState('')
   const [selectedUserId, setSelectedUserId] = useState('')
   const [newResource, setNewResource] = useState({ title: '', url: '', type: 'link' })
 
@@ -168,13 +154,6 @@ export default function CourseDetailPage() {
   const { data: students, isLoading: studentsLoading } = useQuery<Student[]>({
     queryKey: ['course-students', courseId],
     queryFn: async () => (await api.get(`/enrollments/course/${courseId}/students`)).data,
-    enabled: !!courseId,
-  })
-
-  // Fetch invitations
-  const { data: invitations } = useQuery<Invitation[]>({
-    queryKey: ['course-invitations', courseId],
-    queryFn: async () => (await api.get(`/enrollments/course/${courseId}/invitations`)).data,
     enabled: !!courseId,
   })
 
@@ -228,19 +207,6 @@ export default function CourseDetailPage() {
     onError: () => toast.error('Failed to delete lesson'),
   })
 
-  const sendInvitesMutation = useMutation({
-    mutationFn: async (emails: string[]) => {
-      await api.post('/enrollments/invitations/bulk', { course_id: courseId, emails })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-invitations', courseId] })
-      setIsInviteOpen(false)
-      setInviteEmails('')
-      toast.success('Invitations sent')
-    },
-    onError: () => toast.error('Failed to send invitations'),
-  })
-
   const enrollMutation = useMutation({
     mutationFn: async (userId: string) => {
       await api.post(`/enrollments/course/${courseId}/enroll/${userId}`)
@@ -261,16 +227,6 @@ export default function CourseDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-students', courseId] })
       toast.success('Student removed')
-    },
-  })
-
-  const cancelInviteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/enrollments/invitations/${id}`)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-invitations', courseId] })
-      toast.success('Invitation cancelled')
     },
   })
 
@@ -416,18 +372,6 @@ export default function CourseDetailPage() {
     }
   }
 
-  const handleSendInvites = () => {
-    const emails = inviteEmails
-      .split(/[,\n]/)
-      .map((e) => e.trim())
-      .filter((e) => e.includes('@'))
-    if (emails.length === 0) {
-      toast.error('Please enter valid emails')
-      return
-    }
-    sendInvitesMutation.mutate(emails)
-  }
-
   const availableUsers = allUsers?.filter((u) => !students?.some((s) => s.user_id === u.id))
 
   if (!course) {
@@ -461,7 +405,7 @@ export default function CourseDetailPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -482,17 +426,6 @@ export default function CourseDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{students?.length || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Mail className="h-4 w-4 text-orange-500" />
-              Pending Invites
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{invitations?.filter((i) => i.status === 'pending').length || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -520,10 +453,6 @@ export default function CourseDetailPage() {
           <TabsTrigger value="students">
             <GraduationCap className="h-4 w-4 mr-2" />
             Students
-          </TabsTrigger>
-          <TabsTrigger value="invitations">
-            <Mail className="h-4 w-4 mr-2" />
-            Invitations
           </TabsTrigger>
         </TabsList>
 
@@ -641,10 +570,6 @@ export default function CourseDetailPage() {
                 <UserPlus className="h-4 w-4 mr-2" />
                 Enroll
               </Button>
-              <Button onClick={() => setIsInviteOpen(true)}>
-                <Send className="h-4 w-4 mr-2" />
-                Invite
-              </Button>
             </div>
           </div>
 
@@ -656,11 +581,11 @@ export default function CourseDetailPage() {
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">No students yet</h3>
                 <p className="text-muted-foreground text-center mb-4">
-                  Invite students or enroll them manually
+                  Enroll students to this course
                 </p>
-                <Button onClick={() => setIsInviteOpen(true)}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Invite Students
+                <Button onClick={() => setIsEnrollOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Enroll Students
                 </Button>
               </CardContent>
             </Card>
@@ -691,59 +616,6 @@ export default function CourseDetailPage() {
                       <Button variant="ghost" size="icon" onClick={() => removeStudentMutation.mutate(student.user_id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Invitations Tab */}
-        <TabsContent value="invitations" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Invitations</h2>
-            <Button onClick={() => setIsInviteOpen(true)}>
-              <Send className="h-4 w-4 mr-2" />
-              Send Invitations
-            </Button>
-          </div>
-
-          {invitations?.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Mail className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No invitations sent</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Send email invitations to students
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-3">
-              {invitations?.map((inv) => (
-                <Card key={inv.id}>
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{inv.email}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Sent {new Date(inv.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge
-                        variant={inv.status === 'pending' ? 'outline' : inv.status === 'accepted' ? 'default' : 'destructive'}
-                      >
-                        {inv.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
-                        {inv.status === 'accepted' && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                        {inv.status === 'expired' && <XCircle className="h-3 w-3 mr-1" />}
-                        {inv.status}
-                      </Badge>
-                      {inv.status === 'pending' && (
-                        <Button variant="ghost" size="icon" onClick={() => cancelInviteMutation.mutate(inv.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1004,33 +876,6 @@ export default function CourseDetailPage() {
               disabled={createLessonMutation.isPending || updateLessonMutation.isPending}
             >
               {(createLessonMutation.isPending || updateLessonMutation.isPending) ? 'Saving...' : 'Save Lesson'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Invite Dialog */}
-      <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invite Students</DialogTitle>
-            <DialogDescription>Enter email addresses to send course invitations</DialogDescription>
-          </DialogHeader>
-          <div>
-            <Label>Email Addresses</Label>
-            <Textarea
-              value={inviteEmails}
-              onChange={(e) => setInviteEmails(e.target.value)}
-              placeholder="student1@example.com&#10;student2@example.com"
-              rows={5}
-              className="mt-1"
-            />
-            <p className="text-xs text-muted-foreground mt-1">One email per line or comma-separated</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsInviteOpen(false)}>Cancel</Button>
-            <Button onClick={handleSendInvites} disabled={sendInvitesMutation.isPending}>
-              {sendInvitesMutation.isPending ? 'Sending...' : 'Send Invitations'}
             </Button>
           </DialogFooter>
         </DialogContent>

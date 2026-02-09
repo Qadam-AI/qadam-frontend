@@ -187,7 +187,7 @@ export default function InstructorCoursesPage() {
               <EmptyState
                 icon={BookOpen}
                 title="No courses yet"
-                description="Start by creating your first course. Add lessons, extract concepts, and invite students."
+                description="Start by creating your first course. Add lessons, extract concepts, and share the join code."
                 action={{
                   label: 'Create Your First Course',
                   onClick: () => router.push('/instructor/courses/new')

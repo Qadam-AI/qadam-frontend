@@ -417,7 +417,7 @@ export default function InstructorDashboard() {
             <EmptyState
               icon={GraduationCap}
               title="Create Your First Course"
-              description="Start sharing your knowledge! Create a course, add lessons, extract concepts, and invite students."
+              description="Start sharing your knowledge! Create a course, add lessons, extract concepts, and share the join code."
               action={{
                 label: 'Create Course',
                 onClick: () => window.location.href = '/instructor/courses/new'

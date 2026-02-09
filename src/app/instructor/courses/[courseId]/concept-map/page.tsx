@@ -638,19 +638,100 @@ export default function ConceptMapPage() {
 
   if (!mapData || mapData.concepts.length === 0) {
     return (
-      <PageShell maxWidth="2xl">
-        <Section>
-          <EmptyState
-            icon={GitBranch}
-            title="No concepts yet"
-            description="Process lesson materials to extract concepts automatically, or create concepts manually."
-            action={{
-              label: 'Create Concept',
-              onClick: () => setShowCreateModal(true),
-            }}
-          />
-        </Section>
-      </PageShell>
+      <>
+        <PageShell maxWidth="2xl">
+          <Section>
+            <EmptyState
+              icon={GitBranch}
+              title="No concepts yet"
+              description="Process lesson materials to extract concepts automatically, or create concepts manually."
+              action={{
+                label: 'Create Concept',
+                onClick: () => setShowCreateModal(true),
+              }}
+            />
+          </Section>
+        </PageShell>
+
+        {/* Create Concept Modal (also needed in empty state) */}
+        <ModalLayout
+          open={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          title="Create New Concept"
+          size="md"
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => createConceptMutation.mutate({
+                  name: newConceptName,
+                  description: newConceptDescription || undefined,
+                  difficulty: newConceptDifficulty,
+                  lesson_id: newConceptLessonId || undefined,
+                })}
+                disabled={!newConceptName.trim() || createConceptMutation.isPending}
+                className="gap-2"
+              >
+                {createConceptMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Create Concept
+              </Button>
+            </>
+          }
+        >
+          <Stack gap="md">
+            <div>
+              <LabelText required>Concept Name</LabelText>
+              <Input
+                value={newConceptName}
+                onChange={(e) => setNewConceptName(e.target.value)}
+                placeholder="e.g., Variables, Loop Structures"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <LabelText>Description</LabelText>
+              <Textarea
+                value={newConceptDescription}
+                onChange={(e) => setNewConceptDescription(e.target.value)}
+                placeholder="Brief description of this concept..."
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <LabelText>Difficulty</LabelText>
+              <Select value={newConceptDifficulty} onValueChange={setNewConceptDifficulty}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <LabelText>Link to Lesson</LabelText>
+              <Select value={newConceptLessonId} onValueChange={setNewConceptLessonId}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select a lesson (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No lesson</SelectItem>
+                  {mapData?.lessons?.map((lesson: any) => (
+                    <SelectItem key={lesson.id} value={lesson.id}>
+                      {lesson.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </Stack>
+        </ModalLayout>
+      </>
     )
   }
 

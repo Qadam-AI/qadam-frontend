@@ -38,21 +38,11 @@ export default function JoinCoursePage() {
     retry: 1
   })
 
-  // Join mutation - tries join link first, falls back to invitation
+  // Join mutation
   const joinMutation = useMutation({
     mutationFn: async () => {
-      try {
-        // Try join link endpoint first
-        const res = await api.post(`/enrollments/join/${code}`)
-        return res.data
-      } catch (err: any) {
-        // If join link fails, try invitation endpoint (legacy support)
-        if (err.response?.status === 404) {
-          const res = await api.post(`/instructor/enroll/${code}`)
-          return res.data
-        }
-        throw err
-      }
+      const res = await api.post(`/enrollments/join/${code}`)
+      return res.data
     },
     onSuccess: (data) => {
       setStatus('success')
@@ -112,7 +102,7 @@ export default function JoinCoursePage() {
             <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
             <div className="relative z-10">
               <Badge className="mb-3 bg-white/20 text-white border-0 text-xs font-bold uppercase tracking-wider">
-                🎓 Course Invitation
+                🎓 Join Course
               </Badge>
               <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-4">
                 <BookOpen className="h-8 w-8 text-white" />
@@ -130,8 +120,8 @@ export default function JoinCoursePage() {
                 </>
               ) : (
                 <>
-                  <h2 className="text-xl font-bold">Course Invitation</h2>
-                  <p className="text-white/80 text-sm mt-1">You&apos;ve been invited to join a course</p>
+                  <h2 className="text-xl font-bold">Join Course</h2>
+                  <p className="text-white/80 text-sm mt-1">You&apos;ve been given access to join a course</p>
                 </>
               )}
             </div>
@@ -141,7 +131,7 @@ export default function JoinCoursePage() {
             {status === 'idle' && !infoError && (
               <>
                 <p className="text-center text-muted-foreground">
-                  Click below to accept the invitation and start your learning journey.
+                  Click below to join the course and start your learning journey.
                 </p>
                 <Button onClick={handleJoin} size="lg" className="w-full gap-2">
                   <Sparkles className="h-4 w-4" />

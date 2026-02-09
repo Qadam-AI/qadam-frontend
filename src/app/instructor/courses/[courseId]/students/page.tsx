@@ -1,31 +1,21 @@
 'use client'
 
-import { useState } from 'react'
 import { useParams } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
 import { 
   ArrowLeft, 
-  UserPlus, 
   Users,
-  Mail,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  X,
-  Send,
   TrendingUp,
   AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { motion } from 'framer-motion'
 import {
   Table,
   TableBody,
@@ -34,15 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 
 interface StudentProgress {
   user_id: string
@@ -57,14 +39,6 @@ interface StudentProgress {
   last_activity: string | null
 }
 
-interface Invitation {
-  id: string
-  email: string
-  status: string
-  created_at: string
-  expires_at: string | null
-}
-
 interface CourseAnalytics {
   course_id: string
   total_students: number
@@ -77,25 +51,12 @@ interface CourseAnalytics {
 
 export default function CourseStudentsPage() {
   const params = useParams()
-  const queryClient = useQueryClient()
   const courseId = params.courseId as string
-
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
-  const [emailInput, setEmailInput] = useState('')
-  const [emails, setEmails] = useState<string[]>([])
 
   const { data: students, isLoading: loadingStudents } = useQuery({
     queryKey: ['course-students', courseId],
     queryFn: async () => {
       const res = await api.get<StudentProgress[]>(`/instructor/courses/${courseId}/students`)
-      return res.data
-    }
-  })
-
-  const { data: invitations, isLoading: loadingInvitations } = useQuery({
-    queryKey: ['course-invitations', courseId],
-    queryFn: async () => {
-      const res = await api.get<Invitation[]>(`/instructor/courses/${courseId}/invitations`)
       return res.data
     }
   })
@@ -107,60 +68,6 @@ export default function CourseStudentsPage() {
       return res.data
     }
   })
-
-  const inviteMutation = useMutation({
-    mutationFn: async (emailList: string[]) => {
-      const res = await api.post(`/instructor/courses/${courseId}/invite`, {
-        emails: emailList
-      })
-      return res.data
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['course-invitations', courseId] })
-      toast.success(`${data.sent} invitation(s) sent!`)
-      if (data.already_enrolled.length > 0) {
-        toast.info(`${data.already_enrolled.length} already enrolled`)
-      }
-      setInviteDialogOpen(false)
-      setEmails([])
-      setEmailInput('')
-    },
-    onError: () => {
-      toast.error('Failed to send invitations')
-    }
-  })
-
-  const cancelInviteMutation = useMutation({
-    mutationFn: async (invitationId: string) => {
-      await api.delete(`/instructor/invitations/${invitationId}`)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-invitations', courseId] })
-      toast.success('Invitation cancelled')
-    },
-    onError: () => {
-      toast.error('Failed to cancel invitation')
-    }
-  })
-
-  const addEmail = () => {
-    const email = emailInput.trim().toLowerCase()
-    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !emails.includes(email)) {
-      setEmails([...emails, email])
-      setEmailInput('')
-    }
-  }
-
-  const removeEmail = (email: string) => {
-    setEmails(emails.filter(e => e !== email))
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault()
-      addEmail()
-    }
-  }
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600)
@@ -194,10 +101,6 @@ export default function CourseStudentsPage() {
             </p>
           </div>
         </div>
-        <Button onClick={() => setInviteDialogOpen(true)} className="gap-2">
-          <UserPlus className="h-4 w-4" />
-          Invite Students
-        </Button>
       </div>
 
       {/* Analytics Cards */}
@@ -247,24 +150,10 @@ export default function CourseStudentsPage() {
         )}
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="enrolled" className="space-y-8">
-        <TabsList className="bg-transparent p-0 gap-6 h-auto border-b w-full justify-start rounded-none">
-          <TabsTrigger 
-            value="enrolled"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 font-medium"
-          >
-            Enrolled Students ({students?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="invitations"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 font-medium"
-          >
-            Pending Invitations ({invitations?.filter(i => i.status === 'pending').length || 0})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="enrolled" className="mt-0">
+      {/* Students List */}
+      <div className="space-y-8">
+        <h3 className="text-lg font-medium">Enrolled Students ({students?.length || 0})</h3>
+        <div>
             {loadingStudents ? (
               <div className="space-y-4 py-4">
                 {[1, 2, 3].map(i => (
@@ -275,7 +164,7 @@ export default function CourseStudentsPage() {
               <div className="text-center py-16 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
                 <p className="text-lg font-serif">No students enrolled yet</p>
-                <p className="text-sm mt-1">Invite students to get started with this course.</p>
+                <p className="text-sm mt-1">Share the course join code to get started.</p>
               </div>
             ) : (
                 <Table>
@@ -339,124 +228,8 @@ export default function CourseStudentsPage() {
                     </TableBody>
                   </Table>
               )}
-        </TabsContent>
-
-        <TabsContent value="invitations" className="mt-0">
-              {loadingInvitations ? (
-                <div className="space-y-4 py-4">
-                  {[1, 2, 3].map(i => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : invitations?.length === 0 ? (
-                <div className="text-center py-16 text-muted-foreground">
-                  <Mail className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                  <p className="text-lg font-serif">No invitations sent yet</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent border-b border-border">
-                      <TableHead className="font-medium text-muted-foreground pl-0">Email</TableHead>
-                      <TableHead className="font-medium text-muted-foreground">Sent</TableHead>
-                      <TableHead className="font-medium text-muted-foreground">Expires</TableHead>
-                      <TableHead className="font-medium text-muted-foreground">Status</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {invitations?.map((invitation) => (
-                      <TableRow key={invitation.id} className="hover:bg-muted/30 border-b border-border/40">
-                        <TableCell className="pl-0 text-foreground font-medium">{invitation.email}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">{formatDate(invitation.created_at)}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {invitation.expires_at ? formatDate(invitation.expires_at) : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <span className={`text-xs px-2 py-1 rounded-full border ${
-                            invitation.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-200' :
-                            invitation.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-                            'bg-gray-50 text-gray-600 border-gray-200'
-                          }`}>
-                            {invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {invitation.status === 'pending' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground hover:text-destructive h-8 px-2"
-                              onClick={() => cancelInviteMutation.mutate(invitation.id)}
-                            >
-                              Revoke
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-        </TabsContent>
-      </Tabs>
-
-      {/* Invite Dialog */}
-      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invite Students</DialogTitle>
-            <DialogDescription>
-              Enter email addresses to invite students to this course
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="flex gap-2">
-              <Input
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="student@example.com"
-                type="email"
-              />
-              <Button variant="outline" onClick={addEmail}>
-                Add
-              </Button>
-            </div>
-            
-            {emails.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {emails.map((email) => (
-                  <Badge key={email} variant="secondary" className="gap-1">
-                    {email}
-                    <button onClick={() => removeEmail(email)}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-            
-            <p className="text-sm text-muted-foreground">
-              Students will receive an email with a link to join the course.
-              They need to register or login with the same email address.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => inviteMutation.mutate(emails)}
-              disabled={emails.length === 0 || inviteMutation.isPending}
-            >
-              {inviteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              <Send className="h-4 w-4 mr-2" />
-              Send {emails.length} Invitation{emails.length !== 1 ? 's' : ''}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   )
 }

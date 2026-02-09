@@ -11,10 +11,8 @@ import {
   CheckCircle2,
   Clock,
   Trophy,
-  Sparkles,
   ArrowRight,
-  GraduationCap,
-  Mail
+  GraduationCap
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -44,26 +42,11 @@ interface EnrolledCourse {
   thumbnail_url?: string
 }
 
-interface PendingInvitation {
-  id: string
-  course_title: string
-  instructor_name?: string
-  invite_token: string
-}
-
 function MyCoursesContent() {
   const { data: courses, isLoading } = useQuery({
     queryKey: ['my-courses'],
     queryFn: async () => {
       const res = await api.get<EnrolledCourse[]>('/instructor/my-courses')
-      return res.data
-    }
-  })
-
-  const { data: invitations } = useQuery({
-    queryKey: ['my-invitations'],
-    queryFn: async () => {
-      const res = await api.get<PendingInvitation[]>('/instructor/my-invitations')
       return res.data
     }
   })
@@ -124,47 +107,6 @@ function MyCoursesContent() {
             />
           </Grid>
         </Section>
-
-        {/* Pending Invitations */}
-        {invitations && invitations.length > 0 && (
-          <SurfaceCard variant="bordered" className="border-primary/30 bg-primary/5">
-            <Stack gap="md">
-              <div className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-primary" />
-                <Text className="font-semibold">Course Invitations</Text>
-              </div>
-              <Grid cols={2} gap="sm">
-                {invitations.map((inv, index) => (
-                  <motion.div 
-                    key={inv.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <SurfaceCard className="border shadow-sm">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex-1">
-                          <Text className="font-medium">{inv.course_title}</Text>
-                          {inv.instructor_name && (
-                            <Text size="sm" variant="muted">
-                              From {inv.instructor_name}
-                            </Text>
-                          )}
-                        </div>
-                        <Link href={`/courses/join/${inv.invite_token}`}>
-                          <Button size="sm" className="gap-1 shrink-0">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            Accept
-                          </Button>
-                        </Link>
-                      </div>
-                    </SurfaceCard>
-                  </motion.div>
-                ))}
-              </Grid>
-            </Stack>
-          </SurfaceCard>
-        )}
 
         {/* Courses Grid */}
         {courses?.length === 0 ? (
