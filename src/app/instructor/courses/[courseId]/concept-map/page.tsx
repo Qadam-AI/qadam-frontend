@@ -522,6 +522,7 @@ export default function ConceptMapPage() {
   const [newConceptName, setNewConceptName] = useState('')
   const [newConceptDescription, setNewConceptDescription] = useState('')
   const [newConceptDifficulty, setNewConceptDifficulty] = useState('medium')
+  const [newConceptLessonId, setNewConceptLessonId] = useState('')
 
   // Fetch concept map data
   const { data: mapData, isLoading } = useQuery({
@@ -567,7 +568,7 @@ export default function ConceptMapPage() {
 
   // Create concept mutation
   const createConceptMutation = useMutation({
-    mutationFn: (data: { name: string; description?: string; difficulty?: string }) =>
+    mutationFn: (data: { name: string; description?: string; difficulty?: string; lesson_id?: string }) =>
       createConcept(courseId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conceptMap', courseId] })
@@ -576,6 +577,7 @@ export default function ConceptMapPage() {
       setNewConceptName('')
       setNewConceptDescription('')
       setNewConceptDifficulty('medium')
+      setNewConceptLessonId('')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || 'Failed to create concept')
@@ -830,6 +832,7 @@ export default function ConceptMapPage() {
                 name: newConceptName,
                 description: newConceptDescription || undefined,
                 difficulty: newConceptDifficulty,
+                lesson_id: newConceptLessonId || undefined,
               })}
               disabled={!newConceptName.trim() || createConceptMutation.isPending}
               className="gap-2"
@@ -870,6 +873,22 @@ export default function ConceptMapPage() {
                 <SelectItem value="easy">Easy</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <LabelText>Link to Lesson</LabelText>
+            <Select value={newConceptLessonId} onValueChange={setNewConceptLessonId}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select a lesson (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No lesson</SelectItem>
+                {mapData?.lessons?.map((lesson: any) => (
+                  <SelectItem key={lesson.id} value={lesson.id}>
+                    {lesson.title}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -86,10 +86,10 @@ export default function QuestionBankPage() {
     question_type: 'multiple_choice',
     question_text: '',
     options: [
-      { id: crypto.randomUUID(), text: '', is_correct: true },
-      { id: crypto.randomUUID(), text: '', is_correct: false },
-      { id: crypto.randomUUID(), text: '', is_correct: false },
-      { id: crypto.randomUUID(), text: '', is_correct: false },
+      { id: Math.random().toString(36).slice(2), text: '', is_correct: true },
+      { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
+      { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
+      { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
     ] as Array<{ id: string; text: string; is_correct: boolean }>,
     correct_answer: '',
     explanation: '',
@@ -103,10 +103,10 @@ export default function QuestionBankPage() {
       question_type: 'multiple_choice',
       question_text: '',
       options: [
-        { id: crypto.randomUUID(), text: '', is_correct: true },
-        { id: crypto.randomUUID(), text: '', is_correct: false },
-        { id: crypto.randomUUID(), text: '', is_correct: false },
-        { id: crypto.randomUUID(), text: '', is_correct: false },
+        { id: Math.random().toString(36).slice(2), text: '', is_correct: true },
+        { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
+        { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
+        { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
       ],
       correct_answer: '',
       explanation: '',
@@ -748,7 +748,7 @@ export default function QuestionBankPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const newOption = { id: crypto.randomUUID(), text: '', is_correct: false }
+                      const newOption = { id: Math.random().toString(36).slice(2), text: '', is_correct: false }
                       setEditingQuestion({
                         ...editingQuestion,
                         options: [...(editingQuestion.options || []), newOption]
@@ -1000,10 +1000,10 @@ export default function QuestionBankPage() {
                   ...newQ,
                   question_type: v,
                   options: v === 'multiple_choice' ? [
-                    { id: crypto.randomUUID(), text: '', is_correct: true },
-                    { id: crypto.randomUUID(), text: '', is_correct: false },
-                    { id: crypto.randomUUID(), text: '', is_correct: false },
-                    { id: crypto.randomUUID(), text: '', is_correct: false },
+                    { id: Math.random().toString(36).slice(2), text: '', is_correct: true },
+                    { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
+                    { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
+                    { id: Math.random().toString(36).slice(2), text: '', is_correct: false },
                   ] : [],
                 })
               }}
@@ -1044,7 +1044,7 @@ export default function QuestionBankPage() {
                   onClick={() => {
                     setNewQ({
                       ...newQ,
-                      options: [...newQ.options, { id: crypto.randomUUID(), text: '', is_correct: false }]
+                      options: [...newQ.options, { id: Math.random().toString(36).slice(2), text: '', is_correct: false }]
                     })
                   }}
                   className="gap-1"
