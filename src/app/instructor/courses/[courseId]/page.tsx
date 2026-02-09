@@ -35,7 +35,8 @@ import {
   UserPlus,
   Copy,
   AlertCircle,
-  File
+  File,
+  KeyRound
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -358,6 +359,25 @@ export default function CourseDetailPage() {
     },
     onError: () => {
       toast.error('Failed to remove student')
+    }
+  })
+
+  // Reset student password mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (studentId: string) => {
+      const res = await api.post(`/instructor/students/${studentId}/reset-password`)
+      return res.data
+    },
+    onSuccess: (data) => {
+      setCreatedCredentials({
+        username: data.username,
+        password: data.password,
+      })
+      setShowAddStudentModal(true)
+      toast.success('Password reset successfully!')
+    },
+    onError: () => {
+      toast.error('Failed to reset password')
     }
   })
 
@@ -713,6 +733,16 @@ export default function CourseDetailPage() {
                           >
                             <Eye className="h-4 w-4" />
                             View Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="gap-2"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              resetPasswordMutation.mutate(student.user_id)
+                            }}
+                          >
+                            <KeyRound className="h-4 w-4" />
+                            Reset Password
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="gap-2 text-destructive"
