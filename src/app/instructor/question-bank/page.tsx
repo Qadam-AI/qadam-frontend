@@ -82,7 +82,7 @@ export default function QuestionBankPage() {
 
   // Create question form state
   const [newQ, setNewQ] = useState({
-    concept_id: '',
+    concept_id: 'none',
     question_type: 'multiple_choice',
     question_text: '',
     options: [
@@ -99,7 +99,7 @@ export default function QuestionBankPage() {
 
   const resetCreateForm = () => {
     setNewQ({
-      concept_id: '',
+      concept_id: 'none',
       question_type: 'multiple_choice',
       question_text: '',
       options: [
@@ -115,6 +115,15 @@ export default function QuestionBankPage() {
     })
   }
 
+  // Fetch courses
+  const { data: courses = [] } = useQuery({
+    queryKey: ['instructor-courses'],
+    queryFn: async () => {
+      const res = await api.get<Array<{ id: string; title: string }>>('/instructor/courses')
+      return res.data
+    }
+  })
+
   // All concepts across all courses (for create modal)
   const { data: allConcepts = [] } = useQuery({
     queryKey: ['all-instructor-concepts'],
@@ -129,15 +138,6 @@ export default function QuestionBankPage() {
       return result
     },
     enabled: courses.length > 0,
-  })
-
-  // Fetch courses
-  const { data: courses = [] } = useQuery({
-    queryKey: ['instructor-courses'],
-    queryFn: async () => {
-      const res = await api.get<Array<{ id: string; title: string }>>('/instructor/courses')
-      return res.data
-    }
   })
 
   // Fetch lessons for selected course
@@ -245,7 +245,7 @@ export default function QuestionBankPage() {
   const createMutation = useMutation({
     mutationFn: async () => {
       const payload: Record<string, unknown> = {
-        concept_id: newQ.concept_id,
+        concept_id: newQ.concept_id === 'none' ? undefined : newQ.concept_id,
         question_type: newQ.question_type,
         question_text: newQ.question_text,
         difficulty_tier: newQ.difficulty_tier,
@@ -963,7 +963,7 @@ export default function QuestionBankPage() {
             </Button>
             <Button
               onClick={() => createMutation.mutate()}
-              disabled={!newQ.concept_id || !newQ.question_text.trim() || createMutation.isPending}
+              disabled={newQ.concept_id === 'none' || !newQ.question_text.trim() || createMutation.isPending}
               className="gap-2"
             >
               {createMutation.isPending && <span className="animate-spin">⏳</span>}
@@ -981,6 +981,7 @@ export default function QuestionBankPage() {
                 <SelectValue placeholder="Select a concept..." />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">Select a concept...</SelectItem>
                 {allConcepts.map(c => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name} ({c.course_title})

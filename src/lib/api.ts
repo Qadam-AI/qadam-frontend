@@ -1,8 +1,11 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { toast } from 'sonner'
-
+//  s://qadam-backend-production.up.railway.app
+// http://localhost:8000/api/v1
 const api = axios.create({
+  
   baseURL: 'https://qadam-backend-production.up.railway.app/api/v1', // Update with your backend URL
+  // baseURL: 'http://localhost:8000/api/v1', // Update with your backend URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -145,27 +148,20 @@ api.interceptors.response.use(
 
 // ============ Image URL Helpers ============
 
-const API_BASE = 'https://qadam-backend-production.up.railway.app/api/v1'
-
 /**
- * Convert a storage file key to a cacheable image proxy URL.
- * Uses the backend image proxy endpoint which adds Cache-Control headers.
- * For R2 public URLs (already permanent/cacheable), returns them as-is.
+ * Convert a storage file key to a URL.
+ * R2 returns full presigned URLs, so we just return them as-is.
  */
 export function getImageUrl(keyOrUrl: string | null | undefined): string {
   if (!keyOrUrl) return ''
-  // Already a full URL (R2 public, or external image)
-  if (keyOrUrl.startsWith('http')) return keyOrUrl
-  // Storage key — use the image proxy
-  return `${API_BASE}/uploads/image?key=${encodeURIComponent(keyOrUrl)}`
+  // R2 returns full URLs starting with http
+  return keyOrUrl
 }
 
 export function getVideoUrl(keyOrUrl: string | null | undefined): string {
   if (!keyOrUrl) return ''
-  // Already a full URL (R2 public CDN, or external video)
-  if (keyOrUrl.startsWith('http')) return keyOrUrl
-  // Storage key — use the video proxy (redirects to CDN for R2)
-  return `${API_BASE}/uploads/video?key=${encodeURIComponent(keyOrUrl)}`
+  // R2 returns full URLs starting with http
+  return keyOrUrl
 }
 
 // ============ AI Chat API Functions ============

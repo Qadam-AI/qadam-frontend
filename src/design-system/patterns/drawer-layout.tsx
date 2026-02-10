@@ -48,7 +48,7 @@ export function DrawerLayout({
           {description && <SheetDescription>{description}</SheetDescription>}
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto py-6 -mx-6 px-6">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 -mx-6 px-7">
           {children}
         </div>
         

@@ -25,7 +25,7 @@ export const courseSchema = z.object({
 export const conceptSummarySchema = z.object({
   id: z.string(),
   name: z.string(),
-  slug: z.string().nullable(),
+  slug: z.string().nullable().optional(),
 })
 
 export const lessonSummarySchema = z.object({
@@ -40,10 +40,10 @@ export const courseDetailSchema = courseSchema.extend({
 })
 
 export const resourceItemSchema = z.object({
-  name: z.string().optional(),
-  title: z.string().optional(),
+  name: z.string().optional().nullable(),
+  title: z.string().optional().nullable(),
   url: z.string(),
-  type: z.string(),
+  type: z.string().nullable().optional(),
 })
 
 export const lessonSchema = z.object({
@@ -52,14 +52,16 @@ export const lessonSchema = z.object({
   title: z.string(),
   description: z.string().nullable().optional(),
   content: z.string().nullable().optional(),  // Markdown content
-  videoUrl: z.string().nullable(),
+  videoUrl: z.string().nullable().optional(),
+  videoQualities: z.record(z.string()).nullable().optional(),  // {360p: url, 720p: url}
+  transcodingStatus: z.string().nullable().optional(),  // pending, processing, completed, failed
   position: z.number(),
-  durationSeconds: z.number().nullable(),
+  durationSeconds: z.number().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  resources: z.array(resourceItemSchema).optional().default([]),
-  attachments: z.array(resourceItemSchema).optional().default([]),
-  concepts: z.array(conceptSummarySchema),
+  resources: z.array(resourceItemSchema).nullable().optional().default([]),
+  attachments: z.array(resourceItemSchema).nullable().optional().default([]),
+  concepts: z.array(conceptSummarySchema).nullable().optional().default([]),
 })
 
 export const masteryItemSchema = z.object({

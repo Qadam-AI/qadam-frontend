@@ -53,10 +53,12 @@ interface CourseLessons {
 }
 
 function VideoPlayer({ 
-  src, 
+  src,
+  qualities,
   onComplete 
 }: { 
   src: string
+  qualities?: Record<string, string>
   onComplete: () => void 
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -67,16 +69,53 @@ function VideoPlayer({
   const [duration, setDuration] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
+  const [selectedQuality, setSelectedQuality] = useState<string>("auto")
+  const [currentSrc, setCurrentSrc] = useState(src)
   const [showControls, setShowControls] = useState(true)
   const [hasWatched80Percent, setHasWatched80Percent] = useState(false)
   const maxWatchedRef = useRef(0)
   const [maxWatched, setMaxWatched] = useState(0)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
+  
+  // Determine available qualities
+  const availableQualities = qualities && Object.keys(qualities).length > 0
+    ? ["auto", ...Object.keys(qualities).sort((a, b) => {
+        const aNum = parseInt(a)
+        const bNum = parseInt(b)
+        return aNum - bNum
+      })]
+    : null
 
   const formatTime = (time: number) => {
     const mins = Math.floor(time / 60)
     const secs = Math.floor(time % 60)
     return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+  
+  // Handle quality change
+  const handleQualityChange = (quality: string) => {
+    if (!videoRef.current || !qualities) return
+    
+    const wasPlaying = !videoRef.current.paused
+    const currentTimeBeforeChange = videoRef.current.currentTime
+    
+    // Determine new source
+    let newSrc = src
+    if (quality !== "auto") {
+      newSrc = qualities[quality] || src
+    }
+    
+    setSelectedQuality(quality)
+    setCurrentSrc(newSrc)
+    
+    // Wait for video to load then restore position and play state
+    if (videoRef.current) {
+      videoRef.current.src = newSrc
+      videoRef.current.currentTime = currentTimeBeforeChange
+      if (wasPlaying) {
+        videoRef.current.play()
+      }
+    }
   }
 
   const handlePlayPause = () => {
@@ -192,7 +231,7 @@ function VideoPlayer({
       <video
         ref={videoRef}
         className="w-full h-full object-contain"
-        src={src}
+        src={currentSrc}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onSeeking={handleSeeking}
@@ -200,7 +239,9 @@ function VideoPlayer({
         onPause={() => setIsPlaying(false)}
         onClick={handlePlayPause}
         onContextMenu={handleContextMenu}
-        controlsList="nodownload nofullscreen"
+        preload="auto"
+        playsInline
+        controlsList="nodownload"
         disablePictureInPicture
       />
 
@@ -268,6 +309,29 @@ function VideoPlayer({
               </span>
             </div>
             <div className="flex items-center gap-4">
+              {/* Quality selector */}
+              {availableQualities && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="text-white hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded bg-white/10">
+                      {selectedQuality === "auto" ? "Auto" : selectedQuality}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {availableQualities.map((quality) => (
+                      <DropdownMenuItem 
+                        key={quality}
+                        onClick={() => handleQualityChange(quality)}
+                        className={selectedQuality === quality ? "bg-primary/10" : ""}
+                      >
+                        {quality === "auto" ? "Auto" : quality}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              
+              {/* Playback speed */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="text-white hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded bg-white/10">
@@ -324,8 +388,14 @@ function LessonContent() {
   const { data: lesson, isLoading, error } = useQuery({
     queryKey: ['lesson', lessonId],
     queryFn: async () => {
-      const response = await api.get(`/lessons/${lessonId}`)
-      return lessonSchema.parse(response.data)
+      try {
+        const response = await api.get(`/lessons/${lessonId}`)
+        const parsed = lessonSchema.parse(response.data)
+        return parsed
+      } catch (err) {
+        console.error('Lesson fetch/parse error:', err, 'Raw data:', err)
+        throw err
+      }
     },
   })
 
@@ -398,15 +468,16 @@ function LessonContent() {
   }
 
   if (error || !lesson) {
+    console.error('Lesson error or not found:', { error, lesson, lessonId })
     return (
       <PageShell maxWidth="2xl">
         <EmptyState 
           icon={BookOpen}
           title="Lesson not found"
-          description="The lesson you're looking for doesn't exist or has been removed."
+          description={error ? `Error: ${(error as any)?.message || 'Unknown error'}` : "The lesson you're looking for doesn't exist or has been removed."}
           action={{
-            label: 'Back to Lessons',
-            onClick: () => window.location.href = '/lessons'
+            label: 'Back to Courses',
+            onClick: () => window.location.href = '/courses'
           }}
         />
       </PageShell>
@@ -462,7 +533,8 @@ function LessonContent() {
         {/* Video */}
         {lesson.videoUrl && (
           <VideoPlayer 
-            src={lesson.videoUrl} 
+            src={lesson.videoUrl}
+            qualities={lesson.videoQualities} 
             onComplete={handleVideoComplete}
           />
         )}

@@ -522,7 +522,7 @@ export default function ConceptMapPage() {
   const [newConceptName, setNewConceptName] = useState('')
   const [newConceptDescription, setNewConceptDescription] = useState('')
   const [newConceptDifficulty, setNewConceptDifficulty] = useState('medium')
-  const [newConceptLessonId, setNewConceptLessonId] = useState('')
+  const [newConceptLessonId, setNewConceptLessonId] = useState('none')
 
   // Fetch concept map data
   const { data: mapData, isLoading } = useQuery({
@@ -577,7 +577,7 @@ export default function ConceptMapPage() {
       setNewConceptName('')
       setNewConceptDescription('')
       setNewConceptDifficulty('medium')
-      setNewConceptLessonId('')
+      setNewConceptLessonId('none')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || 'Failed to create concept')
@@ -669,7 +669,7 @@ export default function ConceptMapPage() {
                   name: newConceptName,
                   description: newConceptDescription || undefined,
                   difficulty: newConceptDifficulty,
-                  lesson_id: newConceptLessonId || undefined,
+                  lesson_id: newConceptLessonId === 'none' ? undefined : newConceptLessonId,
                 })}
                 disabled={!newConceptName.trim() || createConceptMutation.isPending}
                 className="gap-2"
@@ -720,7 +720,7 @@ export default function ConceptMapPage() {
                   <SelectValue placeholder="Select a lesson (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No lesson</SelectItem>
+                  <SelectItem value="none">No lesson</SelectItem>
                   {mapData?.lessons?.map((lesson: any) => (
                     <SelectItem key={lesson.id} value={lesson.id}>
                       {lesson.title}
@@ -913,7 +913,7 @@ export default function ConceptMapPage() {
                 name: newConceptName,
                 description: newConceptDescription || undefined,
                 difficulty: newConceptDifficulty,
-                lesson_id: newConceptLessonId || undefined,
+                lesson_id: newConceptLessonId === 'none' ? undefined : newConceptLessonId,
               })}
               disabled={!newConceptName.trim() || createConceptMutation.isPending}
               className="gap-2"

@@ -48,6 +48,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 // Design System
 import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/layout'
@@ -93,6 +110,108 @@ interface StudentProgress {
 
 type ViewMode = 'lessons' | 'students' | 'overview' | 'settings'
 
+// Sortable Lesson Card Component
+function SortableLesson({
+  lesson,
+  index,
+  onOpen,
+  onEdit,
+  onDelete,
+  formatDuration
+}: {
+  lesson: Lesson
+  index: number
+  onOpen: () => void
+  onEdit: () => void
+  onDelete: () => void
+  formatDuration: (seconds?: number) => string
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: lesson.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: isDragging ? 0.5 : 1, y: 0 }}
+      transition={{ delay: index * 0.03 }}
+    >
+      <SurfaceCard className="group hover:shadow-md hover:border-primary/30 transition-all cursor-pointer" onClick={onOpen}>
+        <div className="flex items-center gap-4">
+          <div 
+            {...attributes} 
+            {...listeners}
+            className="p-2 rounded-lg bg-primary/10 text-primary cursor-grab active:cursor-grabbing" 
+            onClick={e => e.stopPropagation()}
+          >
+            <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-semibold">
+            {lesson.position}
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold truncate">{lesson.title}</h3>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                {lesson.video_url ? <Video className="h-3.5 w-3.5" /> : <File className="h-3.5 w-3.5" />}
+                {lesson.video_url ? 'Video' : 'Content'}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {formatDuration(lesson.duration_seconds)}
+              </span>
+              {lesson.attachments && lesson.attachments.filter(a => !a.type?.startsWith('video/')).length > 0 && (
+                <span className="flex items-center gap-1">
+                  <File className="h-3.5 w-3.5" />
+                  {lesson.attachments.filter(a => !a.type?.startsWith('video/')).length} files
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div onClick={e => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="gap-2" onClick={onEdit}>
+                  <Edit2 className="h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="gap-2 text-destructive"
+                  onClick={onDelete}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </SurfaceCard>
+    </motion.div>
+  )
+}
+
 export default function CourseDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -110,6 +229,7 @@ export default function CourseDetailPage() {
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editContent, setEditContent] = useState('')
+  const [editDuration, setEditDuration] = useState<number>(0)
   const [editVideoFile, setEditVideoFile] = useState<globalThis.File | null>(null)
   const [editMaterialFiles, setEditMaterialFiles] = useState<globalThis.File[]>([]
   )
@@ -118,6 +238,7 @@ export default function CourseDetailPage() {
   const [lessonTitle, setLessonTitle] = useState('')
   const [lessonDescription, setLessonDescription] = useState('')
   const [lessonContent, setLessonContent] = useState('')
+  const [lessonDuration, setLessonDuration] = useState<number>(0)
   const [lessonVideoFile, setLessonVideoFile] = useState<globalThis.File | null>(null)
   const [lessonMaterialFiles, setLessonMaterialFiles] = useState<globalThis.File[]>([])
   const [lessonUploading, setLessonUploading] = useState(false)
@@ -210,6 +331,7 @@ export default function CourseDetailPage() {
           video_url: videoUrl,
           content: lessonContent || undefined,
           position: (lessons?.length || 0) + 1,
+          duration_seconds: lessonDuration > 0 ? lessonDuration * 60 : undefined,
           attachments,
         })
         return res.data
@@ -224,6 +346,7 @@ export default function CourseDetailPage() {
       setLessonTitle('')
       setLessonDescription('')
       setLessonContent('')
+      setLessonDuration(0)
       setLessonVideoFile(null)
       setLessonMaterialFiles([])
     },
@@ -243,6 +366,19 @@ export default function CourseDetailPage() {
     },
     onError: () => {
       toast.error('Failed to delete lesson')
+    }
+  })
+
+  // Reorder lessons mutation
+  const reorderLessonsMutation = useMutation({
+    mutationFn: async (lessonIds: string[]) => {
+      await api.post(`/instructor/courses/${courseId}/lessons/reorder`, lessonIds)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] })
+    },
+    onError: () => {
+      toast.error('Failed to reorder lessons')
     }
   })
 
@@ -273,6 +409,7 @@ export default function CourseDetailPage() {
           description: editDescription || undefined,
           content: editContent || undefined,
           video_url: videoUrl,
+          duration_seconds: editDuration > 0 ? editDuration * 60 : undefined,
           attachments,
         })
       } finally {
@@ -298,6 +435,7 @@ export default function CourseDetailPage() {
     setEditTitle(lesson.title)
     setEditDescription(lesson.description || '')
     setEditContent(lesson.content || '')
+    setEditDuration(lesson.duration_seconds ? Math.round(lesson.duration_seconds / 60) : 0)
     setEditVideoFile(null)
     setEditMaterialFiles([])
   }
@@ -307,6 +445,7 @@ export default function CourseDetailPage() {
       setEditTitle(selectedLesson.title)
       setEditDescription(selectedLesson.description || '')
       setEditContent(selectedLesson.content || '')
+      setEditDuration(selectedLesson.duration_seconds ? Math.round(selectedLesson.duration_seconds / 60) : 0)
       setEditVideoFile(null)
       setEditMaterialFiles([])
       setEditMode(true)
@@ -373,11 +512,12 @@ export default function CourseDetailPage() {
         username: data.username,
         password: data.password,
       })
-      setShowAddStudentModal(true)
+      setAddStudentOpen(true)
       toast.success('Password reset successfully!')
     },
-    onError: () => {
-      toast.error('Failed to reset password')
+    onError: (error: any) => {
+      const message = error.response?.data?.detail || 'Failed to reset password'
+      toast.error(message)
     }
   })
 
@@ -463,6 +603,32 @@ export default function CourseDetailPage() {
     if (!seconds) return '-'
     const mins = Math.floor(seconds / 60)
     return `${mins} min`
+  }
+
+  // Drag and drop handlers
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id && lessons) {
+      const oldIndex = lessons.findIndex((l) => l.id === active.id)
+      const newIndex = lessons.findIndex((l) => l.id === over.id)
+
+      const reorderedLessons = arrayMove(lessons, oldIndex, newIndex)
+      
+      // Optimistically update UI
+      queryClient.setQueryData(['course-lessons', courseId], reorderedLessons)
+      
+      // Save to backend
+      const lessonIds = reorderedLessons.map(l => l.id)
+      reorderLessonsMutation.mutate(lessonIds)
+    }
   }
 
   return (
@@ -586,75 +752,34 @@ export default function CourseDetailPage() {
               />
             </SurfaceCard>
           ) : (
-            <Stack gap="md">
-              {lessons?.map((lesson, index) => (
-                <motion.div
-                  key={lesson.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                >
-                  <SurfaceCard className="group hover:shadow-md hover:border-primary/30 transition-all cursor-pointer" onClick={() => openLessonView(lesson)}>
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary cursor-grab" onClick={e => e.stopPropagation()}>
-                        <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                      
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-semibold">
-                        {lesson.position}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{lesson.title}</h3>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            {lesson.video_url ? <Video className="h-3.5 w-3.5" /> : <File className="h-3.5 w-3.5" />}
-                            {lesson.video_url ? 'Video' : 'Content'}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5" />
-                            {formatDuration(lesson.duration_seconds)}
-                          </span>
-                          {lesson.attachments && lesson.attachments.filter(a => !a.type?.startsWith('video/')).length > 0 && (
-                            <span className="flex items-center gap-1">
-                              <File className="h-3.5 w-3.5" />
-                              {lesson.attachments.filter(a => !a.type?.startsWith('video/')).length} files
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div onClick={e => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="gap-2" onClick={() => { openLessonView(lesson); setTimeout(startEditing, 100) }}>
-                              <Edit2 className="h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="gap-2 text-destructive"
-                              onClick={() => {
-                                if (confirm('Delete this lesson?')) {
-                                  deleteLessonMutation.mutate(lesson.id)
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </SurfaceCard>
-                </motion.div>
-              ))}
-            </Stack>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={lessons?.map(l => l.id) || []}
+                strategy={verticalListSortingStrategy}
+              >
+                <Stack gap="md">
+                  {lessons?.map((lesson, index) => (
+                    <SortableLesson
+                      key={lesson.id}
+                      lesson={lesson}
+                      index={index}
+                      onOpen={() => openLessonView(lesson)}
+                      onEdit={() => { openLessonView(lesson); setTimeout(startEditing, 100) }}
+                      onDelete={() => {
+                        if (confirm('Delete this lesson?')) {
+                          deleteLessonMutation.mutate(lesson.id)
+                        }
+                      }}
+                      formatDuration={formatDuration}
+                    />
+                  ))}
+                </Stack>
+              </SortableContext>
+            </DndContext>
           )}
         </Section>
       )}
@@ -1031,6 +1156,18 @@ export default function CourseDetailPage() {
           </div>
 
           <div className="space-y-2">
+            <LabelText>Duration (minutes)</LabelText>
+            <Input
+              type="number"
+              min="0"
+              value={lessonDuration}
+              onChange={(e) => setLessonDuration(parseInt(e.target.value) || 0)}
+              placeholder="e.g., 15"
+            />
+            <HelperText>Estimated time for students to complete this lesson</HelperText>
+          </div>
+
+          <div className="space-y-2">
             <LabelText>Content</LabelText>
             <Textarea
               value={lessonContent}
@@ -1240,6 +1377,17 @@ export default function CourseDetailPage() {
               />
             </div>
             <div className="space-y-2">
+              <LabelText>Duration (minutes)</LabelText>
+              <Input
+                type="number"
+                min="0"
+                value={editDuration}
+                onChange={(e) => setEditDuration(parseInt(e.target.value) || 0)}
+                placeholder="e.g., 15"
+              />
+              <HelperText>Estimated time for students to complete this lesson</HelperText>
+            </div>
+            <div className="space-y-2">
               <LabelText>Content</LabelText>
               <Textarea
                 value={editContent}
@@ -1433,6 +1581,12 @@ export default function CourseDetailPage() {
           </Stack>
         ) : (
           <Stack gap="md">
+            <InfoPanel
+              icon={AlertCircle}
+              variant="info"
+              title="Required Information"
+              description="First name and last name are required to create a student account. Email and phone are optional."
+            />
             <Grid cols={2} gap="md">
               <div className="space-y-2">
                 <LabelText required>First Name</LabelText>
@@ -1440,7 +1594,11 @@ export default function CourseDetailPage() {
                   value={studentFirstName}
                   onChange={(e) => setStudentFirstName(e.target.value)}
                   placeholder="John"
+                  autoFocus
                 />
+                {!studentFirstName.trim() && (
+                  <HelperText className="text-red-600">First name is required</HelperText>
+                )}
               </div>
               <div className="space-y-2">
                 <LabelText required>Last Name</LabelText>
@@ -1449,6 +1607,9 @@ export default function CourseDetailPage() {
                   onChange={(e) => setStudentLastName(e.target.value)}
                   placeholder="Doe"
                 />
+                {!studentLastName.trim() && (
+                  <HelperText className="text-red-600">Last name is required</HelperText>
+                )}
               </div>
             </Grid>
             
@@ -1476,9 +1637,9 @@ export default function CourseDetailPage() {
 
             <InfoPanel
               icon={AlertCircle}
-              variant="info"
+              variant="warning"
               title="Auto-Generated Credentials"
-              description="Username and password will be automatically generated. Make sure to save them after creation!"
+              description="Username and password will be automatically generated and shown after creation. Make sure to save them!"
             />
           </Stack>
         )}

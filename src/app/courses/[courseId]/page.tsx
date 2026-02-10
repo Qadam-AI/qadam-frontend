@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '@/lib/api'
+import api, { getImageUrl } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -14,7 +14,8 @@ import {
   Clock,
   User,
   Target,
-  BookOpen
+  BookOpen,
+  File
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -109,68 +110,11 @@ function CourseDetailContent() {
           </Button>
         </Link>
 
-        {/* Course Header */}
-        <SurfaceCard variant="elevated">
-          <div className="flex items-start gap-6">
-            {course.thumbnailUrl ? (
-              <img 
-                src={course.thumbnailUrl}
-                alt={course.title}
-                className="w-32 h-32 rounded-lg object-cover"
-              />
-            ) : (
-              <div className="w-32 h-32 rounded-lg bg-primary/10 flex items-center justify-center">
-                <BookOpen className="h-14 w-14 text-primary/30" />
-              </div>
-            )}
-            <div className="flex-1">
-              <Heading level={1} className="mb-2">{course.title}</Heading>
-              {course.instructorName && (
-                <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                  <User className="h-4 w-4" />
-                  <Text variant="muted">by {course.instructorName}</Text>
-                </div>
-              )}
-              {course.description && (
-                <Text variant="muted">{course.description}</Text>
-              )}
-            </div>
-          </div>
-        </SurfaceCard>
-
-        {/* Progress Card */}
-        <SurfaceCard variant="muted">
-          <Stack gap="md">
-            <div className="flex items-center justify-between">
-              <LabelText>Course Progress</LabelText>
-              <Text className="text-2xl font-bold text-primary">
-                {Math.round(course.progressPercent)}%
-              </Text>
-            </div>
-            <Progress value={course.progressPercent} className="h-3" />
-            <Text size="sm" variant="muted">
-              {course.completedLessons} of {course.totalLessons} lessons completed
-            </Text>
-          </Stack>
-        </SurfaceCard>
-
-        {/* Next Up */}
-        {nextLesson && (
-          <InfoPanel icon={Target} title="Next Up" variant="info">
-            <div className="flex items-center justify-between">
-              <Text size="sm">{nextLesson.title}</Text>
-              <Link href={`/lesson/${nextLesson.id}`}>
-                <Button size="sm" className="gap-2">
-                  <Play className="h-4 w-4" />
-                  Continue
-                </Button>
-              </Link>
-            </div>
-          </InfoPanel>
-        )}
-
         {/* Lessons List */}
-        <Section title="Course Content" description={`${course.totalLessons} lessons`}>
+        <Section 
+          title={course.title}
+          description={`${course.totalLessons} lessons · ${course.completedLessons} completed`}
+        >
           <Stack gap="sm">
             {course.lessons.map((lesson, index) => (
               <motion.div
