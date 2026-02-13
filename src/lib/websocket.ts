@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { getToken } from '@/lib/auth';
 
 type MessageHandler = (data: unknown) => void;
 
@@ -53,7 +54,11 @@ export function useWebSocket(
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-    const token = localStorage.getItem('token');
+    const token = getToken() || localStorage.getItem('token');
+    if (!token) {
+      setIsConnected(false);
+      return;
+    }
     const url = `${WS_BASE_URL}${path}${token ? `?token=${token}` : ''}`;
     
     wsRef.current = new WebSocket(url);
