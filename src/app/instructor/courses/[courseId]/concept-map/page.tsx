@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -34,7 +34,9 @@ import {
   type ConceptMapNode,
   type LessonMapLane,
   type QuestionTypeSuggestion,
+  default as api,
 } from '@/lib/api'
+import { useWebSocket } from '@/lib/websocket'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -60,6 +62,23 @@ function difficultyDot(d: string) {
   if (d === 'easy') return 'bg-emerald-500'
   if (d === 'hard') return 'bg-red-500'
   return 'bg-amber-500'
+}
+
+function processingStatusLabel(status?: string | null) {
+  switch (status) {
+    case 'processing_content':
+      return 'Preparing content'
+    case 'processing_transcription':
+      return 'Transcribing video/audio'
+    case 'processing_analysis':
+      return 'Extracting concepts'
+    case 'failed':
+      return 'Processing failed'
+    case 'completed':
+      return 'Processing completed'
+    default:
+      return null
+  }
 }
 
 // ===== Question type labels =====
@@ -548,6 +567,34 @@ export default function ConceptMapPage() {
     refetchInterval: 5000,
   })
 
+  const { data: lessonStatuses } = useQuery({
+    queryKey: ['course-lessons-status', courseId],
+    queryFn: async () => {
+      const res = await api.get(`/instructor/courses/${courseId}/lessons`)
+      return (res.data || []) as Array<{ id: string; title: string; transcoding_status?: string | null }>
+    },
+    refetchInterval: 5000,
+  })
+
+  const ws = useWebSocket(
+    '/ws',
+    {
+      lesson_processing_status: () => {
+        queryClient.invalidateQueries({ queryKey: ['course-lessons-status', courseId] })
+        queryClient.invalidateQueries({ queryKey: ['conceptMap', courseId] })
+      },
+    },
+    { reconnect: true }
+  )
+
+  useEffect(() => {
+    if (!ws.isConnected || !courseId) return
+    ws.send({ type: 'join_room', room: `course:${courseId}` })
+    return () => {
+      ws.send({ type: 'leave_room', room: `course:${courseId}` })
+    }
+  }, [ws.isConnected, ws.send, courseId])
+
   // LLM suggestions (lazy loaded)
   const { data: suggestions, isFetching: loadingSuggestions, refetch: fetchSuggestions } = useQuery({
     queryKey: ['question-suggestions', courseId],
@@ -645,6 +692,13 @@ export default function ConceptMapPage() {
     if (!selectedConceptId || !suggestions) return undefined
     return suggestions.suggestions.find(s => s.concept_id === selectedConceptId)
   }, [selectedConceptId, suggestions])
+
+  const processingLessons = useMemo(() => {
+    return (lessonStatuses || []).filter((lesson) => {
+      const status = lesson.transcoding_status
+      return status && status !== 'completed'
+    })
+  }, [lessonStatuses])
 
   if (isLoading) {
     return (
@@ -823,6 +877,25 @@ export default function ConceptMapPage() {
 
       {/* Tree content */}
       <div className="max-w-5xl mx-auto px-6 py-8 transition-all duration-300">
+        {processingLessons.length > 0 && (
+          <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              Background processing is running
+            </div>
+            <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+              {processingLessons.map((lesson) => (
+                <div key={lesson.id} className="flex items-center justify-between gap-3">
+                  <span className="truncate">{lesson.title}</span>
+                  <span className="shrink-0">
+                    {processingStatusLabel(lesson.transcoding_status) || lesson.transcoding_status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Difficulty legend */}
         <div className="flex items-center gap-4 mb-6 text-xs">
           <span className="text-muted-foreground font-medium">Difficulty:</span>

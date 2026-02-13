@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api, { getImageUrl, getVideoUrl } from '@/lib/api'
@@ -94,7 +94,25 @@ interface Lesson {
   video_url?: string
   position: number
   duration_seconds?: number
+  transcoding_status?: string | null
   attachments?: Array<{ url: string; name: string; type: string; size_bytes?: number }>
+}
+
+function lessonProcessingLabel(status?: string | null) {
+  switch (status) {
+    case 'processing_content':
+      return 'Preparing content'
+    case 'processing_transcription':
+      return 'Transcribing video/audio'
+    case 'processing_analysis':
+      return 'Extracting concepts'
+    case 'failed':
+      return 'Processing failed'
+    case 'completed':
+      return 'Processing completed'
+    default:
+      return null
+  }
 }
 
 interface StudentProgress {
@@ -275,8 +293,16 @@ export default function CourseDetailPage() {
     queryFn: async () => {
       const res = await api.get<Lesson[]>(`/instructor/courses/${courseId}/lessons`)
       return res.data
-    }
+    },
+    refetchInterval: 5000,
   })
+
+  const processingLessons = useMemo(() => {
+    return (lessons || []).filter((lesson) => {
+      const status = lesson.transcoding_status
+      return status && status !== 'completed'
+    })
+  }, [lessons])
 
   // Fetch students
   const { data: students } = useQuery({
@@ -745,6 +771,25 @@ export default function CourseDetailPage() {
           Settings
         </Button>
       </div>
+
+      {processingLessons.length > 0 && (
+        <div className="mt-4 mb-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            Lesson processing is in progress
+          </div>
+          <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+            {processingLessons.map((lesson) => (
+              <div key={lesson.id} className="flex items-center justify-between gap-3">
+                <span className="truncate">{lesson.title}</span>
+                <span className="shrink-0">
+                  {lessonProcessingLabel(lesson.transcoding_status) || lesson.transcoding_status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Lessons View */}
       {viewMode === 'lessons' && (
