@@ -65,10 +65,20 @@ function difficultyDot(d: string) {
 // ===== Question type labels =====
 const QUESTION_TYPES = [
   { value: 'multiple_choice', label: 'Multiple Choice' },
+  { value: 'multiple_select', label: 'Multiple Select' },
   { value: 'true_false', label: 'True / False' },
+  { value: 'long_answer', label: 'Long Answer' },
   { value: 'short_answer', label: 'Short Answer' },
   { value: 'fill_in_blank', label: 'Fill in Blank' },
+  { value: 'matching', label: 'Matching' },
+  { value: 'ordering', label: 'Ordering' },
+  { value: 'scenario_based', label: 'Scenario Based' },
+  { value: 'conceptual', label: 'Conceptual' },
+  { value: 'numeric', label: 'Numeric' },
+  { value: 'problem_solving', label: 'Problem Solving' },
+  { value: 'code', label: 'Code' },
   { value: 'code_output', label: 'Code Output' },
+  { value: 'debugging', label: 'Debugging' },
 ]
 
 // ===== Concept Card in Tree =====
@@ -235,6 +245,7 @@ function ConceptDetailPanel({
   const { data: details, isLoading } = useQuery({
     queryKey: ['concept-details', courseId, conceptId],
     queryFn: () => getConceptDetails(courseId, conceptId),
+    refetchInterval: 5000,
   })
 
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
@@ -250,12 +261,17 @@ function ConceptDetailPanel({
 
   return (
     <motion.div
-      initial={{ x: '100%', opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: '100%', opacity: 0 }}
-      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="fixed right-0 top-16 bottom-0 w-[420px] bg-white dark:bg-gray-950 border-l shadow-2xl z-50 overflow-y-auto"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 12 }}
+      transition={{ type: 'spring', damping: 24, stiffness: 240 }}
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 backdrop-blur-[1px] pt-16 px-4"
+      onClick={onClose}
     >
+      <div
+        className="w-full max-w-2xl max-h-[calc(100vh-5rem)] bg-white dark:bg-gray-950 border rounded-xl shadow-2xl overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
       {/* Header */}
       <div className="sticky top-0 bg-white dark:bg-gray-950 border-b px-5 py-4 z-10">
         <div className="flex items-start justify-between gap-3">
@@ -505,6 +521,7 @@ function ConceptDetailPanel({
           </Button>
         </div>
       </div>
+      </div>
     </motion.div>
   )
 }
@@ -528,6 +545,7 @@ export default function ConceptMapPage() {
   const { data: mapData, isLoading } = useQuery({
     queryKey: ['conceptMap', courseId],
     queryFn: () => getCourseConceptMap(courseId),
+    refetchInterval: 5000,
   })
 
   // LLM suggestions (lazy loaded)
@@ -804,7 +822,7 @@ export default function ConceptMapPage() {
       </div>
 
       {/* Tree content */}
-      <div className={`max-w-5xl mx-auto px-6 py-8 transition-all duration-300 ${selectedConceptId ? 'mr-[420px]' : ''}`}>
+      <div className="max-w-5xl mx-auto px-6 py-8 transition-all duration-300">
         {/* Difficulty legend */}
         <div className="flex items-center gap-4 mb-6 text-xs">
           <span className="text-muted-foreground font-medium">Difficulty:</span>
@@ -964,7 +982,7 @@ export default function ConceptMapPage() {
                 <SelectValue placeholder="Select a lesson (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No lesson</SelectItem>
+                <SelectItem value="none">No lesson</SelectItem>
                 {mapData?.lessons?.map((lesson: any) => (
                   <SelectItem key={lesson.id} value={lesson.id}>
                     {lesson.title}

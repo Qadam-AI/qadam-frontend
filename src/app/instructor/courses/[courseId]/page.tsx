@@ -388,7 +388,7 @@ export default function CourseDetailPage() {
       setEditUploading(true)
       try {
         let videoUrl = selectedLesson.video_url
-        const existingAttachments = (selectedLesson.attachments || []).filter(a => a.type && !a.type.startsWith('video/'))
+        const existingAttachments = (selectedLesson.attachments || []).filter(a => !a.type?.startsWith('video/'))
         const attachments = [...existingAttachments]
 
         // Upload new video if provided
@@ -403,14 +403,36 @@ export default function CourseDetailPage() {
           if (uploaded) attachments.push(uploaded)
         }
 
-        await api.patch(`/instructor/lessons/${selectedLesson.id}`, {
-          title: editTitle,
-          description: editDescription || undefined,
-          content: editContent || undefined,
-          video_url: videoUrl,
-          duration_seconds: editDuration > 0 ? editDuration * 60 : undefined,
-          attachments,
-        })
+        const payload: Record<string, unknown> = {}
+
+        if (editTitle !== selectedLesson.title) {
+          payload.title = editTitle
+        }
+        if ((editDescription || '') !== (selectedLesson.description || '')) {
+          payload.description = editDescription || undefined
+        }
+        if ((editContent || '') !== (selectedLesson.content || '')) {
+          payload.content = editContent || undefined
+        }
+
+        const currentDuration = selectedLesson.duration_seconds ? Math.round(selectedLesson.duration_seconds / 60) : 0
+        if (editDuration !== currentDuration) {
+          payload.duration_seconds = editDuration > 0 ? editDuration * 60 : undefined
+        }
+
+        if (editVideoFile && videoUrl !== selectedLesson.video_url) {
+          payload.video_url = videoUrl
+        }
+
+        if (editMaterialFiles.length > 0) {
+          payload.attachments = attachments
+        }
+
+        if (Object.keys(payload).length === 0) {
+          return
+        }
+
+        await api.patch(`/instructor/lessons/${selectedLesson.id}`, payload)
       } finally {
         setEditUploading(false)
       }
