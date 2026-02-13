@@ -71,7 +71,6 @@ import { PageShell, PageHeader, Section, Grid, Stack } from '@/design-system/lay
 import { MetricCard, SurfaceCard, InfoPanel } from '@/design-system/surfaces'
 import { EmptyState, LoadingState } from '@/design-system/feedback'
 import { ModalLayout } from '@/design-system/patterns/modal-layout'
-import { DrawerLayout } from '@/design-system/patterns/drawer-layout'
 import { LabelText, HelperText, Text } from '@/design-system/typography'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
@@ -1268,12 +1267,12 @@ export default function CourseDetailPage() {
         </Stack>
       </ModalLayout>
 
-      {/* Lesson View / Edit Drawer */}
-      <DrawerLayout
+      {/* Lesson View / Edit Modal */}
+      <ModalLayout
         open={!!selectedLesson}
         onClose={() => { setSelectedLesson(null); setEditMode(false) }}
         title={editMode ? 'Edit Lesson' : selectedLesson?.title || 'Lesson'}
-        size="lg"
+        size="xl"
       >
         {selectedLesson && !editMode && (
           <Stack gap="lg">
@@ -1506,7 +1505,7 @@ export default function CourseDetailPage() {
             </div>
           </Stack>
         )}
-      </DrawerLayout>
+      </ModalLayout>
 
       {/* Add Student Modal */}
       <ModalLayout
