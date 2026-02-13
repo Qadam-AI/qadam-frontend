@@ -59,7 +59,7 @@ export function useWebSocket(
       setIsConnected(false);
       return;
     }
-    const url = `${WS_BASE_URL}${path}${token ? `?token=${token}` : ''}`;
+    const url = `${WS_BASE_URL}${path}${token ? `?token=${encodeURIComponent(token)}` : ''}`;
     
     wsRef.current = new WebSocket(url);
 
@@ -69,9 +69,14 @@ export function useWebSocket(
       onOpen?.();
     };
 
-    wsRef.current.onclose = () => {
+    wsRef.current.onclose = (event) => {
       setIsConnected(false);
       onClose?.();
+
+      const authCloseCode = event.code === 4001 || event.code === 1008;
+      if (authCloseCode) {
+        return;
+      }
 
       // Attempt reconnection
       if (reconnect && reconnectAttemptsRef.current < maxReconnectAttempts) {
