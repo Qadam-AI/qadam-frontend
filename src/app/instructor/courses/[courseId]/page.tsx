@@ -1222,12 +1222,12 @@ export default function CourseDetailPage() {
           {/* Materials upload */}
           <div className="space-y-2">
             <LabelText>Materials (Optional)</LabelText>
-            <HelperText>Any file type is supported for course materials</HelperText>
+            <HelperText>Allowed: PDF, PPT/PPTX, DOC/DOCX, XLS/XLSX, images, ZIP/RAR/7Z, MP4/WebM/MOV, PY</HelperText>
             <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
               <Input
                 type="file"
                 multiple
-                accept="*/*"
+                accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.gif,.zip,.rar,.7z,.mp4,.webm,.mov,.py"
                 onChange={(e) => {
                   const files = Array.from(e.target.files || [])
                   const valid = files.filter(f => {
@@ -1474,7 +1474,7 @@ export default function CourseDetailPage() {
                 <Input
                   type="file"
                   multiple
-                  accept="*/*"
+                  accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.gif,.zip,.rar,.7z,.mp4,.webm,.mov,.py"
                   onChange={(e) => {
                     const files = Array.from(e.target.files || [])
                     const valid = files.filter(f => { if (f.size > 50 * 1024 * 1024) { toast.error(`${f.name} exceeds 50 MB`); return false } return true })

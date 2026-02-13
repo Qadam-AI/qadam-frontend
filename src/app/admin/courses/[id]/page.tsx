@@ -803,7 +803,7 @@ export default function CourseDetailPage() {
                 <input
                   ref={resourceInputRef}
                   type="file"
-                  accept="*/*"
+                  accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.gif,.zip,.rar,.7z,.mp4,.webm,.ogg,.mov,.py"
                   onChange={handleResourceUpload}
                   className="hidden"
                 />
