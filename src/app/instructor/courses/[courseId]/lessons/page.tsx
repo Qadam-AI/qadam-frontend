@@ -559,12 +559,12 @@ export default function CourseLessonsPage() {
           {/* Materials upload */}
           <div className="space-y-2">
             <LabelText>Materials (Optional)</LabelText>
-            <HelperText>Allowed: PDF, PPT/PPTX, DOC/DOCX, XLS/XLSX, images, ZIP/RAR/7Z, MP4/WebM/MOV, PY</HelperText>
+            <HelperText>Any file type is supported (max 50 MB per file)</HelperText>
             <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
               <Input
                 type="file"
                 multiple
-                accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.gif,.zip,.rar,.7z,.mp4,.webm,.mov,.py"
+                accept="*/*"
                 onChange={(e) => {
                   const files = Array.from(e.target.files || [])
                   const validFiles = files.filter(file => {
