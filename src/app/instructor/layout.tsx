@@ -224,18 +224,20 @@ export default function InstructorLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user } = useAuth()
+  const { user, isHydrated } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
+    if (!isHydrated) return
+
     if (!user) {
       router.push('/login')
     } else if (user.role !== 'instructor' && user.role !== 'admin') {
       router.push('/lessons')
     }
-  }, [user, router])
+  }, [isHydrated, user, router])
 
-  if (!user || (user.role !== 'instructor' && user.role !== 'admin')) {
+  if (!isHydrated || !user || (user.role !== 'instructor' && user.role !== 'admin')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
