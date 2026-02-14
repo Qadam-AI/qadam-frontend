@@ -1,15 +1,18 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { toast } from 'sonner'
-//  s://qadam-backend-production.up.railway.app
-// http://localhost:8000/api/v1
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://localhost:8000/api/v1'
+    : 'https://qadam-backend-production.up.railway.app/api/v1')
+
 const api = axios.create({
-  
-  baseURL: 'https://qadam-backend-production.up.railway.app/api/v1', // Update with your backend URL
-  // baseURL: 'http://localhost:8000/api/v1', // Update with your backend URL
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 180000, // 3 minutes for LLM operations
+  timeout: 20000,
 })
 
 // Track retry count
@@ -103,7 +106,8 @@ api.interceptors.response.use(
     }
     
     // Retry logic ONLY for network errors, NOT for 500 errors (those are server bugs)
-    const shouldRetry = !status // Only network errors (no status code)
+    const isLoginRequest = typeof config?.url === 'string' && config.url.includes('/auth/login')
+    const shouldRetry = !status && !isLoginRequest // Only network errors, skip retry for login
     
     if (shouldRetry && config && !config._retry) {
       config._retry = 1

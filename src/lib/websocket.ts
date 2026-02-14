@@ -25,7 +25,19 @@ interface UseWebSocketReturn {
   disconnect: () => void;
 }
 
-const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://qadam-backend-production.up.railway.app';
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const derivedWsBaseUrl = configuredApiUrl
+  ? configuredApiUrl
+      .replace('/api/v1', '')
+      .replace('/api', '')
+      .replace(/^http:/, 'ws:')
+      .replace(/^https:/, 'wss:')
+  : null;
+
+const WS_BASE_URL =
+  process.env.NEXT_PUBLIC_WS_URL ||
+  derivedWsBaseUrl ||
+  'wss://qadam-backend-production.up.railway.app';
 
 /**
  * Generic WebSocket hook for real-time communication
