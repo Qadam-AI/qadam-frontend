@@ -583,6 +583,23 @@ export default function ConceptMapPage() {
         queryClient.invalidateQueries({ queryKey: ['course-lessons-status', courseId] })
         queryClient.invalidateQueries({ queryKey: ['conceptMap', courseId] })
       },
+      question_generation_status: (data: any) => {
+        if (data.status === 'started') {
+          toast.loading('Starting question generation...', { id: 'gen-questions' })
+        } else if (data.status === 'generating_tier') {
+          const tier = data.tier.charAt(0).toUpperCase() + data.tier.slice(1)
+          toast.loading(`Generating ${tier} questions...`, { id: 'gen-questions' })
+        } else if (data.status === 'tier_complete') {
+          const tier = data.tier.charAt(0).toUpperCase() + data.tier.slice(1)
+          toast.loading(`Completed ${tier} questions (${data.generated_count})`, { id: 'gen-questions' })
+        } else if (data.status === 'completed') {
+          toast.success(`Generation complete! Created ${data.total_generated} questions.`, { id: 'gen-questions' })
+          queryClient.invalidateQueries({ queryKey: ['conceptMap', courseId] })
+          queryClient.invalidateQueries({ queryKey: ['concept-details', courseId] })
+        } else if (data.status === 'tier_error') {
+          toast.error(`Error generating ${data.tier} questions: ${data.error}`, { id: 'gen-questions' })
+        }
+      },
     },
     { reconnect: true }
   )
